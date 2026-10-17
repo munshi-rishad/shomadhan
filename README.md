@@ -19,4 +19,5 @@ Run: copy this folder to `C:/xampp/htdocs/`, start Apache, open
 index.php -> HomeController::index() -> ServiceModel::getAll() -> views/landing/home.php
 
 ## Done: welcome page (phone fits one screen + PC), Bangla/English switch
-## Empty files = next steps: login, register, validation (client + server)
+## Done: login page (phone + PC) with client + server validation. DB check comes later.
+## Empty files = next steps: register, UserModel, schema.sql
