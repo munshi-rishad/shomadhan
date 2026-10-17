@@ -23,6 +23,7 @@
         <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>
         <button type="button" data-lang="bn" aria-pressed="<?= $lang === 'bn' ? 'true' : 'false' ?>">বাংলা</button>
         <button type="button" data-lang="en" aria-pressed="<?= $lang === 'en' ? 'true' : 'false' ?>">English</button>
+        <svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </div>
 
     <main class="layout">
@@ -42,7 +43,7 @@
         <!-- 2) COUPON card + service icons -->
         <section class="info">
 
-            <!-- New-account coupon banner -->
+            <!-- New-account coupon banner (same image on phone and PC) -->
             <div class="promo">
                 <img src="assets/images/coupon-banner.jpg" width="1600" height="616" alt="<?= e($bn['promo_alt']) ?>">
             </div>
