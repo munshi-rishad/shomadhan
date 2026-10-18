@@ -58,7 +58,7 @@ $person = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12
                 <p><?= e($t['reg_pc_sub']) ?><br><?= e($t['reg_h1_c1']) ?> <?= e($t['reg_sub2']) ?></p>
             </div>
 
-            <form class="form" method="post" action="register.php" novalidate data-msg="<?= e(json_encode($msg, JSON_UNESCAPED_UNICODE)) ?>">
+            <form class="form" method="post" action="register.php" novalidate data-check="check-availability.php" data-msg="<?= e(json_encode($msg, JSON_UNESCAPED_UNICODE)) ?>">
                 <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
 
                 <?php if (!empty($errors['form'])): ?><p class="alert alert-error" role="alert"><?= e($errors['form']) ?></p><?php endif; ?>

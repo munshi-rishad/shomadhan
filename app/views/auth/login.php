@@ -74,8 +74,8 @@
                 </div>
 
                 <div class="row">
-                    <label class="check"><input type="checkbox" name="remember" value="1" checked><span class="box"></span><span><?= e($t['remember_me']) ?></span></label>
-                    <a class="link" href="#"><?= e($t['forgot_password']) ?></a>
+                    <label class="check"><input type="checkbox" name="remember" value="1"<?= $old['remember'] ? ' checked' : '' ?>><span class="box"></span><span><?= e($t['remember_me']) ?></span></label>
+                    <a class="link" href="forgot-password.php"><?= e($t['forgot_password']) ?></a>
                 </div>
 
                 <button class="btn-submit" type="submit">

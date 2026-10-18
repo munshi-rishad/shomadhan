@@ -1,2 +1,3 @@
 config/database.php
+config/mail.php
 storage/logs/*.log

@@ -1,0 +1,29 @@
+SHOMADHAN - DEFAULT ACCOUNTS
+(shomadhan.sql import korle egulo database e insert hoy)
+Login korun MOBILE + PASSWORD diye: http://localhost/shomadhan/public/login.php
+
+1) ADMIN  (table: admins)
+   Name     : SHOMADHAN ADMIN
+   Mobile   : 01700000001
+   Email    : admin.shomadhan@gmail.com
+   Password : Admin@123
+   Status   : active
+   Login er por jabe: admin-dashboard.php
+
+2) EMPLOYEE  (table: employees)
+   Name     : KARIM ELECTRIC
+   Mobile   : 01700000002
+   Email    : employee.shomadhan@gmail.com
+   Password : Employee@123
+   Status   : active
+   Login er por jabe: employee-dashboard.php
+
+3) USER  (table: users)
+   Name     : DEMO USER
+   Mobile   : 01700000003
+   Email    : user.shomadhan@gmail.com
+   Password : User@1234
+   Area     : BAU Area
+   Gender   : male
+   Status   : active
+   Login er por jabe: user-dashboard.php

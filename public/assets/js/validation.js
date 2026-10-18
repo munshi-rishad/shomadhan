@@ -3,7 +3,21 @@
 //  - every box takes ENGLISH keyboard characters only (Bangla letters are removed)
 //  - name = CAPITAL letters, email = small letters, mobile = digits only (max 11)
 (function () {
-    var form = document.querySelector('.form');
+    // ---- eye buttons: show / hide the password next to it (every page)
+    [].slice.call(document.querySelectorAll('.toggle')).forEach(function (toggle) {
+        var input = toggle.closest('.input').querySelector('input');
+        toggle.addEventListener('click', function () {
+            var show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            toggle.setAttribute('aria-pressed', show ? 'true' : 'false');
+        });
+    });
+    // ---- OTP box: digits only
+    [].slice.call(document.querySelectorAll('input[data-digits]')).forEach(function (el) {
+        el.addEventListener('input', function () { el.value = el.value.replace(/\D/g, '').slice(0, 6); });
+    });
+
+    var form = document.querySelector('.form[data-msg]');   // login + register forms only
     if (!form) { return; }
 
     var msg = {};
@@ -30,13 +44,6 @@
     clean(email, function (v) { return v.replace(/[^\x21-\x7E]/g, '').toLowerCase(); });
     clean(pass, function (v) { return v.replace(/[^\x21-\x7E]/g, ''); });
 
-    // ---- eye button
-    var toggle = form.querySelector('.toggle');
-    toggle.addEventListener('click', function () {
-        var show = pass.type === 'password';
-        pass.type = show ? 'text' : 'password';
-        toggle.setAttribute('aria-pressed', show ? 'true' : 'false');
-    });
 
     // ---- rules (return '' when OK)
     function nameMsg() {
@@ -44,17 +51,21 @@
         if (v === '') { return msg.name_empty; }
         return /^[A-Za-z][A-Za-z .'-]{1,49}$/.test(v) ? '' : msg.name_format;
     }
-    function mobileMsg() {
+    function mobileLocal() {
         var v = mobile.value.trim();
         if (v === '') { return msg.mobile_empty; }
         if (!/^\d{11}$/.test(v)) { return msg.mobile_length; }
         return /^01[3-9]\d{8}$/.test(v) ? '' : msg.mobile_format;
     }
-    function emailMsg() {                       // optional, but only Gmail
+    function emailLocal() {                     // optional, but only Gmail
         var v = email.value.trim().toLowerCase();
         if (v === '') { return ''; }
         return /^[a-z0-9](?:[a-z0-9]|\.(?!\.)){4,28}[a-z0-9]@gmail\.com$/.test(v) ? '' : msg.email;
     }
+    // "already used" answers from the server (register page only, see live check below)
+    var taken = { mobile: '', email: '' };
+    function mobileMsg() { return mobileLocal() || taken.mobile; }
+    function emailMsg() { return emailLocal() || taken.email; }
     function passMsg() {
         var v = pass.value;
         if (v === '') { return msg.password_empty; }
@@ -94,6 +105,42 @@
             });
         });
     });
+    // ---- LIVE CHECK (AJAX): is this mobile / email already used by another account?
+    // Runs a moment after the person stops typing, only when the format is already correct.
+    var checkUrl = form.getAttribute('data-check');
+    var csrfBox = form.querySelector('[name="csrf"]');
+    function liveCheck(el, field, localFn) {
+        if (!checkUrl || !el) { return; }
+        var item = fields.filter(function (i) { return i.el === el; })[0];
+        var timer = null, lastAsked = '';
+        function ask() {
+            var value = el.value.trim().toLowerCase();
+            if (value === '' || localFn() !== '' || value === lastAsked) { return; }
+            lastAsked = value;
+            var body = new URLSearchParams();
+            body.append('field', field);
+            body.append('value', value);
+            body.append('csrf', csrfBox ? csrfBox.value : '');
+            fetch(checkUrl, { method: 'POST', body: body, credentials: 'same-origin', headers: { 'X-Requested-With': 'fetch' } })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (!data || !data.ok || el.value.trim().toLowerCase() !== value) { return; }  // typed again meanwhile
+                    taken[field] = data.available ? '' : data.message;
+                    show(item);
+                })
+                .catch(function () { lastAsked = ''; });                 // network problem: server checks on submit
+        }
+        el.addEventListener('input', function () {
+            if (taken[field]) { taken[field] = ''; show(item); }
+            lastAsked = '';
+            clearTimeout(timer);
+            timer = setTimeout(ask, 450);
+        });
+        el.addEventListener('blur', function () { clearTimeout(timer); ask(); });
+    }
+    liveCheck(mobile, 'mobile', mobileLocal);
+    liveCheck(email, 'email', emailLocal);
+
     form.addEventListener('submit', function (ev) {
         var first = null;
         fields.forEach(function (item) { if (!show(item) && !first) { first = item; } });

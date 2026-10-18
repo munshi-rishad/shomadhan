@@ -180,3 +180,17 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
     .card--reg .btn-google { height: 44px; }
     .card--reg .signup { margin-top: 12px; }
 }
+
+/* ---------------- forgot password ---------------- */
+.hint { margin-top: 10px; font-size: .8rem; line-height: 1.5; color: #6b746f; }
+.input input.otp { letter-spacing: 6px; font-weight: 600; }
+.input input.otp::placeholder { letter-spacing: normal; font-weight: 400; }   /* Bangla placeholder: no gaps between letters */
+.link-btn { border: 0; background: none; padding: 0; color: var(--green); font: 600 .85rem 'Poppins', 'Hind Siliguri', sans-serif; cursor: pointer; }
+.steps { display: flex; gap: 8px; list-style: none; margin-bottom: 16px; }
+.steps li { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--line); font-weight: 600; font-size: .85rem; color: #6b746f; background: #fff; }
+.steps li.on { border-color: var(--green); color: var(--green); }
+.steps li.done { border-color: var(--green); background: var(--green); color: #fff; }
+
+/* ---------------- blank dashboards ---------------- */
+.dash-title { margin-top: 30px; font-size: 1.8rem; color: var(--green); }
+.dash-name { margin-top: 6px; font-weight: 600; color: var(--muted); }
