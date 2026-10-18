@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="assets/css/landing.css">
+    <link rel="stylesheet" href="<?= e(asset('assets/css/landing.css')) ?>">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
 
         <!-- 1) HERO: logo + headline -->
         <section class="hero">
-            <img class="logo" src="assets/images/logo.png" alt="Shomadhan">
+            <img class="logo" src="<?= e(asset('assets/images/logo.png')) ?>" alt="Shomadhan">
             <p class="tagline"><?= e($bn['tagline']) ?></p>
             <h1>
                 <span><?= e($bn['h1_line1']) ?></span>
@@ -45,7 +45,7 @@
 
             <!-- New-account coupon banner (same image on phone and PC) -->
             <div class="promo">
-                <img src="assets/images/coupon-banner.jpg" width="1600" height="616" alt="<?= e($bn['promo_alt']) ?>">
+                <img src="<?= e(asset('assets/images/coupon-banner.jpg')) ?>" width="1600" height="616" alt="<?= e($bn['promo_alt']) ?>">
             </div>
 
             <!-- The 5 service icons come from ServiceModel (a loop) -->
@@ -82,6 +82,6 @@
 
 <!-- Both languages are given to JavaScript, so the switch is instant -->
 <script>window.LANG_TEXTS = <?= json_encode($allTexts, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?>;</script>
-<script src="assets/js/landing.js"></script>
+<script src="<?= e(asset('assets/js/landing.js')) ?>"></script>
 </body>
 </html>

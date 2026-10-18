@@ -30,3 +30,12 @@ function csrf_check($token)
 {
     return !empty($_SESSION['csrf']) && is_string($token) && hash_equals($_SESSION['csrf'], $token);
 }
+
+// asset('assets/css/auth.css')  ->  'assets/css/auth.css?v=1760000000'
+// The number changes whenever the file changes, so the browser never shows an OLD
+// css / js / image from its cache after you update the project.
+function asset($path)
+{
+    $file = dirname(__DIR__, 2) . '/public/' . $path;
+    return $path . (is_file($file) ? '?v=' . filemtime($file) : '');
+}

@@ -65,6 +65,71 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .btn-google { display: flex; align-items: center; justify-content: center; gap: 10px; height: 50px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font: 600 .92rem 'Poppins', 'Hind Siliguri', sans-serif; color: var(--text); cursor: pointer; }
 .signup { margin-top: auto; padding-top: 22px; text-align: center; font-size: .85rem; color: #555; }
 
+/* ---------- Register extras ---------- */
+[hidden] { display: none !important; }
+.opt { font-weight: 400; font-size: .85em; color: #6b746f; }
+#name { text-transform: uppercase; }
+#name::placeholder { text-transform: none; }
+.field + .field-row, .field-row > .field + .field { margin-top: clamp(14px, 2.4vh, 22px); }
+.pc-sub { display: none; }
+.input .sel { flex: 1; min-width: 0; appearance: none; -webkit-appearance: none; border: 0; outline: 0; background: transparent; font: 500 1rem 'Poppins', 'Hind Siliguri', sans-serif; color: var(--text); cursor: pointer; }
+.input > .chev, .combo-btn .chev { width: 18px; height: 18px; margin-left: auto; color: #333; pointer-events: none; }
+.combo { position: relative; }
+.combo-btn { width: 100%; text-align: left; cursor: pointer; font: 600 .98rem 'Poppins', 'Hind Siliguri', sans-serif; color: var(--text); }
+.combo-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.combo-text.placeholder { font-weight: 400; color: #9aa5a0; }
+.combo-btn[aria-expanded="true"] { border-color: var(--green); }
+.combo-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.combo-panel { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 20; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 10px 28px rgba(0,0,0,.16); }
+.combo-search { width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; outline: 0; font: 400 1rem 'Poppins', sans-serif; }
+.combo-search:focus { border-color: var(--green); }
+.combo-list { list-style: none; max-height: 220px; margin-top: 6px; overflow-y: auto; }
+.combo-list li { padding: 9px 12px; border-radius: 8px; font-size: .92rem; cursor: pointer; }
+.combo-list li:hover, .combo-list li:focus { background: #e9f6ef; outline: 0; }
+.combo-list li[aria-selected="true"] { background: #d6f0e2; font-weight: 600; }
+.combo-panel--plain .combo-list { margin-top: 0; max-height: none; }
+.combo-list .combo-empty { color: #6b746f; cursor: default; }
+.terms { align-items: flex-start; margin-top: clamp(14px, 2.2vh, 20px); font-size: .84rem; line-height: 1.55; }
+.terms .box { margin-top: 1px; }
+.terms a { color: var(--green); font-weight: 600; }
+
+/* ---------- Register page on PHONE: compact so the whole form fits one screen ---------- */
+@media (max-width: 899px) {
+    .auth--reg .back { width: 30px; height: 30px; }
+    .auth--reg .logo { width: 132px; margin-top: 2px; }
+    .auth--reg .tagline { font-size: .58rem; }
+    .auth--reg .illus-m { top: 2px; width: 118px; }
+    .auth--reg .intro-sub { margin-top: 8px; font-size: .8rem; line-height: 1.45; }
+    .card--reg { margin-top: clamp(8px, 1.6vh, 14px); }
+    .card--reg .field + .field, .card--reg .field + .field-row { margin-top: clamp(7px, 1.3vh, 11px); }
+    .card--reg .field label { margin-bottom: 4px; font-size: .84rem; }
+    .card--reg .input { height: clamp(40px, 5.2vh, 46px); padding: 0 12px; border-radius: 11px; }
+    .card--reg .combo-btn { font-size: .9rem; }
+    .field-row { display: grid; grid-template-columns: minmax(0, 1fr) 124px; gap: 10px; margin-top: clamp(7px, 1.3vh, 11px); }
+    .field-row > .field + .field { margin-top: 0; }
+    .card--reg .error-text { margin-top: 3px; font-size: .74rem; }
+    .card--reg .terms { margin-top: clamp(8px, 1.4vh, 12px); font-size: .76rem; line-height: 1.45; }
+    .card--reg .btn-submit { height: clamp(44px, 5.6vh, 50px); margin-top: clamp(10px, 1.8vh, 16px); font-size: 1rem; }
+    .card--reg .or { margin: clamp(8px, 1.5vh, 12px) 0; }
+    .card--reg .btn-google { height: clamp(40px, 5vh, 44px); }
+    .card--reg .signup { padding-top: clamp(8px, 1.5vh, 14px); }
+}
+
+@media (max-width: 899px) and (max-height: 760px) {
+    .auth--reg .logo { width: 112px; }
+    .auth--reg .illus-m { width: 92px; }
+    .auth--reg .intro-sub { margin-top: 5px; font-size: .74rem; line-height: 1.35; }
+    .card--reg { margin-top: 6px; }
+    .card--reg .field + .field, .card--reg .field + .field-row, .field-row { margin-top: 5px; }
+    .card--reg .field label { margin-bottom: 2px; font-size: .78rem; }
+    .card--reg .input { height: 36px; }
+    .card--reg .terms { margin-top: 5px; font-size: .7rem; line-height: 1.35; }
+    .card--reg .btn-submit { height: 42px; margin-top: 8px; font-size: .95rem; }
+    .card--reg .or { margin: 6px 0; }
+    .card--reg .btn-google { height: 36px; }
+    .card--reg .signup { padding-top: 6px; font-size: .78rem; }
+}
+
 /* ==========================================================
    PC / Laptop (900px or wider): text left, white card right.
    Same city photo + white haze as the landing page.
@@ -98,4 +163,20 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
     .field label { font-size: .88rem; }
     .input { height: 50px; }
     .signup { margin-top: 18px; padding-top: 0; }
+
+    /* ----- register page (PC) ----- */
+    .auth--reg { grid-template-columns: minmax(0, 1fr) 480px; }
+    .pc-sub { display: block; margin-top: 12px; font-size: 1.2rem; line-height: 1.45; font-weight: 500; color: var(--muted); }
+    .card--reg { padding: 22px 28px 18px; }
+    .card--reg .card-head { margin-bottom: 12px; }
+    .card--reg .field + .field, .card--reg .field + .field-row { margin-top: 11px; }
+    .card--reg .field label { margin-bottom: 5px; }
+    .card--reg .input { height: 44px; }
+    .field-row { display: grid; grid-template-columns: 1fr 180px; gap: 12px; margin-top: 11px; }
+    .field-row > .field + .field { margin-top: 0; }
+    .card--reg .terms { margin-top: 12px; }
+    .card--reg .btn-submit { height: 50px; margin-top: 14px; }
+    .card--reg .or { margin: 12px 0 10px; }
+    .card--reg .btn-google { height: 44px; }
+    .card--reg .signup { margin-top: 12px; }
 }

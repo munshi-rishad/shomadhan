@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/auth.css">
+    <link rel="stylesheet" href="<?= e(asset('assets/css/auth.css')) ?>">
 </head>
 <body>
 <div class="page">
@@ -19,21 +19,16 @@
         <section class="intro">
             <a class="back" href="index.php" aria-label="<?= e($t['login_back']) ?>"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></a>
             <div class="brand">
-                <img class="logo" src="assets/images/logo.png" alt="Shomadhan">
+                <img class="logo" src="<?= e(asset('assets/images/logo.png')) ?>" alt="Shomadhan">
                 <p class="tagline"><?= e($t['tagline']) ?></p>
             </div>
-            <img class="illus-m" src="assets/images/login-illustration.svg" alt="">
+            <img class="illus-m" src="<?= e(asset('assets/images/login-illustration.svg')) ?>" alt="">
             <p class="intro-sub"><?= e($t['login_sub1']) ?><br><?= e($t['login_sub2']) ?></p>
 
             <h1 class="pc-h1"><span><?= e($t['login_h1_a']) ?></span><span class="green"><?= e($t['login_h1_b']) ?></span></h1>
             <div class="pc-extra">
-                <ul class="features">
-                    <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg><span><b><?= e($t['feat1_t']) ?></b><small><?= e($t['feat1_s']) ?></small></span></li>
-                    <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span><b><?= e($t['feat2_t']) ?></b><small><?= e($t['feat2_s']) ?></small></span></li>
-                    <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 5 13.5h6L10 21l8-10.5h-6z" fill="currentColor"/></svg><span><b><?= e($t['feat3_t']) ?></b><small><?= e($t['feat3_s']) ?></small></span></li>
-                    <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/><path d="M19 20c0 1.5-2 2-5 2"/></svg><span><b><?= e($t['feat4_t']) ?></b><small><?= e($t['feat4_s']) ?></small></span></li>
-                </ul>
-                <img class="illus-pc" src="assets/images/login-illustration.svg" alt="">
+                <?php view('partials/features', ['t' => $t]); ?>
+                <img class="illus-pc" src="<?= e(asset('assets/images/login-illustration.svg')) ?>" alt="">
             </div>
         </section>
 
@@ -44,10 +39,11 @@
                 <p><?= e($t['login_sub1']) ?><br><?= e($t['login_sub2']) ?></p>
             </div>
 
-            <form class="form" method="post" action="login.php" novalidate
-                  data-err-mobile-empty="<?= e($t['err_mobile_empty']) ?>" data-err-mobile-length="<?= e($t['err_mobile_length']) ?>"
-                  data-err-mobile-format="<?= e($t['err_mobile_format']) ?>" data-err-password-empty="<?= e($t['err_password_empty']) ?>"
-                  data-err-password-min="<?= e($t['err_password_min']) ?>" data-err-password-max="<?= e($t['err_password_max']) ?>">
+            <form class="form" method="post" action="login.php" novalidate data-msg="<?= e(json_encode([
+                      'mobile_empty' => $t['err_mobile_empty'], 'mobile_length' => $t['err_mobile_length'], 'mobile_format' => $t['err_mobile_format'],
+                      'password_empty' => $t['err_password_empty'], 'password_ascii' => $t['err_password_ascii'],
+                      'password_min' => $t['err_password_min'], 'password_max' => $t['err_password_max'],
+                  ], JSON_UNESCAPED_UNICODE)) ?>">
                 <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
 
                 <?php if (!empty($errors['form'])): ?><p class="alert alert-error" role="alert"><?= e($errors['form']) ?></p><?php endif; ?>
@@ -100,6 +96,6 @@
 
     </main>
 </div>
-<script src="assets/js/validation.js"></script>
+<script src="<?= e(asset('assets/js/validation.js')) ?>"></script>
 </body>
 </html>
