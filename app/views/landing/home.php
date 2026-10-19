@@ -45,7 +45,7 @@
 
             <!-- New-account coupon banner (same image on phone and PC) -->
             <div class="promo">
-                <img src="<?= e(asset('assets/images/coupon-banner.jpg')) ?>" width="1600" height="616" alt="<?= e($bn['promo_alt']) ?>">
+                <img src="<?= e(asset($promo)) ?>" alt="<?= e($bn['promo_alt']) ?>">
             </div>
 
             <!-- The 5 service icons come from ServiceModel (a loop) -->

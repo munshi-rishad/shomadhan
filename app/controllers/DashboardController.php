@@ -1,12 +1,10 @@
 <?php
 // app/controllers/DashboardController.php
-// 3 dashboards: admin, employee, user. Blank for now, they only show which dashboard you are on.
+// Employee dashboard (blank for now). Admin: AdminController. User: UserHomeController.
 
 class DashboardController
 {
-    public function admin()    { $this->show('admin', 'dash_admin'); }
     public function employee() { $this->show('employee', 'dash_employee'); }
-    public function user()     { $this->show('user', 'dash_user'); }
 
     private function show($role, $titleKey)
     {

@@ -60,6 +60,7 @@ function login_account(array $account, $remember)
 {
     session_regenerate_id(true);             // new session id after login
     $_SESSION['auth'] = ['role' => $account['role'], 'id' => (int)$account['id']];
+    unset($_SESSION['popup_seen']);          // show the home page popup again after each login
     if ($remember) {
         remember_issue($account['role'], (int)$account['id']);
     }

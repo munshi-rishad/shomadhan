@@ -21,7 +21,9 @@ index.php -> HomeController::index() -> ServiceModel::getAll() -> views/landing/
 ## Setup (database)
 1. Start Apache and MySQL in XAMPP.
 2. Open http://localhost/phpmyadmin -> Import -> choose `database/schema.sql` -> Go.
-   It makes the database `shomadhan` with 3 tables: `admins`, `employees`, `users`.
+   It makes the database `shomadhan` with tables: `admins`, `employees`, `users`,
+   `settings`, `banners`, `popups`, `services`, `sub_services`, `notifications`.
+   Note: the file starts with DROP DATABASE, so importing again deletes old data.
 3. `config/database.php` already uses XAMPP's default (root, no password).
 
 ## Default logins (mobile + password)
@@ -32,7 +34,7 @@ Passwords are saved as plain text for now (no hashing).
 
 ## Forgot password email (OTP)
 Put your Gmail and a Google "App password" in `config/mail.php`.
-Until then (APP_DEV = true in config/config.php) the OTP is shown on the screen.
+Until then the OTP email fails and an error is shown (the OTP is never shown on screen).
 
 ## Done
 - Welcome page (phone + PC), Bangla/English switch
@@ -40,4 +42,10 @@ Until then (APP_DEV = true in config/config.php) the OTP is shown on the screen.
 - Login: checks admins, employees, users; correct -> that role's dashboard, wrong -> error message
 - Remember me (30-day cookie) + session, logout
 - Forgot password: email -> OTP -> shows the current password
-- 3 blank dashboards: admin, employee, user
+- Admin dashboard (admin-dashboard.php): welcome page coupon picture, banners (slider pictures),
+  popup (picture shown once after login), services (name + PNG logo),
+  sub-services (name, photo, details, price, rating), popular ranking, offers/notifications
+- User dashboard = home page (user-dashboard.php): banner slider, service categories,
+  popular services (admin's ranking), newly added, search, notification bell
+- Employee dashboard: blank
+- Uploaded pictures go to public/uploads/ (welcome, banners, popups, services, sub-services, offers)
