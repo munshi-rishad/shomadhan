@@ -19,7 +19,7 @@
     </div>
 </header>
 
-<main class="wrap zoom-area">
+<main class="wrap">
     <h1 class="page-h1"><?= e($t['pf_title']) ?></h1>
     <?php if ($notice !== ''): ?><p class="alert alert-ok" role="status"><?= e($notice) ?></p><?php endif; ?>
     <?php if (!empty($errors['form'])): ?><p class="alert alert-error" role="alert"><?= e($errors['form']) ?></p><?php endif; ?>

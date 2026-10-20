@@ -36,8 +36,9 @@ class AdminController
     const ACCESS = [
         // admin has no 'products' page: the same sub-services are already on the sub-services page
         'admin'    => ['services', 'sub-services', 'providers', 'popular', 'banners', 'popup', 'offers', 'welcome', 'users', 'employees', 'admins', 'profile', 'changes'],
-        'employee' => ['providers', 'products', 'offers', 'users', 'profile', 'changes'],
+        'employee' => ['providers', 'products', 'banners', 'popup', 'offers', 'welcome', 'users', 'profile', 'changes'],
     ];
+    const EMPLOYEE_EDITS = ['users', 'providers', 'banners', 'popup', 'offers', 'welcome'];   // pages the employee may change (not only view)
     const ROLE_OF = ['users' => 'user', 'employees' => 'employee', 'admins' => 'admin'];   // list page -> account role
     const STATUSES = ['active', 'inactive'];      // inactive = can't log in or do anything (no separate "block")
     const COLORS = ['sand', 'sky', 'mint', 'rose', 'lilac', 'gray'];
@@ -53,11 +54,12 @@ class AdminController
         list($lang, $t) = lang_texts();
         $this->t = $t;
         $this->me = $account;
-        if ($role === 'admin') { HomeContentModel::$by = (int)$account['id']; }   // saved as created_by on new banners, services ...
+        HomeContentModel::$by = (int)$account['id'];   // saved as created_by on new banners, services, offers ...
         $this->base = dashboard_url($role);
         $pages   = self::ACCESS[$role];
-        $canEdit = $role === 'admin';
         $page = in_array($_GET['page'] ?? '', $pages, true) ? $_GET['page'] : $pages[0];
+        // admin can change everything; employee can add / edit / delete users and service providers, the rest is view only
+        $canEdit = $role === 'admin' || in_array($page, self::EMPLOYEE_EDITS, true);
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             if (!csrf_check($_POST['csrf'] ?? '')) {
@@ -153,7 +155,7 @@ class AdminController
                     'cols' => AdminListModel::sortKeys($page, $lang),
                     'filters' => $filters,
                 ];
-                $data['areas'] = in_array($page, ['users', 'providers'], true) ? AreaModel::getAll() : [];
+                $data['areas'] = AreaModel::getAll();
                 $data['services'] = in_array($page, ['products', 'providers'], true) ? HomeContentModel::services() : [];
                 break;
             case 'changes':
@@ -203,12 +205,17 @@ class AdminController
         if ($page === 'banners' && $action === 'add') {
             $up = save_image_upload('image', 'banners', ['png', 'jpg', 'webp'], $t, true, IMG_SIZES['banners']);
             if ($up['error']) { $this->errors['image'] = $up['error']; return; }
-            HomeContentModel::addBanner($up['path'], $this->text('title', 100), max(-9999, min(9999, (int)($_POST['sort_order'] ?? 0))));
+            HomeContentModel::addBanner($up['path'], $this->text('title', 100));
             return $this->done($page, $t['adm_saved']);
         }
         if ($page === 'banners' && $action === 'update' && HomeContentModel::banner($id)) {
-            HomeContentModel::updateBanner($id, $this->text('title', 100), max(-9999, min(9999, (int)($_POST['sort_order'] ?? 0))), isset($_POST['is_active']) ? 1 : 0);
+            HomeContentModel::updateBanner($id, $this->text('title', 100), isset($_POST['is_active']) ? 1 : 0);
             return $this->done($page, $t['adm_saved']);
+        }
+        // ▲ ▼ arrows on the banner / service list
+        if (($page === 'banners' || $page === 'services') && $action === 'move') {
+            HomeContentModel::move($page, $id, ($_POST['dir'] ?? '') === 'up' ? 'up' : 'down');
+            return $this->done($page, '');
         }
         if ($page === 'banners' && $action === 'delete' && ($b = HomeContentModel::banner($id))) {
             HomeContentModel::deleteBanner($id);
@@ -272,13 +279,12 @@ class AdminController
                 'name_bn'    => $this->text('name_bn', 60),
                 'name_en'    => $this->text('name_en', 60),
                 'color'      => in_array($_POST['color'] ?? '', self::COLORS, true) ? $_POST['color'] : 'mint',
-                'sort_order' => max(-9999, min(9999, (int)($_POST['sort_order'] ?? 0))),
                 'is_active'  => isset($_POST['is_active']) ? 1 : 0,
-                'icon'       => $old['icon'] ?? '',
+                'icon'       => $old['icon'] ?? 'assets/images/icons/service.svg',   // no logo given = default icon
             ];
             if ($d['name_bn'] === '') { $this->errors['name_bn'] = $t['adm_err_required']; }
             if ($d['name_en'] === '') { $this->errors['name_en'] = $t['adm_err_required']; }
-            $up = save_image_upload('icon', 'services', ['png'], $t, !$old, IMG_SIZES['services']);     // logo: PNG only, required for a new service
+            $up = save_image_upload('icon', 'services', ['png'], $t, false, IMG_SIZES['services']);     // logo: PNG only, optional
             if ($up['error']) { $this->errors['icon'] = $up['error']; }
             if ($this->errors) { delete_upload($up['path']); return; }
             if ($up['path']) {
@@ -300,7 +306,6 @@ class AdminController
         if ($page === 'sub-services' && $action === 'save') {
             $old = $id ? HomeContentModel::subService($id) : null;
             if ($id && !$old) { return $this->done($page, ''); }
-            $rank = trim((string)($_POST['popular_rank'] ?? ''));
             $d = [
                 'service_id'   => (int)($_POST['service_id'] ?? 0),
                 'name_bn'      => $this->text('name_bn', 80),
@@ -310,7 +315,7 @@ class AdminController
                 'price'        => max(0, min(9999999, (int)($_POST['price'] ?? 0))),
                 'rating'       => min(5, max(0, round((float)($_POST['rating'] ?? 0), 1))),
                 'rating_count' => max(0, min(9999999, (int)($_POST['rating_count'] ?? 0))),
-                'popular_rank' => ctype_digit($rank) && (int)$rank > 0 ? min(9999, (int)$rank) : null,
+                'popular_rank' => $old['popular_rank'] ?? null,   // set on the "popular" page with ▲ ▼
                 'is_active'    => isset($_POST['is_active']) ? 1 : 0,
                 'image'        => $old['image'] ?? null,
             ];
@@ -418,7 +423,6 @@ class AdminController
         if ($action === 'move' && $row && $role !== 'user') {            // employee <-> admin
             $to = $role === 'admin' ? 'employee' : 'admin';
             if ($self) { $this->errors['form'] = $t['acc_err_self']; return; }
-            if ($to === 'admin' && (string)$row['email'] === '') { $this->errors['form'] = $t['acc_err_need_email']; return; }
             if ($m = $this->myPasswordError()) { $this->errors['form'] = $m; return; }
             AccountModel::changeRole($id, $to);
             AccountChangeModel::add($role, $id, $me, [['pf_role', $role, $to]]);
@@ -439,8 +443,7 @@ class AdminController
             $d['password'] = (string)($_POST['password'] ?? '');
             if ($m = LoginValidator::passwordError($d['password'], $t))         { $e['password'] = $m; }
         }
-        $hasFile = isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE;
-        if (!$id && !$hasFile && $role !== 'user')                               { $e['photo'] = $t['ph_err_need']; }
+        // photo is optional (can be added later from the edit form or the person's own profile)
 
         $changes = [];                                                           // edit: what is different from before
         if ($row) {
@@ -504,7 +507,7 @@ class AdminController
             return $this->done('providers', sprintf($t['acc_deleted'], $row['name']));
         }
         if ($action === 'restore' && ($gone = ProviderModel::findDeleted($id))) {
-            if (ProviderModel::mobileTaken($gone['mobile'], $id)) {
+            if (ProviderModel::mobileTaken($gone['mobile'], $id) || ProviderModel::emailTaken($gone['email'], $id)) {
                 $this->errors['form'] = sprintf($t['acc_err_restore_used'], $gone['name']);
                 return;
             }
@@ -518,6 +521,7 @@ class AdminController
             'service_id' => (int)($_POST['service_id'] ?? 0),
             'name'       => strtoupper(preg_replace('/\s+/', ' ', trim((string)($_POST['name'] ?? '')))),
             'mobile'     => trim((string)($_POST['mobile'] ?? '')),
+            'email'      => strtolower(trim((string)($_POST['email'] ?? ''))) ?: null,
             'age'        => (int)($_POST['age'] ?? 0),
             'gender'     => (string)($_POST['gender'] ?? ''),
             'area'       => (string)($_POST['area'] ?? ''),
@@ -532,6 +536,8 @@ class AdminController
         if ($m = RegisterValidator::nameError($_POST['name'] ?? '', $t))         { $e['name'] = $m; }
         if ($m = LoginValidator::mobileError($d['mobile'], $t))                  { $e['mobile'] = $m; }
         elseif (ProviderModel::mobileTaken($d['mobile'], $id))                   { $e['mobile'] = $t['acc_err_mobile_used']; }
+        if ($m = RegisterValidator::emailError((string)$d['email'], $t))         { $e['email'] = $m; }
+        elseif (ProviderModel::emailTaken($d['email'], $id))                     { $e['email'] = $t['acc_err_email_used']; }
         if ($d['age'] < 18 || $d['age'] > 80)                                    { $e['age'] = $t['pv_err_age']; }
         if (!in_array($d['gender'], RegisterValidator::GENDERS, true))          { $e['gender'] = $t['err_gender']; }
         if (!in_array($d['area'], AreaModel::getAll(), true))                    { $e['area'] = $t['err_area']; }

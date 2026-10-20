@@ -22,6 +22,16 @@ const PHOTO_MIN       = 150;
 const PHOTO_MAX_BYTES = 2 * 1024 * 1024;
 const PHOTO = ['square'];          // pass as $size to save_image_upload()
 
+// Size tag shown inside every picture label, so the admin sees the size before choosing a file.
+// $folder = an IMG_SIZES key, or 'photos' for profile pictures (square, at least PHOTO_MIN).
+function size_tag($folder, array $t)
+{
+    $txt = $folder === 'photos'
+        ? sprintf($t['size_tag_sq'], PHOTO_MIN, PHOTO_MIN)
+        : sprintf($t['size_tag'], IMG_SIZES[$folder][0], IMG_SIZES[$folder][1]);
+    return ' <b class="size-tag">' . e($txt) . '</b>';
+}
+
 // Hint under an upload box: "must be exactly W x H ..." + $extra (file types etc.)
 function img_hint($folder, array $t, $extra = '')
 {

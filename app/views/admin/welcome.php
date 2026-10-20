@@ -19,7 +19,7 @@
     <h2><?= e($t['adm_welcome_change']) ?></h2>
     <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
     <input type="hidden" name="action" value="save">
-    <label class="f f-wide"><span><?= e($t['adm_welcome_image']) ?> *</span>
+    <label class="f f-wide"><span><?= e($t['adm_welcome_image']) ?> *<?= size_tag('welcome', $t) ?></span>
         <input type="file" name="image" accept="image/png,image/jpeg,image/webp" required>
         <small><?= e(img_hint('welcome', $t, $t['adm_types'])) ?></small><?= $err('image') ?></label>
     <div class="f-wide"><button class="btn" type="submit"><?= e($t['adm_upload']) ?></button></div>

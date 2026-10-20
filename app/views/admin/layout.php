@@ -68,7 +68,7 @@ $val = function ($k, $default = '') use ($old) { return e($old[$k] ?? $default);
     </aside>
     <div class="side-shade" id="side-shade" hidden></div>
 
-    <main class="adm-main zoom-area">
+    <main class="adm-main">
         <!-- top bar (stays on top when the page scrolls): back button (left), bell + language + me (right). Same on every page -->
         <div class="adm-top">
             <?php if ($page !== $pages[0] || !empty($_GET['edit'])):
@@ -81,10 +81,7 @@ $val = function ($k, $default = '') use ($old) { return e($old[$k] ?? $default);
                     <?php if ($unseen > 0): ?><span class="count"><?= $unseen > 9 ? '9+' : (int)$unseen ?></span><?php endif; ?>
                 </a>
                 <?php view('partials/lang-switch', ['lang' => $lang]); ?>
-                <a class="me-chip<?= $page === 'profile' ? ' on' : '' ?>" href="<?= e($base) ?>?page=profile" title="<?= e($t['pf_menu']) ?>">
-                    <?php view('partials/avatar', ['name' => $account['name'], 'photo' => $account['photo'] ?? null, 'class' => 'av-sm']); ?>
-                    <span><b><?= e($account['name']) ?></b><small><?= e($t['pf_role_' . $account['role']]) ?></small></span>
-                </a>
+                <?php view('partials/me-chip', ['t' => $t, 'account' => $account, 'href' => $base . '?page=profile', 'on' => $page === 'profile']); ?>
             </div>
         </div>
         <?php if ($notice !== ''): ?><p class="alert alert-ok" role="status"><?= e($notice) ?></p><?php endif; ?>

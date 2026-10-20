@@ -86,6 +86,7 @@ class HomeContentModel
     // ------------------------------------------------------------ BANNERS
     public static function banners($onlyActive = false)
     {
+        // same order on the admin list and the user page; the admin changes it with the ▲ ▼ arrows
         return self::all('SELECT * FROM banners' . ($onlyActive ? ' WHERE is_active = 1' : '') . ' ORDER BY sort_order, id');
     }
 
@@ -94,14 +95,36 @@ class HomeContentModel
         return self::one('SELECT * FROM banners WHERE id = ?', [$id]);
     }
 
-    public static function addBanner($image, $title, $order)
+    public static function addBanner($image, $title)
     {
-        self::run('INSERT INTO banners (image, title, sort_order, created_by) VALUES (?, ?, ?, ?)', [$image, $title, $order, self::$by]);
+        self::run('INSERT INTO banners (image, title, sort_order, created_by) VALUES (?, ?, ?, ?)', [$image, $title, self::nextOrder('banners'), self::$by]);
     }
 
-    public static function updateBanner($id, $title, $order, $active)
+    public static function updateBanner($id, $title, $active)
     {
-        self::run('UPDATE banners SET title = ?, sort_order = ?, is_active = ? WHERE id = ?', [$title, $order, $active, $id]);
+        self::run('UPDATE banners SET title = ?, is_active = ? WHERE id = ?', [$title, $active, $id]);
+    }
+
+    // ▲ ▼ arrows: move one row of banners / services one place up or down.
+    // Rows are renumbered 1, 2, 3 ... so the order numbers stay clean.
+    public static function move($table, $id, $dir)
+    {
+        if (!in_array($table, ['banners', 'services'], true)) { return; }
+        $ids = array_map('intval', array_column(self::all("SELECT id FROM $table ORDER BY sort_order, id"), 'id'));
+        $i = array_search((int)$id, $ids, true);
+        $j = $dir === 'up' ? $i - 1 : $i + 1;
+        if ($i === false || !isset($ids[$j])) { return; }
+        [$ids[$i], $ids[$j]] = [$ids[$j], $ids[$i]];
+        foreach ($ids as $n => $rowId) {
+            self::run("UPDATE $table SET sort_order = ? WHERE id = ?", [$n + 1, $rowId]);
+        }
+    }
+
+    // a new banner / service goes to the end of the list
+    private static function nextOrder($table)
+    {
+        $r = self::one("SELECT COALESCE(MAX(sort_order), 0) + 1 AS n FROM $table");
+        return (int)$r['n'];
     }
 
     public static function deleteBanner($id)
@@ -114,7 +137,7 @@ class HomeContentModel
     {
         return self::all(
             'SELECT s.*, (SELECT COUNT(*) FROM sub_services x WHERE x.service_id = s.id) AS sub_count
-             FROM services s' . ($onlyActive ? ' WHERE s.is_active = 1' : '') . ' ORDER BY s.sort_order, s.id'
+             FROM services s' . ($onlyActive ? ' WHERE s.is_active = 1' : '') . ' ORDER BY s.sort_order, s.id'   // same order for admin and users (▲ ▼ arrows)
         );
     }
 
@@ -126,11 +149,11 @@ class HomeContentModel
     public static function saveService($id, array $d)
     {
         if ($id) {
-            self::run('UPDATE services SET name_bn = ?, name_en = ?, icon = ?, color = ?, sort_order = ?, is_active = ? WHERE id = ?',
-                [$d['name_bn'], $d['name_en'], $d['icon'], $d['color'], $d['sort_order'], $d['is_active'], $id]);
+            self::run('UPDATE services SET name_bn = ?, name_en = ?, icon = ?, color = ?, is_active = ? WHERE id = ?',
+                [$d['name_bn'], $d['name_en'], $d['icon'], $d['color'], $d['is_active'], $id]);
         } else {
             self::run('INSERT INTO services (name_bn, name_en, icon, color, sort_order, is_active, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [$d['name_bn'], $d['name_en'], $d['icon'], $d['color'], $d['sort_order'], $d['is_active'], self::$by]);
+                [$d['name_bn'], $d['name_en'], $d['icon'], $d['color'], self::nextOrder('services'), $d['is_active'], self::$by]);
         }
     }
 

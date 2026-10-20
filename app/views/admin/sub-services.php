@@ -24,8 +24,7 @@
     <label class="f"><span><?= e($t['adm_price']) ?></span><input type="number" name="price" min="0" value="<?= $val('price', $s['price'] ?? '') ?>"></label>
     <label class="f"><span><?= e($t['adm_rating']) ?></span><input type="number" name="rating" min="0" max="5" step="0.1" value="<?= $val('rating', $s['rating'] ?? '') ?>"></label>
     <label class="f"><span><?= e($t['adm_rating_count']) ?></span><input type="number" name="rating_count" min="0" value="<?= $val('rating_count', $s['rating_count'] ?? '') ?>"></label>
-    <label class="f"><span><?= e($t['adm_popular_rank']) ?></span><input type="number" name="popular_rank" min="1" value="<?= $val('popular_rank', $s['popular_rank'] ?? '') ?>"><small><?= e($t['adm_rank_hint']) ?></small></label>
-    <label class="f f-wide f-half"><span><?= e($t['adm_photo']) ?></span>
+    <label class="f f-wide f-half"><span><?= e($t['adm_photo']) ?><?= size_tag('sub-services', $t) ?></span>
         <input type="file" name="image" accept="image/png,image/jpeg,image/webp">
         <small><?= e(img_hint('sub-services', $t, $t['adm_photo_hint']) . ($isEdit ? ' ' . $t['adm_keep_old'] : '')) ?></small><?= $err('image') ?>
         <?php if (!empty($s['image'])): ?><img class="thumb" src="<?= e($s['image']) ?>" alt=""><?php endif; ?></label>

@@ -2,7 +2,9 @@
    A form with data-check is checked. Each field to check has:
      data-rule="name | mobile | gmail | email | password | otp | same:<field name>"
      data-msg="error text"          (shown under the field)
-     required                        (empty is an error; without it, empty is allowed) */
+     required                        (empty is an error; without it, empty is allowed)
+     data-unique="mobile | email"    (live AJAX check: already used by another account? needs data-unique-url on the form,
+                                      + data-unique-kind="account|provider", data-unique-role / data-unique-id = the row being edited) */
 (function () {
     'use strict';
     // ---- eye buttons: show / hide the password next to it (every page with a password box)
@@ -58,6 +60,7 @@
         } else if (RULES[rule]) {
             ok = RULES[rule](v);
         }
+        if (ok && el._taken) { mark(el, el._taken); return false; }   // live check said: already used
         mark(el, ok ? '' : (el.getAttribute('data-msg') || ''));
         return ok;
     }
@@ -71,6 +74,41 @@
             fields.forEach(function (el) { if (!el.disabled && !check(el) && !first) { first = el; } });
             if (first) { ev.preventDefault(); ev.stopImmediatePropagation(); first.focus(); }
         });
+        // ---- LIVE CHECK (AJAX): mobile / email already used by another account? (the server checks again on save)
+        var url = form.getAttribute('data-unique-url'), csrf = form.querySelector('[name="csrf"]');
+        if (url) {
+            [].slice.call(form.querySelectorAll('[data-unique]')).forEach(function (el) {
+                var timer = null, asked = '';
+                function ask() {
+                    var v = el.value.trim().toLowerCase();
+                    if (v === '' || v === asked || !check(el)) { return; }     // only a correct-looking value is asked
+                    asked = v;
+                    var body = new URLSearchParams();
+                    body.append('field', el.getAttribute('data-unique'));
+                    body.append('value', v);
+                    body.append('kind', form.getAttribute('data-unique-kind') || 'account');
+                    body.append('role', form.getAttribute('data-unique-role') || '');
+                    body.append('id', form.getAttribute('data-unique-id') || '0');
+                    body.append('csrf', csrf ? csrf.value : '');
+                    fetch(url, { method: 'POST', body: body, credentials: 'same-origin', headers: { 'X-Requested-With': 'fetch' } })
+                        .then(function (r) { return r.json(); })
+                        .then(function (d) {
+                            if (!d || !d.ok || el.value.trim().toLowerCase() !== v) { return; }   // typed again meanwhile
+                            el._taken = d.available ? '' : d.message;
+                            check(el);
+                        })
+                        .catch(function () { asked = ''; });
+                }
+                el.addEventListener('input', function () {
+                    if (el._taken) { el._taken = ''; check(el); }
+                    asked = '';
+                    clearTimeout(timer);
+                    timer = setTimeout(ask, 450);
+                });
+                el.addEventListener('blur', function () { clearTimeout(timer); ask(); });
+            });
+        }
+
         fields.forEach(function (el) {
             var ev = el.tagName === 'SELECT' ? 'change' : 'input';
             el.addEventListener(ev, function () { if (el.getAttribute('aria-invalid')) { check(el); } });

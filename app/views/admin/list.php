@@ -60,7 +60,7 @@ $pw = $isProviders ? '' : ' data-confirm-pw';          // account changes need t
     $open = $isEdit || ($errors && ($old['action'] ?? '') === 'save');
     $me = $role === 'admin' && $isEdit && (int)$a['id'] === (int)$account['id'];
     $formUrl = $base . '?page=' . $page . ($isEdit ? '&edit=' . (int)$a['id'] : '');
-    $needPhoto = !$isEdit && in_array($role, ['admin', 'employee'], true);
+    $needPhoto = false;                                     // photo is optional everywhere
     // select box: [name, label key, [value => text], current]
     $select = function ($name, $label, array $opts, $cur, $extra = '') use ($t, $err) {
         $h = '<label class="f"><span>' . e($t[$label]) . ' *</span><select name="' . e($name) . '" data-label="' . e($t[$label]) . '"' . $extra . '>';
@@ -74,6 +74,7 @@ $pw = $isProviders ? '' : ' data-confirm-pw';          // account changes need t
 <details class="card acc-box"<?= $open ? ' open' : '' ?>>
     <summary class="btn<?= $isEdit ? ' btn-hide' : '' ?>">+ <?= e($t['acc_add_' . $role]) ?></summary>
     <form class="form-grid" method="post" action="<?= e($formUrl) ?>" enctype="multipart/form-data" novalidate data-check
+          data-unique-url="check-availability.php" data-unique-kind="<?= $role === 'provider' ? 'provider' : 'account' ?>" data-unique-role="<?= e($role) ?>" data-unique-id="<?= (int)($a['id'] ?? 0) ?>"
           <?= $isEdit ? 'data-confirm-changes data-confirm-title="' . e(sprintf($t['acc_confirm_edit'], $a['name'])) . '"'
                       : 'data-confirm-summary data-confirm-title="' . e($t['acc_add_' . $role]) . '" data-confirm="' . e($t[$role === 'provider' ? 'acc_confirm_add_provider' : 'acc_confirm_add']) . '"' ?><?= $pw ?>>
         <h2><?= e($isEdit ? sprintf($t['acc_edit_title'], $a['name']) : $t['acc_add_' . $role]) ?></h2>
@@ -83,27 +84,23 @@ $pw = $isProviders ? '' : ' data-confirm-pw';          // account changes need t
 
         <div class="f f-half photo-pick">
             <?php view('partials/avatar', ['name' => $a['name'] ?? '?', 'photo' => $a['photo'] ?? null, 'class' => 'pf-avatar']); ?>
-            <label class="f"><span><?= e($t['adm_photo']) ?><?= $needPhoto ? ' *' : '' ?></span>
+            <label class="f"><span><?= e($t['adm_photo']) ?><?= $needPhoto ? ' *' : '' ?><?= size_tag('photos', $t) ?></span>
                 <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" data-label="<?= e($t['adm_photo']) ?>"<?= $needPhoto ? ' required' : '' ?>>
                 <small><?= e(sprintf($t['ph_hint'], PHOTO_MIN)) ?></small><?= $err('photo') ?></label>
         </div>
         <label class="f"><span><?= e($t['adm_name']) ?> *</span><input type="text" name="name" maxlength="50" required data-rule="name" data-msg="<?= e($t['err_name_format']) ?>" data-label="<?= e($t['adm_name']) ?>" value="<?= $val('name', $a['name'] ?? '') ?>"><small><?= e($t['acc_name_hint']) ?></small><?= $err('name') ?></label>
-        <label class="f"><span><?= e($t['adm_col_mobile']) ?> *</span><input type="text" name="mobile" inputmode="numeric" maxlength="11" required data-rule="mobile" data-msg="<?= e($t['err_mobile_format']) ?>" data-label="<?= e($t['adm_col_mobile']) ?>" value="<?= $val('mobile', $a['mobile'] ?? '') ?>" placeholder="01XXXXXXXXX"><?= $err('mobile') ?></label>
+        <label class="f"><span><?= e($t['adm_col_mobile']) ?> *</span><input type="text" name="mobile" inputmode="numeric" maxlength="11" required data-rule="mobile" data-unique="mobile" data-msg="<?= e($t['err_mobile_format']) ?>" data-label="<?= e($t['adm_col_mobile']) ?>" value="<?= $val('mobile', $a['mobile'] ?? '') ?>" placeholder="01XXXXXXXXX"><?= $err('mobile') ?></label>
 
+        <label class="f"><span><?= e($t['adm_col_email']) ?> <small><?= e($t['optional']) ?></small></span><input type="email" name="email" maxlength="60" data-rule="gmail" data-unique="email" data-msg="<?= e($t['err_email']) ?>" data-label="<?= e($t['adm_col_email']) ?>" value="<?= $val('email', $a['email'] ?? '') ?>" placeholder="name@gmail.com"><?= $err('email') ?></label>
+        <?= $select('area', 'adm_col_area', ['' => $t['ph_area']] + array_combine($areas, $areas), $old['area'] ?? ($a['area'] ?? ''), ' required') ?>
+        <?= $select('gender', 'adm_col_gender', ['' => $t['ph_gender']] + $genders, $old['gender'] ?? ($a['gender'] ?? ''), ' required') ?>
         <?php if ($role === 'provider'): ?>
             <?= $select('service_id', 'pv_service', $sv, $old['service_id'] ?? ($a['service_id'] ?? '')) ?>
             <label class="f"><span><?= e($t['pv_age']) ?> *</span><input type="number" name="age" min="18" max="80" required data-label="<?= e($t['pv_age']) ?>" value="<?= $val('age', $a['age'] ?? '') ?>"><?= $err('age') ?></label>
-            <?= $select('gender', 'adm_col_gender', $genders, $old['gender'] ?? ($a['gender'] ?? 'male')) ?>
-            <?= $select('area', 'adm_col_area', array_combine($areas, $areas), $old['area'] ?? ($a['area'] ?? '')) ?>
             <?= $select('status', 'adm_status', $statuses, $old['status'] ?? ($a['status'] ?? 'active')) ?>
             <label class="f f-half"><span><?= e($t['pv_address']) ?> *</span><input type="text" name="address" maxlength="200" required data-label="<?= e($t['pv_address']) ?>" value="<?= $val('address', $a['address'] ?? '') ?>" placeholder="<?= e($t['pv_address_ph']) ?>"><?= $err('address') ?></label>
             <label class="f f-half"><span><?= e($t['pv_note']) ?></span><input type="text" name="note" maxlength="255" data-label="<?= e($t['pv_note']) ?>" value="<?= $val('note', $a['note'] ?? '') ?>" placeholder="<?= e($t['pv_note_ph']) ?>"><?= $err('note') ?></label>
         <?php else: ?>
-            <label class="f"><span><?= e($t['adm_col_email']) ?><?= $role === 'admin' ? ' *' : '' ?></span><input type="email" name="email" maxlength="60"<?= $role === 'admin' ? ' required' : '' ?> data-rule="gmail" data-msg="<?= e($t['err_email']) ?>" data-label="<?= e($t['adm_col_email']) ?>" value="<?= $val('email', $a['email'] ?? '') ?>" placeholder="name@gmail.com"><?= $err('email') ?></label>
-            <?php if ($role === 'user'): ?>
-                <?= $select('area', 'adm_col_area', array_combine($areas, $areas), $old['area'] ?? ($a['area'] ?? '')) ?>
-                <?= $select('gender', 'adm_col_gender', $genders, $old['gender'] ?? ($a['gender'] ?? '')) ?>
-            <?php endif; ?>
             <?php if ($me): ?>
                 <label class="f"><span><?= e($t['adm_status']) ?></span><select disabled><option><?= e($t['adm_st_active']) ?></option></select>
                     <input type="hidden" name="status" value="active"><small><?= e($t['acc_err_self']) ?></small></label>

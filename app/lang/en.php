@@ -178,7 +178,7 @@ return [
     'adm_logo' => 'Logo',
     'adm_logo_png' => 'Logo (PNG)',
     'adm_logo_hint' => 'PNG only, max 5 MB. A transparent background looks best.',
-    'adm_size_hint' => 'The picture must have the shape of %d x %d and be at least that size. Bigger is better (e.g. double), it looks sharp when clicked to zoom. ',
+    'adm_size_hint' => 'Same shape and at least this size; bigger looks sharper. ',
     'adm_types' => 'PNG, JPG or WEBP, max 5 MB.',
     'adm_keep_old' => 'Leave empty to keep the current one.',
     'adm_now' => 'Now',
@@ -417,4 +417,6 @@ return [
     'adm_popup_edit' => 'Edit popup',
     'adm_offer_edit' => 'Edit offer',
     'adm_img_remove' => 'Remove picture',
+    'size_tag' => 'Size: %d × %d px',
+    'size_tag_sq' => 'Size: square, min %d × %d px',
 ];

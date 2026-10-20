@@ -39,7 +39,9 @@ CREATE TABLE `staff` (
   `role`             ENUM('admin','employee') NOT NULL,
   `name`             VARCHAR(50)  NOT NULL,
   `mobile`           CHAR(11)     NOT NULL,                             -- login = mobile + password
-  `email`            VARCHAR(60)  NULL DEFAULT NULL,                    -- admins must have one (forgot password)
+  `email`            VARCHAR(60)  NULL DEFAULT NULL,                    -- optional (same as the register page)
+  `area`             VARCHAR(60)  NOT NULL,                             -- areas.name (same info as users / providers)
+  `gender`           ENUM('male','female','other') NOT NULL,
   `password`         VARCHAR(255) NOT NULL,                             -- bcrypt hash, never the real password
   `must_change_password` TINYINT(1) NOT NULL DEFAULT 0,                -- 1 = made by an admin with a one-time password: must set a new one first
   `photo`            VARCHAR(255) NULL DEFAULT NULL,                    -- square picture, path inside public/
@@ -59,11 +61,12 @@ CREATE TABLE `staff` (
   UNIQUE KEY `uq_staff_email`  (`live_email`),
   KEY `idx_staff_role` (`role`, `deleted_at`),
   KEY `idx_staff_mobile` (`mobile`),
+  KEY `idx_staff_area` (`area`),
   KEY `idx_staff_created_by` (`created_by`),
   KEY `idx_staff_deleted_by` (`deleted_by`),
   CONSTRAINT `fk_staff_created_by` FOREIGN KEY (`created_by`) REFERENCES `staff` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_staff_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `staff` (`id`) ON DELETE RESTRICT,
-  CONSTRAINT `chk_staff_admin_email` CHECK (`role` <> 'admin' OR `email` IS NOT NULL)
+  CONSTRAINT `fk_staff_area`       FOREIGN KEY (`area`)       REFERENCES `areas` (`name`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2) USERS: customers (register page). Later they place orders.
@@ -227,6 +230,7 @@ CREATE TABLE `providers` (
   `service_id` INT UNSIGNED NOT NULL,                       -- category (Electrical Work, Plumbing ...)
   `name`       VARCHAR(50)  NOT NULL,
   `mobile`     CHAR(11)     NOT NULL,
+  `email`      VARCHAR(60)  NULL DEFAULT NULL,              -- optional
   `age`        TINYINT UNSIGNED NOT NULL,
   `gender`     ENUM('male','female','other') NOT NULL,
   `area`       VARCHAR(60)  NOT NULL,                       -- where they live / work (areas.name)
@@ -239,8 +243,10 @@ CREATE TABLE `providers` (
   `deleted_at` DATETIME     NULL DEFAULT NULL,              -- soft delete (future orders keep their provider)
   `deleted_by` INT UNSIGNED NULL DEFAULT NULL,
   `live_mobile` VARCHAR(11) AS (IF(`deleted_at` IS NULL, RTRIM(`mobile`), NULL)) STORED,
+  `live_email`  VARCHAR(60) AS (IF(`deleted_at` IS NULL, `email`, NULL)) STORED,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_providers_mobile` (`live_mobile`),
+  UNIQUE KEY `uq_providers_email`  (`live_email`),
   KEY `idx_providers_service` (`service_id`, `status`),
   KEY `idx_providers_area` (`area`),
   KEY `idx_providers_created_by` (`created_by`),
@@ -327,27 +333,27 @@ INSERT INTO `areas` (`name`) VALUES
 --   EMPLOYEE : 01700000002 / Employee@123  (employee.shomadhan@gmail.com)
 --   USER     : 01700000003 / User@1234     (user.shomadhan@gmail.com)
 --   (the password column holds a bcrypt hash of these, not the real password. Change them after the first login.)
-INSERT INTO `staff` (`id`, `role`, `name`, `mobile`, `email`, `password`, `status`, `created_at`, `created_by`, `last_login_at`) VALUES
-(1, 'admin', 'RASHEDUL KARIM', '01700000001', 'admin.shomadhan@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-01-05 10:00:00', NULL, '2026-10-19 09:15:00'),
-(2, 'admin', 'ARIFUL ISLAM', '01710000002', 'ariful.islam@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-02-11 11:20:00', 1, '2026-10-18 20:05:00'),
-(3, 'admin', 'NUSRAT JAHAN', '01710000003', 'nusrat.jahan@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-03-02 09:45:00', 1, '2026-10-15 13:40:00'),
-(4, 'admin', 'TANVIR AHMED', '01710000004', 'tanvir.ahmed@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'inactive', '2026-03-21 16:10:00', 2, '2026-08-02 18:30:00'),
-(5, 'admin', 'SADIA RAHMAN', '01710000005', 'sadia.rahman@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-04-08 12:00:00', 1, NULL),
-(6, 'admin', 'MAHMUDUL HASAN', '01710000006', 'mahmudul.hasan@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-05-14 15:35:00', 3, '2026-10-10 10:10:00'),
-(7, 'admin', 'FARZANA AKTER', '01710000007', 'farzana.akter@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'inactive', '2026-06-01 08:50:00', 2, NULL),
-(8, 'admin', 'RAKIBUL HOQUE', '01710000008', 'rakibul.hoque@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-07-19 17:25:00', 1, '2026-10-19 22:00:00'),
-(9, 'admin', 'JANNATUL FERDOUS', '01710000009', 'jannatul.ferdous@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-08-27 10:05:00', 6, '2026-09-29 11:45:00'),
-(10, 'admin', 'ZAHID HASAN', '01710000010', 'zahid.hasan@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-09-30 14:15:00', 3, NULL),
-(11, 'employee', 'KARIM UDDIN', '01700000002', 'employee.shomadhan@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-01-20 10:30:00', 1, '2026-10-19 08:00:00'),
-(12, 'employee', 'ABDUL MALEK', '01720000002', 'abdul.malek@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-02-03 09:00:00', 1, '2026-10-17 17:20:00'),
-(13, 'employee', 'RUMANA PARVIN', '01720000003', NULL, '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-02-25 13:15:00', 2, '2026-10-12 09:05:00'),
-(14, 'employee', 'SHAHIN ALAM', '01720000004', 'shahin.alam@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'inactive', '2026-03-17 11:40:00', 3, '2026-06-11 14:00:00'),
-(15, 'employee', 'MOU AKTER', '01720000005', NULL, '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-04-29 16:00:00', 1, NULL),
-(16, 'employee', 'HABIBUR RAHMAN', '01720000006', 'habibur.rahman@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-05-30 10:20:00', 6, '2026-10-19 19:30:00'),
-(17, 'employee', 'TASLIMA BEGUM', '01720000007', 'taslima.begum@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-06-22 12:45:00', 8, '2026-10-02 08:40:00'),
-(18, 'employee', 'NAZMUL HUDA', '01720000008', NULL, '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'inactive', '2026-07-08 09:10:00', 2, NULL),
-(19, 'employee', 'SUMAIYA ISLAM', '01720000009', 'sumaiya.islam@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-08-16 15:00:00', 9, '2026-10-18 12:15:00'),
-(20, 'employee', 'MOSHARROF HOSSAIN', '01720000010', 'mosharrof.hossain@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-10-01 11:30:00', 1, '2026-10-20 09:00:00');
+INSERT INTO `staff` (`id`, `role`, `name`, `mobile`, `email`, `password`, `status`, `created_at`, `created_by`, `last_login_at`, `area`, `gender`) VALUES
+(1, 'admin', 'RASHEDUL KARIM', '01700000001', 'admin.shomadhan@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-01-05 10:00:00', NULL, '2026-10-19 09:15:00', 'Kachari', 'male'),
+(2, 'admin', 'ARIFUL ISLAM', '01710000002', 'ariful.islam@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-02-11 11:20:00', 1, '2026-10-18 20:05:00', 'BAU Area', 'male'),
+(3, 'admin', 'NUSRAT JAHAN', '01710000003', 'nusrat.jahan@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-03-02 09:45:00', 1, '2026-10-15 13:40:00', 'Ganginapar', 'female'),
+(4, 'admin', 'TANVIR AHMED', '01710000004', 'tanvir.ahmed@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'inactive', '2026-03-21 16:10:00', 2, '2026-08-02 18:30:00', 'Boro Bazar', 'male'),
+(5, 'admin', 'SADIA RAHMAN', '01710000005', 'sadia.rahman@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-04-08 12:00:00', 1, NULL, 'Akua', 'female'),
+(6, 'admin', 'MAHMUDUL HASAN', '01710000006', 'mahmudul.hasan@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-05-14 15:35:00', 3, '2026-10-10 10:10:00', 'Natun Bazar', 'male'),
+(7, 'admin', 'FARZANA AKTER', '01710000007', 'farzana.akter@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'inactive', '2026-06-01 08:50:00', 2, NULL, 'Choto Bazar', 'female'),
+(8, 'admin', 'RAKIBUL HOQUE', '01710000008', 'rakibul.hoque@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-07-19 17:25:00', 1, '2026-10-19 22:00:00', 'Station Road', 'male'),
+(9, 'admin', 'JANNATUL FERDOUS', '01710000009', 'jannatul.ferdous@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-08-27 10:05:00', 6, '2026-09-29 11:45:00', 'Cantonment', 'female'),
+(10, 'admin', 'ZAHID HASAN', '01710000010', 'zahid.hasan@gmail.com', '$2y$10$lNEKw93XRppMh1znbekvbuopuObNmyj1pZS97BsJAzlL5UaGZhcwm', 'active', '2026-09-30 14:15:00', 3, NULL, 'Shehora', 'male'),
+(11, 'employee', 'KARIM UDDIN', '01700000002', 'employee.shomadhan@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-01-20 10:30:00', 1, '2026-10-19 08:00:00', 'Kachari', 'male'),
+(12, 'employee', 'ABDUL MALEK', '01720000002', 'abdul.malek@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-02-03 09:00:00', 1, '2026-10-17 17:20:00', 'BAU Area', 'male'),
+(13, 'employee', 'RUMANA PARVIN', '01720000003', NULL, '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-02-25 13:15:00', 2, '2026-10-12 09:05:00', 'Ganginapar', 'female'),
+(14, 'employee', 'SHAHIN ALAM', '01720000004', 'shahin.alam@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'inactive', '2026-03-17 11:40:00', 3, '2026-06-11 14:00:00', 'Boro Bazar', 'male'),
+(15, 'employee', 'MOU AKTER', '01720000005', NULL, '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-04-29 16:00:00', 1, NULL, 'Akua', 'female'),
+(16, 'employee', 'HABIBUR RAHMAN', '01720000006', 'habibur.rahman@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-05-30 10:20:00', 6, '2026-10-19 19:30:00', 'Natun Bazar', 'male'),
+(17, 'employee', 'TASLIMA BEGUM', '01720000007', 'taslima.begum@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-06-22 12:45:00', 8, '2026-10-02 08:40:00', 'Choto Bazar', 'female'),
+(18, 'employee', 'NAZMUL HUDA', '01720000008', NULL, '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'inactive', '2026-07-08 09:10:00', 2, NULL, 'Station Road', 'male'),
+(19, 'employee', 'SUMAIYA ISLAM', '01720000009', 'sumaiya.islam@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-08-16 15:00:00', 9, '2026-10-18 12:15:00', 'Cantonment', 'female'),
+(20, 'employee', 'MOSHARROF HOSSAIN', '01720000010', 'mosharrof.hossain@gmail.com', '$2y$10$l3Gn/Z85955saalbstgqbushp4t6ErKy43T.FUgeMlNUlBGxeqXrK', 'active', '2026-10-01 11:30:00', 1, '2026-10-20 09:00:00', 'Shehora', 'male');
 
 INSERT INTO `users` (`id`, `name`, `mobile`, `email`, `password`, `area`, `gender`, `status`, `created_at`, `last_login_at`) VALUES
 (1, 'AYESHA SIDDIKA', '01700000003', 'user.shomadhan@gmail.com', '$2y$10$x0WAkmZXkyND5n3oa0m7a.FbYFfg6qTKAyBic0n7T/rUlQeZ.4GhG', 'BAU Area', 'female', 'active', '2026-01-10 10:00:00', '2026-10-19 21:10:00'),

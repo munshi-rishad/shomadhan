@@ -11,8 +11,8 @@
     <input type="hidden" name="id" value="<?= (int)($o['id'] ?? 0) ?>">
     <label class="f f-half"><span><?= e($t['adm_offer_title']) ?> *</span><input type="text" name="title" maxlength="100" required data-label="<?= e($t['adm_offer_title']) ?>" value="<?= $val('title', $o['title'] ?? '') ?>"><?= $err('title') ?></label>
     <div class="f f-half photo-pick">
-        <?php if ($isEdit && $o['image']): ?><img class="thumb-square" src="<?= e($o['image']) ?>" alt="" data-zoom><?php endif; ?>
-        <label class="f"><span><?= e($t['adm_photo_opt']) ?></span>
+        <?php if ($isEdit && $o['image']): ?><img class="thumb-square" src="<?= e($o['image']) ?>" alt=""><?php endif; ?>
+        <label class="f"><span><?= e($t['adm_photo_opt']) ?><?= size_tag('offers', $t) ?></span>
             <input type="file" name="image" accept="image/png,image/jpeg,image/webp" data-label="<?= e($t['adm_photo']) ?>">
             <small><?= e(img_hint('offers', $t, $t['adm_types']) . ($isEdit && $o['image'] ? ' ' . $t['adm_keep_old'] : '')) ?></small><?= $err('image') ?></label>
         <?php if ($isEdit && $o['image']): ?>
@@ -35,7 +35,7 @@
         <tbody>
         <?php foreach ($offers as $n): ?>
             <tr<?= $n['is_active'] ? '' : ' class="dim"' ?>>
-                <td class="cell-img cell-thumb"><?php if ($n['image']): ?><img class="thumb-square" src="<?= e($n['image']) ?>" alt="" data-zoom><?php else: ?><span class="thumb-square thumb-none">—</span><?php endif; ?></td>
+                <td class="cell-img cell-thumb"><?php if ($n['image']): ?><img class="thumb-square" src="<?= e($n['image']) ?>" alt=""><?php else: ?><span class="thumb-square thumb-none">—</span><?php endif; ?></td>
                 <td class="cell-name" data-label="<?= e($t['adm_offer_title']) ?>"><b><?= e($n['title']) ?></b></td>
                 <td data-label="<?= e($t['adm_offer_message']) ?>" class="cell-wrap"><?= e($n['message']) ?></td>
                 <td data-label="<?= e($t['adm_status']) ?>"><span class="pill <?= $n['is_active'] ? 'pill-on' : 'pill-off' ?>"><?= e($n['is_active'] ? $t['adm_shown'] : $t['adm_hidden']) ?></span></td>

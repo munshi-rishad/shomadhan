@@ -21,6 +21,7 @@ body { font-family: var(--font); color: var(--text); background: var(--bg); font
 .form-grid h2 { margin: 0; }
 .f { display: flex; flex-direction: column; gap: 5px; font-size: .88rem; }
 .f > span { font-weight: 600; }
+.size-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #eef0ff; color: #3a3f9e; font-size: 12px; font-weight: 700; white-space: nowrap; vertical-align: 1px; }
 .f small { color: var(--muted); font-size: .78rem; }
 input[type=text], input[type=number], input[type=url], input[type=password], input[type=email], select, textarea { width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; font: 400 .95rem var(--font); background: #fff; color: var(--text); }
 textarea { height: auto; padding: 10px 12px; resize: vertical; }
@@ -168,16 +169,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); outline:
 .bell { position: relative; display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--text); }
 .bell:hover, .bell.on { border-color: var(--green); color: var(--green); }
 .bell .count { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--red); color: #fff; font-size: .7rem; font-weight: 700; display: grid; place-items: center; }
-.me-chip { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px 0 4px; border: 1px solid var(--line); border-radius: 20px; background: #fff; color: var(--text); }
-.me-chip:hover, .me-chip.on { border-color: var(--green); }
-.me-chip > span:last-child { display: flex; flex-direction: column; line-height: 1.15; }
-.me-chip b { font-size: .78rem; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.me-chip small { font-size: .68rem; color: var(--green); font-weight: 600; }
-.me-chip .av-sm { width: 30px; height: 30px; font-size: .8rem; }
-@media (max-width: 899px) {   /* phone: only the picture, it still opens my profile */
-    .me-chip { padding: 0 3px; }
-    .me-chip > span:last-child { display: none; }
-}
 @media (min-width: 900px) {
     .adm-top { position: sticky; top: 0; z-index: 20; min-height: 38px; margin: -28px -32px 14px; padding: 14px 32px; background: rgba(244, 248, 246, .92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
     .adm-top:not(:has(.page-back)) { margin-bottom: 14px; }

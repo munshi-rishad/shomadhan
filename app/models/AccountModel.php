@@ -272,7 +272,7 @@ class AccountModel
     // Info columns each role has (users also have area and gender)
     public static function infoColumns($role)
     {
-        return $role === 'user' ? ['name', 'mobile', 'email', 'area', 'gender'] : ['name', 'mobile', 'email'];
+        return ['name', 'mobile', 'email', 'area', 'gender'];   // same info for every role (like the register page)
     }
 
     private static function values(array $cols, array $d)
@@ -299,10 +299,10 @@ class AccountModel
     // must_change_password = 1: on the first login they must set their own password.
     public static function createStaff($role, array $d)
     {
-        $cols = ['name', 'mobile', 'email'];
+        $cols = self::infoColumns($role);
         $args = array_merge([$role], self::values($cols, $d), [self::hash($d['password']), $d['status'], $d['photo'], $d['created_by']]);
-        self::run('INSERT INTO staff (role, name, mobile, email, password, status, photo, created_by, must_change_password)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)', $args);
+        self::run('INSERT INTO staff (role, ' . implode(', ', $cols) . ', password, status, photo, created_by, must_change_password)
+                   VALUES (?, ' . rtrim(str_repeat('?, ', count($cols)), ', ') . ', ?, ?, ?, ?, 1)', $args);
         return (int)self::db()->lastInsertId();
     }
 

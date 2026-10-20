@@ -33,16 +33,16 @@ class AdminListModel
         };
         return [
             'users'     => $people('users', null, ['area' => 't.area', 'gender' => 't.gender']),
-            'employees' => $people('staff', 'employee'),
-            'admins'    => $people('staff', 'admin'),
+            'employees' => $people('staff', 'employee', ['area' => 't.area', 'gender' => 't.gender']),
+            'admins'    => $people('staff', 'admin', ['area' => 't.area', 'gender' => 't.gender']),
             'providers' => [
                 'from'   => 'providers t JOIN services s ON s.id = t.service_id LEFT JOIN staff db ON db.id = t.deleted_by LEFT JOIN staff cb ON cb.id = t.created_by',
                 'soft'   => true,
-                'select' => 't.id, t.name, t.mobile, t.age, t.gender, t.area, t.address, t.photo, t.note, t.status, t.created_at, t.deleted_at,
+                'select' => 't.id, t.name, t.mobile, t.email, t.age, t.gender, t.area, t.address, t.photo, t.note, t.status, t.created_at, t.deleted_at,
                              s.name_' . $n . ' AS service, db.name AS deleted_by, cb.name AS created_by, cb.deleted_at AS created_by_gone',
-                'search' => ['t.name', 't.mobile', 't.area', 't.address', 's.name_bn', 's.name_en'],
+                'search' => ['t.name', 't.mobile', 't.email', 't.area', 't.address', 's.name_bn', 's.name_en'],
                 'sort'   => [
-                    'id' => 't.id', 'name' => 't.name', 'mobile' => 't.mobile', 'service' => 's.name_' . $n, 'age' => 't.age',
+                    'id' => 't.id', 'name' => 't.name', 'mobile' => 't.mobile', 'email' => 't.email', 'service' => 's.name_' . $n, 'age' => 't.age',
                     'gender' => 't.gender', 'area' => 't.area', 'status' => 't.status', 'created_at' => 't.created_at', 'created_by' => 'cb.name',
                 ],
                 'filters' => ['status' => 't.status', 'service' => 't.service_id', 'gender' => 't.gender', 'area' => 't.area'],

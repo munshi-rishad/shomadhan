@@ -7,7 +7,7 @@
 
 class ProviderModel
 {
-    const COLUMNS = ['service_id', 'name', 'mobile', 'age', 'gender', 'area', 'address', 'photo', 'note', 'status'];
+    const COLUMNS = ['service_id', 'name', 'mobile', 'email', 'age', 'gender', 'area', 'address', 'photo', 'note', 'status'];
 
     private static function one($sql, array $args)
     {
@@ -35,6 +35,12 @@ class ProviderModel
     public static function mobileTaken($mobile, $id = 0)
     {
         return (bool)self::one('SELECT id FROM providers WHERE live_mobile = ? AND id <> ?', [$mobile, (int)$id]);
+    }
+
+    public static function emailTaken($email, $id = 0)
+    {
+        if ($email === null || $email === '') { return false; }
+        return (bool)self::one('SELECT id FROM providers WHERE live_email = ? AND id <> ?', [strtolower($email), (int)$id]);
     }
 
     public static function save($id, array $d, $by)
@@ -68,7 +74,7 @@ class ProviderModel
     // all providers that can be picked (not deleted), for the sub-service form: [id, name, mobile, area, service_id, status, photo]
     public static function choices()
     {
-        return Database::get()->query('SELECT id, name, mobile, area, service_id, status, photo FROM providers WHERE deleted_at IS NULL ORDER BY name')->fetchAll();
+        return Database::get()->query('SELECT id, name, mobile, area, service_id, status, photo FROM providers WHERE deleted_at IS NULL ORDER BY id')->fetchAll();
     }
 
     // ids of the providers who give this sub-service
@@ -84,7 +90,7 @@ class ProviderModel
     {
         $out = [];
         $rows = Database::get()->query('SELECT sp.sub_service_id, p.name FROM sub_service_providers sp
-                                        JOIN providers p ON p.id = sp.provider_id WHERE p.deleted_at IS NULL ORDER BY p.name');
+                                        JOIN providers p ON p.id = sp.provider_id WHERE p.deleted_at IS NULL ORDER BY p.id');
         foreach ($rows as $r) {
             $out[(int)$r['sub_service_id']][] = $r['name'];
         }

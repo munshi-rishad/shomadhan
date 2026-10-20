@@ -9,8 +9,8 @@
     <input type="hidden" name="action" value="<?= $isEdit ? 'save' : 'add' ?>">
     <input type="hidden" name="id" value="<?= (int)($pp['id'] ?? 0) ?>">
     <div class="f f-half photo-pick">
-        <?php if ($isEdit): ?><img class="thumb-square" src="<?= e($pp['image']) ?>" alt="" data-zoom><?php endif; ?>
-        <label class="f"><span><?= e($t['adm_popup_image']) ?><?= $isEdit ? '' : ' *' ?></span>
+        <?php if ($isEdit): ?><img class="thumb-square" src="<?= e($pp['image']) ?>" alt=""><?php endif; ?>
+        <label class="f"><span><?= e($t['adm_popup_image']) ?><?= $isEdit ? '' : ' *' ?><?= size_tag('popups', $t) ?></span>
             <input type="file" name="image" accept="image/png,image/jpeg,image/webp" data-label="<?= e($t['adm_photo']) ?>"<?= $isEdit ? '' : ' required' ?>>
             <small><?= e(img_hint('popups', $t, $t['adm_types']) . ($isEdit ? ' ' . $t['adm_keep_old'] : '')) ?></small><?= $err('image') ?></label>
     </div>
@@ -32,7 +32,7 @@
         <tbody>
         <?php foreach ($popups as $p): ?>
             <tr<?= $p['is_active'] ? '' : ' class="dim"' ?>>
-                <td class="cell-img cell-thumb"><img class="thumb-square" src="<?= e($p['image']) ?>" alt="" data-zoom></td>
+                <td class="cell-img cell-thumb"><img class="thumb-square" src="<?= e($p['image']) ?>" alt=""></td>
                 <td class="cell-name" data-label="<?= e($t['adm_title_opt']) ?>"><b><?= e($p['title'] ?: '—') ?></b></td>
                 <td data-label="<?= e($t['adm_popup_link']) ?>" class="cell-wrap"><?php if ($p['link']): ?><a class="link" href="<?= e($p['link']) ?>" target="_blank" rel="noopener noreferrer"><?= e($p['link']) ?></a><?php else: ?><small><?= e($t['adm_no_link']) ?></small><?php endif; ?></td>
                 <td data-label="<?= e($t['adm_status']) ?>"><span class="pill <?= (int)$p['id'] === (int)$liveId ? 'pill-on' : 'pill-off' ?>"><?= e((int)$p['id'] === (int)$liveId ? $t['adm_popup_live'] : ($p['is_active'] ? $t['adm_shown'] : $t['adm_hidden'])) ?></span></td>

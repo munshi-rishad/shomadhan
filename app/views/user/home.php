@@ -39,11 +39,7 @@ $sideGroups = [
     ['', [
         'home'     => ['user-dashboard.php',               'side_home',     '<path d="M3 11 12 3l9 8M5 10v10h14V10"/>'],
     ]],
-    ['grp_me', [
-        'profile'  => ['profile.php',                      'pf_menu',       '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'],
-    ]],
 ];
-$userName = trim((string)($user['name'] ?? ''));
 ?>
 <!-- LEFT MENU: always open on PC, opens with the ☰ button on phone -->
 <aside class="side-menu u-side" id="side-menu" aria-label="<?= e($t['side_menu']) ?>">
@@ -54,7 +50,6 @@ $userName = trim((string)($user['name'] ?? ''));
         </a>
         <button type="button" class="side-x" id="side-close" aria-label="<?= e($t['side_close']) ?>">×</button>
     </div>
-    <?php view('partials/who-card', ['t' => $t, 'name' => $userName, 'photo' => $user['photo'] ?? null]); ?>
     <nav class="side-nav">
         <?php foreach ($sideGroups as $g): ?>
             <?php if ($g[0] !== ''): ?><p class="nav-grp"><?= e($t[$g[0]]) ?></p><?php endif; ?>
@@ -113,6 +108,7 @@ $userName = trim((string)($user['name'] ?? ''));
                     <?php endforeach; ?>
                 </div>
             </div>
+            <?php view('partials/me-chip', ['t' => $t, 'account' => $user + ['role' => 'user'], 'href' => 'profile.php']); ?>
         </div>
     </header>
 

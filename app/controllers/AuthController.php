@@ -152,8 +152,17 @@ class AuthController
             return;
         }
 
-        // at most 40 checks in 10 minutes per browser (stops someone listing all mobiles)
-        if (too_many('avail_hits', 40, 600)) {
+        // Who asks? Office staff may check any account (admin forms); a logged-in person may skip only himself (profile).
+        // kind=account: staff + users tables, kind=provider: service providers (staff only). role + id = the row being edited (not counted).
+        $me      = current_account();
+        $isStaff = $me && in_array($me['role'], ['admin', 'employee'], true);
+        $kind    = (string)($_POST['kind'] ?? 'account');
+        $role    = (string)($_POST['role'] ?? '');
+        $id      = (int)($_POST['id'] ?? 0);
+        if (!$isStaff && !($me && $role === $me['role'] && $id === (int)$me['id'])) { $role = ''; $id = 0; }
+
+        // limit per browser (stops someone listing all mobiles): 40 checks in 10 minutes, office staff 300
+        if (too_many('avail_hits', $isStaff ? 300 : 40, 600)) {
             http_response_code(429);
             echo json_encode(['ok' => false]);
             return;
@@ -161,15 +170,24 @@ class AuthController
 
         $field = (string)($_POST['field'] ?? '');
         $value = trim((string)($_POST['value'] ?? ''));
+        $msgs  = $me ? ['mobile' => 'acc_err_mobile_used', 'email' => 'acc_err_email_used']
+                     : ['mobile' => 'err_mobile_taken',    'email' => 'err_email_taken'];
         try {
-            if ($field === 'mobile' && LoginValidator::mobileError($value, $t) === '') {
-                $taken = AccountModel::mobileExists($value);
-                echo json_encode(['ok' => true, 'available' => !$taken, 'message' => $taken ? $t['err_mobile_taken'] : ''], JSON_UNESCAPED_UNICODE);
-                return;
+            $taken = null;
+            if ($kind === 'provider') {
+                require_once APP_PATH . '/models/ProviderModel.php';
+                if ($isStaff && $field === 'mobile' && LoginValidator::mobileError($value, $t) === '') {
+                    $taken = ProviderModel::mobileTaken($value, $id);
+                } elseif ($isStaff && $field === 'email' && $value !== '' && RegisterValidator::emailError($value, $t) === '') {
+                    $taken = ProviderModel::emailTaken($value, $id);
+                }
+            } elseif ($field === 'mobile' && LoginValidator::mobileError($value, $t) === '') {
+                $taken = AccountModel::takenBy('mobile', $value, $role, $id);
+            } elseif ($field === 'email' && $value !== '' && RegisterValidator::emailError($value, $t) === '') {
+                $taken = AccountModel::takenBy('email', strtolower($value), $role, $id);
             }
-            if ($field === 'email' && $value !== '' && RegisterValidator::emailError($value, $t) === '') {
-                $taken = AccountModel::emailExists($value);
-                echo json_encode(['ok' => true, 'available' => !$taken, 'message' => $taken ? $t['err_email_taken'] : ''], JSON_UNESCAPED_UNICODE);
+            if ($taken !== null) {
+                echo json_encode(['ok' => true, 'available' => !$taken, 'message' => $taken ? $t[$msgs[$field]] : ''], JSON_UNESCAPED_UNICODE);
                 return;
             }
         } catch (PDOException $ex) {

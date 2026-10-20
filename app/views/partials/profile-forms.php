@@ -21,7 +21,8 @@ $pwErr   = $box === 'password';
 <!-- edit my info -->
 <section class="card pf-form" id="info">
     <h2><?= e($t['pf_edit']) ?></h2>
-    <form method="post" action="<?= e($action) ?>#info" novalidate data-check>
+    <form method="post" action="<?= e($action) ?>#info" novalidate data-check
+          data-unique-url="check-availability.php" data-unique-kind="account" data-unique-role="<?= e($role) ?>" data-unique-id="<?= (int)$account['id'] ?>">
         <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
         <input type="hidden" name="action" value="info">
         <div class="row2">
@@ -33,11 +34,10 @@ $pwErr   = $box === 'password';
             </div>
             <div class="field">
                 <label for="pf-email"><?= e($t['pf_email']) ?></label>
-                <input class="box<?= $infoErr ? $bad('email') : '' ?>" id="pf-email" name="email" type="email" maxlength="60" placeholder="name@gmail.com"<?= $role === 'admin' ? ' required' : '' ?>
-                       data-rule="gmail" data-msg="<?= e($t['err_email']) ?>" value="<?= e($old['email'] ?? (string)$account['email']) ?>">
+                <input class="box<?= $infoErr ? $bad('email') : '' ?>" id="pf-email" name="email" type="email" maxlength="60" placeholder="name@gmail.com"
+                       data-rule="gmail" data-unique="email" data-msg="<?= e($t['err_email']) ?>" value="<?= e($old['email'] ?? (string)$account['email']) ?>">
                 <?= $infoErr ? $err('email') : '' ?>
             </div>
-            <?php if ($role === 'user'): ?>
             <div class="field">
                 <label for="pf-area"><?= e($t['pf_area']) ?></label>
                 <select class="box<?= $infoErr ? $bad('area') : '' ?>" id="pf-area" name="area">
@@ -52,7 +52,6 @@ $pwErr   = $box === 'password';
                 </select>
                 <?= $infoErr ? $err('gender') : '' ?>
             </div>
-            <?php endif; ?>
         </div>
         <p class="hint"><?= e($t[$role === 'admin' ? 'pf_mobile_note_admin' : 'pf_mobile_note']) ?></p>
         <button class="btn" type="submit"><?= e($t['adm_save']) ?></button>
