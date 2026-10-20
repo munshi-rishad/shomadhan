@@ -19,15 +19,10 @@ $person = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12
 <!DOCTYPE html>
 <html lang="<?= e($lang) ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title><?= e($t['reg_page_title']) ?></title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?= e(asset('assets/css/auth.css')) ?>">
+<?php view('partials/head', ['title' => $t['reg_page_title'], 'css' => 'auth']); ?>
 </head>
 <body>
+<div class="lang-corner"><?php view('partials/lang-switch', ['lang' => $lang]); ?></div>
 <div class="page">
     <div class="bg" aria-hidden="true"></div>
 
@@ -35,7 +30,7 @@ $person = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12
 
         <!-- LEFT (PC) / TOP (phone) -->
         <section class="intro">
-            <a class="back" href="login.php" aria-label="<?= e($t['login_back']) ?>"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></a>
+            <a class="back" href="login.php" aria-label="<?= e($t['login_back']) ?>"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg><span class="back-txt"><?= e($t['login_back']) ?></span></a>
             <div class="brand">
                 <img class="logo" src="<?= e(asset('assets/images/logo.png')) ?>" alt="Shomadhan">
                 <p class="tagline"><?= e($t['tagline']) ?></p>
@@ -181,5 +176,7 @@ $person = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12
     </main>
 </div>
 <script src="<?= e(asset('assets/js/validation.js')) ?>"></script>
+<script src="<?= e(asset('assets/js/form-check.js')) ?>"></script>
+<script src="<?= e(asset('assets/js/lang.js')) ?>"></script>
 </body>
 </html>

@@ -28,22 +28,57 @@ $tile = function ($s) use ($nm) { ?>
 <!DOCTYPE html>
 <html lang="<?= e($lang) ?>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title><?= e($t['home_page_title']) ?></title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?= e(asset('assets/css/home.css')) ?>">
+<?php view('partials/head', ['title' => $t['home_page_title'], 'css' => 'home']); ?>
 </head>
 <body>
-<div class="shell">
-
-    <!-- HEADER: logo, area, search, notifications, language, logout -->
-    <header class="top">
-        <a class="brand" href="user-dashboard.php">
+<?php
+// left menu: which item is open now
+$active = $mode === 'home' ? 'home' : (string)($_GET['list'] ?? '');
+// only what is not already on the page: all services / popular / new are opened from the home page's "see all" links, offers from the bell
+$sideGroups = [
+    ['', [
+        'home'     => ['user-dashboard.php',               'side_home',     '<path d="M3 11 12 3l9 8M5 10v10h14V10"/>'],
+    ]],
+    ['grp_me', [
+        'profile'  => ['profile.php',                      'pf_menu',       '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'],
+    ]],
+];
+$userName = trim((string)($user['name'] ?? ''));
+?>
+<!-- LEFT MENU: always open on PC, opens with the ☰ button on phone -->
+<aside class="side-menu u-side" id="side-menu" aria-label="<?= e($t['side_menu']) ?>">
+    <div class="side-top">
+        <a class="side-brand" href="user-dashboard.php">
             <img src="<?= e(asset('assets/images/logo.png')) ?>" alt="Shomadhan">
             <small><?= e($t['tagline']) ?></small>
+        </a>
+        <button type="button" class="side-x" id="side-close" aria-label="<?= e($t['side_close']) ?>">×</button>
+    </div>
+    <?php view('partials/who-card', ['t' => $t, 'name' => $userName, 'photo' => $user['photo'] ?? null]); ?>
+    <nav class="side-nav">
+        <?php foreach ($sideGroups as $g): ?>
+            <?php if ($g[0] !== ''): ?><p class="nav-grp"><?= e($t[$g[0]]) ?></p><?php endif; ?>
+            <?php foreach ($g[1] as $key => $l): ?>
+            <a href="<?= e($l[0]) ?>"<?= $active === $key ? ' class="on" aria-current="page"' : '' ?>><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><?= $l[2] ?></svg><?= e($t[$l[1]]) ?></a>
+            <?php endforeach; ?>
+        <?php endforeach; ?>
+    </nav>
+    <div class="side-bottom">
+        <?php view('partials/logout-form', ['t' => $t, 'class' => 'side-logout',
+            'inner' => '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h5M20 12H9M16 8l4 4-4 4"/></svg>' . e($t['btn_logout'])]); ?>
+    </div>
+</aside>
+<div class="side-shade" id="side-shade" hidden></div>
+
+<div class="shell">
+
+    <!-- HEADER: menu button (phone), logo (phone), area, search, notifications -->
+    <header class="top">
+        <button type="button" class="menu-btn" id="menu-btn" aria-label="<?= e($t['side_menu']) ?>" aria-controls="side-menu" aria-expanded="false">
+            <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <a class="brand" href="user-dashboard.php">
+            <img src="<?= e(asset('assets/images/logo.png')) ?>" alt="Shomadhan">
         </a>
         <span class="loc">
             <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
@@ -54,6 +89,7 @@ $tile = function ($s) use ($nm) { ?>
             <input type="search" name="q" value="<?= e($q) ?>" maxlength="60" placeholder="<?= e($t['home_search_ph']) ?>" aria-label="<?= e($t['home_search_ph']) ?>">
         </form>
         <div class="tools">
+            <?php view('partials/lang-switch', ['lang' => $lang]); ?>
             <div class="notif">
                 <button type="button" class="tool" id="bell" aria-expanded="false" aria-controls="notif-panel">
                     <span class="tool-ic">
@@ -63,6 +99,10 @@ $tile = function ($s) use ($nm) { ?>
                     <span class="tool-txt"><?= e($t['home_notifications']) ?></span>
                 </button>
                 <div class="notif-panel" id="notif-panel" hidden>
+                    <?php if ($changes): ?>
+                        <p class="notif-head"><?= e($t['chg_title']) ?></p>
+                        <?php view('partials/account-changes', ['t' => $t, 'changes' => $changes, 'compact' => true]); ?>
+                    <?php endif; ?>
                     <p class="notif-head"><?= e($t['home_latest_offers']) ?></p>
                     <?php if (!$notifications): ?><p class="notif-empty"><?= e($t['home_no_offers']) ?></p><?php endif; ?>
                     <?php foreach ($notifications as $n): ?>
@@ -73,17 +113,6 @@ $tile = function ($s) use ($nm) { ?>
                     <?php endforeach; ?>
                 </div>
             </div>
-            <div class="lang" role="group" aria-label="Language / ভাষা">
-                <button type="button" data-lang="bn" aria-pressed="<?= $lang === 'bn' ? 'true' : 'false' ?>">বাংলা</button>
-                <button type="button" data-lang="en" aria-pressed="<?= $lang === 'en' ? 'true' : 'false' ?>">EN</button>
-            </div>
-            <form method="post" action="logout.php">
-                <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
-                <button class="tool" type="submit" title="<?= e($t['btn_logout']) ?>">
-                    <span class="tool-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h5M20 12H9M16 8l4 4-4 4"/></svg></span>
-                    <span class="tool-txt"><?= e($t['btn_logout']) ?></span>
-                </button>
-            </form>
         </div>
     </header>
 
@@ -97,7 +126,7 @@ $tile = function ($s) use ($nm) { ?>
             <section class="slider" aria-label="<?= e($t['home_offers']) ?>">
                 <div class="slides" id="slides">
                     <?php foreach ($banners as $i => $b): ?>
-                        <div class="slide"><span class="slide-bg" style="background-image:url('<?= e($b['image']) ?>')"></span><img src="<?= e($b['image']) ?>" alt="<?= e($b['title'] ?? '') ?>"<?= $i ? ' loading="lazy"' : '' ?>></div>
+                        <div class="slide"><img src="<?= e($b['image']) ?>" alt="<?= e($b['title'] ?? '') ?>"<?= $i ? ' loading="lazy"' : '' ?>></div>
                     <?php endforeach; ?>
                 </div>
                 <?php if (count($banners) > 1): ?>
@@ -113,10 +142,6 @@ $tile = function ($s) use ($nm) { ?>
                 <div class="sec-head"><h2><?= e($t['home_categories']) ?></h2><a href="user-dashboard.php?list=services"><?= e($t['home_see_all_services']) ?> →</a></div>
                 <div class="cats">
                     <?php foreach (array_slice($services, 0, 6) as $s) { $tile($s); } ?>
-                    <a class="cat" href="user-dashboard.php?list=services">
-                        <span class="cat-ic tile-gray"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3"/></svg></span>
-                        <span class="cat-name"><?= e($t['home_more_services']) ?></span>
-                    </a>
                 </div>
             </section>
 
@@ -138,13 +163,15 @@ $tile = function ($s) use ($nm) { ?>
 
         <?php elseif ($mode === 'services'): ?>
             <section class="sec">
-                <div class="sec-head"><h2><a class="back" href="user-dashboard.php" aria-label="<?= e($t['login_back']) ?>">‹</a> <?= e($t['home_categories']) ?></h2></div>
+                <a class="page-back" href="user-dashboard.php"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg><?= e($t['login_back']) ?></a>
+                <div class="sec-head"><h2><?= e($t['home_categories']) ?></h2></div>
                 <div class="cats cats-all"><?php foreach ($services as $s) { $tile($s); } ?></div>
             </section>
 
         <?php else: ?>
             <section class="sec">
-                <div class="sec-head"><h2><a class="back" href="user-dashboard.php" aria-label="<?= e($t['login_back']) ?>">‹</a> <?= e($title) ?></h2></div>
+                <a class="page-back" href="user-dashboard.php"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg><?= e($t['login_back']) ?></a>
+                <div class="sec-head"><h2><?= e($title) ?></h2></div>
                 <?php if (!$items): ?><p class="empty"><?= e($t['home_nothing']) ?></p><?php endif; ?>
                 <div class="cards cards-grid"><?php foreach ($items as $x) { echo $card($x); } ?></div>
             </section>
@@ -157,10 +184,16 @@ $tile = function ($s) use ($nm) { ?>
 <div class="popup" id="popup" role="dialog" aria-modal="true" aria-label="<?= e($popup['title'] ?: $t['home_offers']) ?>">
     <div class="popup-box">
         <button type="button" class="popup-x" id="popup-x" aria-label="<?= e($t['home_close']) ?>">×</button>
-        <img src="<?= e($popup['image']) ?>" alt="<?= e($popup['title'] ?? '') ?>">
+        <?php if (!empty($popup['link'])): ?>
+            <a class="popup-link" href="<?= e($popup['link']) ?>" target="_blank" rel="noopener noreferrer sponsored" title="<?= e($t['home_popup_open']) ?>"><img src="<?= e($popup['image']) ?>" alt="<?= e($popup['title'] ?: $t['home_popup_open']) ?>"></a>
+        <?php else: ?>
+            <img src="<?= e($popup['image']) ?>" alt="<?= e($popup['title'] ?? '') ?>">
+        <?php endif; ?>
     </div>
 </div>
 <?php endif; ?>
+<script src="<?= e(asset('assets/js/side-menu.js')) ?>"></script>
 <script src="<?= e(asset('assets/js/home.js')) ?>"></script>
+<script src="<?= e(asset('assets/js/lang.js')) ?>"></script>
 </body>
 </html>

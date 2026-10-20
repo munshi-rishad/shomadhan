@@ -5,6 +5,9 @@
 
 class HomeContentModel
 {
+    // staff.id of the admin who is adding things now (saved in created_by). The admin panel sets it.
+    public static $by = null;
+
     private static function db()
     {
         return Database::get();
@@ -46,7 +49,7 @@ class HomeContentModel
     // ------------------------------------------------------------ POPUPS
     public static function popups()
     {
-        return self::all('SELECT * FROM popups ORDER BY id DESC');
+        return self::all('SELECT * FROM popups ORDER BY id');      // admin list: id low -> high
     }
 
     public static function popup($id)
@@ -60,9 +63,14 @@ class HomeContentModel
         return self::one('SELECT * FROM popups WHERE is_active = 1 ORDER BY id DESC LIMIT 1');
     }
 
-    public static function addPopup($image, $title)
+    public static function addPopup($image, $title, $link = '')
     {
-        self::run('INSERT INTO popups (image, title) VALUES (?, ?)', [$image, $title !== '' ? $title : null]);
+        self::run('INSERT INTO popups (image, title, link, created_by) VALUES (?, ?, ?, ?)', [$image, $title !== '' ? $title : null, $link !== '' ? $link : null, self::$by]);
+    }
+
+    public static function updatePopup($id, $image, $title, $link = '')
+    {
+        self::run('UPDATE popups SET image = ?, title = ?, link = ? WHERE id = ?', [$image, $title !== '' ? $title : null, $link !== '' ? $link : null, $id]);
     }
 
     public static function setPopupActive($id, $active)
@@ -88,7 +96,7 @@ class HomeContentModel
 
     public static function addBanner($image, $title, $order)
     {
-        self::run('INSERT INTO banners (image, title, sort_order) VALUES (?, ?, ?)', [$image, $title, $order]);
+        self::run('INSERT INTO banners (image, title, sort_order, created_by) VALUES (?, ?, ?, ?)', [$image, $title, $order, self::$by]);
     }
 
     public static function updateBanner($id, $title, $order, $active)
@@ -121,14 +129,14 @@ class HomeContentModel
             self::run('UPDATE services SET name_bn = ?, name_en = ?, icon = ?, color = ?, sort_order = ?, is_active = ? WHERE id = ?',
                 [$d['name_bn'], $d['name_en'], $d['icon'], $d['color'], $d['sort_order'], $d['is_active'], $id]);
         } else {
-            self::run('INSERT INTO services (name_bn, name_en, icon, color, sort_order, is_active) VALUES (?, ?, ?, ?, ?, ?)',
-                [$d['name_bn'], $d['name_en'], $d['icon'], $d['color'], $d['sort_order'], $d['is_active']]);
+            self::run('INSERT INTO services (name_bn, name_en, icon, color, sort_order, is_active, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [$d['name_bn'], $d['name_en'], $d['icon'], $d['color'], $d['sort_order'], $d['is_active'], self::$by]);
         }
     }
 
     public static function deleteService($id)
     {
-        self::run('DELETE FROM services WHERE id = ?', [$id]);   // its sub-services are deleted too (ON DELETE CASCADE)
+        self::run('DELETE FROM services WHERE id = ?', [$id]);   // only when it has no sub-services (ON DELETE RESTRICT)
     }
 
     // ------------------------------------------------------- SUB-SERVICES
@@ -141,8 +149,8 @@ class HomeContentModel
     public static function subServices($serviceId = 0)
     {
         return $serviceId
-            ? self::all(self::subSql('WHERE x.service_id = ? ORDER BY x.id DESC'), [$serviceId])
-            : self::all(self::subSql('ORDER BY s.sort_order, s.id, x.id DESC'));
+            ? self::all(self::subSql('WHERE x.service_id = ? ORDER BY x.id'), [$serviceId])
+            : self::all(self::subSql('ORDER BY x.id'));          // admin list: id low -> high
     }
 
     public static function subService($id)
@@ -158,9 +166,11 @@ class HomeContentModel
             $cols[] = $id;
             self::run('UPDATE sub_services SET service_id = ?, name_bn = ?, name_en = ?, detail_bn = ?, detail_en = ?, image = ?,
                        price = ?, rating = ?, rating_count = ?, popular_rank = ?, is_active = ? WHERE id = ?', $cols);
+            return $id;
         } else {
-            self::run('INSERT INTO sub_services (service_id, name_bn, name_en, detail_bn, detail_en, image, price, rating, rating_count, popular_rank, is_active)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $cols);
+            self::run('INSERT INTO sub_services (service_id, name_bn, name_en, detail_bn, detail_en, image, price, rating, rating_count, popular_rank, is_active, created_by)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', array_merge($cols, [self::$by]));
+            return (int)self::db()->lastInsertId();
         }
     }
 
@@ -203,10 +213,11 @@ class HomeContentModel
     }
 
     // ------------------------------------------------- NOTIFICATIONS (offers)
-    public static function notifications($onlyActive = false, $limit = 0)
+    // $order 'id' = admin list (id low -> high), otherwise newest first (user's bell)
+    public static function notifications($onlyActive = false, $limit = 0, $order = 'newest')
     {
         return self::all('SELECT * FROM notifications' . ($onlyActive ? ' WHERE is_active = 1' : '')
-                         . ' ORDER BY created_at DESC, id DESC' . ($limit ? ' LIMIT ' . (int)$limit : ''));
+                         . ($order === 'id' ? ' ORDER BY id' : ' ORDER BY created_at DESC, id DESC') . ($limit ? ' LIMIT ' . (int)$limit : ''));
     }
 
     public static function notification($id)
@@ -216,7 +227,12 @@ class HomeContentModel
 
     public static function addNotification($title, $message, $image)
     {
-        self::run('INSERT INTO notifications (title, message, image) VALUES (?, ?, ?)', [$title, $message, $image ?: null]);
+        self::run('INSERT INTO notifications (title, message, image, created_by) VALUES (?, ?, ?, ?)', [$title, $message, $image ?: null, self::$by]);
+    }
+
+    public static function updateNotification($id, $title, $message, $image)
+    {
+        self::run('UPDATE notifications SET title = ?, message = ?, image = ? WHERE id = ?', [$title, $message, $image ?: null, $id]);
     }
 
     public static function setNotificationActive($id, $active)

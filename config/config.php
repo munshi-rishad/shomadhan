@@ -8,6 +8,23 @@ define('APP_PATH',  ROOT_PATH . '/app');    // Path of the app folder (controlle
 
 date_default_timezone_set('Asia/Dhaka');
 
+// Errors are written to storage/logs/php-errors.log, never shown to visitors
+// (an error on screen can show file paths or SQL to a hacker). Set to '1' only while you fix a bug.
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+ini_set('error_log', ROOT_PATH . '/storage/logs/php-errors.log');
+error_reporting(E_ALL);
+
+// Safety headers on every page
+if (!headers_sent()) {
+    header('X-Frame-Options: DENY');                                  // no one can put our pages inside their site (clickjacking)
+    header('X-Content-Type-Options: nosniff');                        // browser must trust our file types
+    header('Referrer-Policy: same-origin');
+    header("Content-Security-Policy: frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'");
+    header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+    header_remove('X-Powered-By');                                    // don't tell which PHP version runs
+}
+
 // Session = browser memory for the visitor (language, logged-in user, OTP steps).
 // The session cookie is HttpOnly (JavaScript can't read it) and SameSite=Lax.
 if (session_status() === PHP_SESSION_NONE) {
@@ -21,4 +38,12 @@ if (session_status() === PHP_SESSION_NONE) {
     ]);
     session_name('SHOMADHAN_SID');
     session_start();
+
+    // Logged in but nothing done for 2 hours -> logged out ("Remember me" logs back in if it was ticked)
+    $idle = 2 * 60 * 60;
+    if (!empty($_SESSION['auth']) && isset($_SESSION['last_seen']) && time() - $_SESSION['last_seen'] > $idle) {
+        unset($_SESSION['auth']);
+        session_regenerate_id(true);
+    }
+    $_SESSION['last_seen'] = time();
 }

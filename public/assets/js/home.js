@@ -1,4 +1,4 @@
-// home.js - user home page: banner slider, notification bell, language switch
+// home.js - user home page: banner slider, notification bell (language buttons: lang.js)
 (function () {
     // ---- banner slider (swipe on phone, arrows + dots, moves by itself every 5 seconds)
     var slides = document.getElementById('slides');
@@ -49,16 +49,10 @@
         document.body.classList.add('no-scroll');
         var closePopup = function () { popup.classList.add('hide'); document.body.classList.remove('no-scroll'); setTimeout(function () { popup.remove(); }, 250); };
         document.getElementById('popup-x').addEventListener('click', closePopup);
+        var popLink = popup.querySelector('.popup-link');
+        if (popLink) { popLink.addEventListener('click', function () { setTimeout(closePopup, 100); }); }   // link opens in a new tab, popup closes here
         popup.addEventListener('click', function (ev) { if (ev.target === popup) { closePopup(); } });
         document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && document.body.contains(popup)) { closePopup(); } });
         document.getElementById('popup-x').focus();
     }
-
-    // ---- language: save in the "lang" cookie (same as the welcome page) and reload
-    [].slice.call(document.querySelectorAll('.lang [data-lang]')).forEach(function (b) {
-        b.addEventListener('click', function () {
-            document.cookie = 'lang=' + b.getAttribute('data-lang') + '; path=/; max-age=31536000';
-            location.reload();
-        });
-    });
 })();

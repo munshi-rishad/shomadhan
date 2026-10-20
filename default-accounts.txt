@@ -1,17 +1,18 @@
 SHOMADHAN - DEFAULT ACCOUNTS
-(shomadhan.sql import korle egulo database e insert hoy)
+(setup.bat ba shomadhan.sql import korle egulo database e insert hoy)
+Admin notun admin/employee banale take ekta EKKALIN (one-time) password dey; prothom login e se nijer password set kore.
 Login korun MOBILE + PASSWORD diye: http://localhost/shomadhan/public/login.php
 
-1) ADMIN  (table: admins)
-   Name     : SHOMADHAN ADMIN
+1) ADMIN  (table: staff, role = admin)
+   Name     : RASHEDUL KARIM
    Mobile   : 01700000001
    Email    : admin.shomadhan@gmail.com
    Password : Admin@123
    Status   : active
    Login er por jabe: admin-dashboard.php
 
-2) EMPLOYEE  (table: employees)
-   Name     : KARIM ELECTRIC
+2) EMPLOYEE  (table: staff, role = employee)
+   Name     : KARIM UDDIN
    Mobile   : 01700000002
    Email    : employee.shomadhan@gmail.com
    Password : Employee@123
@@ -19,11 +20,18 @@ Login korun MOBILE + PASSWORD diye: http://localhost/shomadhan/public/login.php
    Login er por jabe: employee-dashboard.php
 
 3) USER  (table: users)
-   Name     : DEMO USER
+   Name     : AYESHA SIDDIKA
    Mobile   : 01700000003
    Email    : user.shomadhan@gmail.com
    Password : User@1234
    Area     : BAU Area
-   Gender   : male
+   Gender   : female
    Status   : active
    Login er por jabe: user-dashboard.php
+
+ONNO NOMUNA (sample) DATA - search / sort / filter check korar jonno:
+   Admin    : aro 9 jon (mobile 01710000002 - 01710000010), password Admin@123
+   Employee : aro 9 jon (mobile 01720000002 - 01720000010), password Employee@123
+   User     : aro 9 jon (mobile 01730000002 - 01730000010), password User@1234
+   Sebadata (providers): 10 jon (login nei), 5 ta category te bhag kora
+   Kichu account "bondho" (inactive) - oder diye login hobe na.

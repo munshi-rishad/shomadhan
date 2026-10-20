@@ -1,0 +1,30 @@
+/* profile.css - user's profile page frame: top bar + 2 columns. The cards inside are shared (base.css) */
+body { font-family: var(--font); color: var(--text); background: var(--bg); font-size: 15px; min-height: 100vh; }
+
+/* top bar */
+.top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+       height: 62px; padding: 0 14px; background: #fff; border-bottom: 1px solid var(--line); }
+.top-logo { height: 34px; position: absolute; left: 50%; transform: translateX(-50%); }
+.top-out { height: 38px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; font: 600 .85rem var(--font); cursor: pointer; color: var(--text); }
+.top-out:hover { border-color: var(--red); color: var(--red); }
+
+.wrap { max-width: 1100px; margin: 0 auto; padding: 18px 14px 40px; }
+.page-h1 { font-size: 1.4rem; margin-bottom: 14px; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.col { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start; min-width: 0; }
+/* same card as the dashboards (admin.css) */
+.card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+
+@media (min-width: 700px) {
+    .top { padding: 0 24px; }
+}
+@media (min-width: 960px) {
+    .wrap { padding: 28px 24px 50px; }
+    .grid { grid-template-columns: 330px minmax(0, 1fr); align-items: start; }
+    .me { position: sticky; top: 86px; }
+    .card { padding: 16px 20px; }
+}
+
+.top-right { display: flex; align-items: center; gap: 8px; }
+@media (max-width: 520px) { .top-logo { display: none; } .top-out { padding: 0 10px; } }

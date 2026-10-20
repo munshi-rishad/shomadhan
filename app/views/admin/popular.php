@@ -1,7 +1,7 @@
 <?php // app/views/admin/popular.php - admin orders the "জনপ্রিয় সেবা" with ▲ ▼ arrows. Unticked = not popular. ?>
 <h1 class="adm-h1"><?= e($t['adm_menu_popular']) ?></h1>
 <p class="adm-sub"><?= e($t['adm_popular_sub']) ?></p>
-<form class="card" method="post" action="admin-dashboard.php?page=popular" id="rank-form">
+<form class="card" method="post" action="<?= e($base) ?>?page=popular" id="rank-form">
     <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
     <input type="hidden" name="action" value="save">
     <?php if (!$items): ?><p class="empty"><?= e($t['adm_none']) ?></p><?php endif; ?>

@@ -2,12 +2,8 @@
    auth.css - login page (register will use it too)
    Phone first. @media (min-width: 900px) = PC (same background as landing)
    ========================================================== */
-:root { --green: #0b6b4c; --green-dark: #075a40; --text: #1d1d1d; --muted: #4a524e; --line: #dde4e0; --red: #c62828; }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Poppins', 'Hind Siliguri', system-ui, sans-serif; color: var(--text); background: #fcfefd; }
-a { text-decoration: none; color: inherit; }
-.ic { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
+body { font-family: var(--font); color: var(--text); background: #fcfefd; }
+.ic { width: 22px; height: 22px; }    /* bigger icons on this page (base.css has the rest) */
 
 /* ---------- Page ---------- */
 .page { position: relative; isolation: isolate; overflow: hidden; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; padding: 14px 22px calc(20px + env(safe-area-inset-bottom)); }
@@ -17,7 +13,9 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 
 /* ---------- Intro (phone) ---------- */
 .intro { position: relative; }
+button.back { border: 0; background: none; padding: 0; color: inherit; cursor: pointer; }
 .back { display: grid; place-items: center; width: 36px; height: 36px; margin-left: -8px; }
+.back-txt { display: none; }
 .logo { display: block; width: 172px; margin-top: 10px; }
 .tagline { margin-top: 2px; font-size: .68rem; font-weight: 600; color: #3b423f; }
 .illus-m { position: absolute; top: 20px; right: -14px; width: 166px; }
@@ -33,19 +31,13 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .input:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px rgba(11,107,76,.12); }
 .input.invalid { border-color: var(--red); }
 .input > .ic { color: #4a5752; }
-.input input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: 400 1rem 'Poppins', 'Hind Siliguri', sans-serif; color: var(--text); }
+.input input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: 400 1rem var(--font); color: var(--text); }
 .input input::placeholder { color: #9aa5a0; }
 .cc { position: relative; display: flex; align-items: center; padding-right: 12px; border-right: 1px solid var(--line); }
 .cc select { appearance: none; -webkit-appearance: none; border: 0; background: transparent; padding-right: 20px; font: 600 .95rem 'Poppins', sans-serif; color: var(--text); cursor: pointer; }
 .cc .chev { position: absolute; right: 10px; width: 16px; height: 16px; pointer-events: none; }
-.toggle { display: grid; place-items: center; border: 0; background: transparent; color: #4a5752; cursor: pointer; }
-.toggle .eye { display: none; }
-.toggle[aria-pressed="true"] .eye { display: block; }
-.toggle[aria-pressed="true"] .eye-off { display: none; }
+.toggle { display: grid; place-items: center; border: 0; background: transparent; color: #4a5752; cursor: pointer; width: auto; height: auto; }
 .error-text { margin-top: 6px; font-size: .8rem; font-weight: 500; color: var(--red); }
-.alert { margin-bottom: 14px; padding: 10px 14px; border-radius: 10px; font-size: .88rem; font-weight: 500; }
-.alert-error { background: #fdecec; color: var(--red); }
-.alert-ok { background: #e3f5ea; color: var(--green-dark); }
 
 .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: clamp(14px, 2.2vh, 20px); font-size: .85rem; }
 .link { color: var(--green); font-weight: 600; }
@@ -56,13 +48,13 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .check input:checked + .box::after { content: ''; position: absolute; left: 6px; top: 2px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 .check input:focus-visible + .box { outline: 3px solid #f59e0b; outline-offset: 2px; }
 
-.btn-submit { position: relative; display: flex; align-items: center; justify-content: center; height: 54px; margin-top: clamp(18px, 3vh, 28px); padding: 0 44px; border: 0; border-radius: 12px; background: var(--green); color: #fff; font: 600 1.1rem 'Poppins', 'Hind Siliguri', sans-serif; cursor: pointer; box-shadow: 0 8px 18px rgba(11,107,76,.28); transition: background .2s, transform .1s; }
+.btn-submit { position: relative; display: flex; align-items: center; justify-content: center; height: 54px; margin-top: clamp(18px, 3vh, 28px); padding: 0 44px; border: 0; border-radius: 12px; background: var(--green); color: #fff; font: 600 1.1rem var(--font); cursor: pointer; box-shadow: 0 8px 18px rgba(11,107,76,.28); transition: background .2s, transform .1s; }
 .btn-submit:hover { background: var(--green-dark); }
 .btn-submit:active { transform: scale(.98); }
 .btn-submit .arrow { position: absolute; right: 18px; }
 .or { display: flex; align-items: center; gap: 12px; margin: clamp(16px, 2.6vh, 24px) 0 clamp(12px, 2vh, 18px); font-size: .85rem; color: #6b746f; }
 .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-.btn-google { display: flex; align-items: center; justify-content: center; gap: 10px; height: 50px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font: 600 .92rem 'Poppins', 'Hind Siliguri', sans-serif; color: var(--text); cursor: pointer; }
+.btn-google { display: flex; align-items: center; justify-content: center; gap: 10px; height: 50px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font: 600 .92rem var(--font); color: var(--text); cursor: pointer; }
 .signup { margin-top: auto; padding-top: 22px; text-align: center; font-size: .85rem; color: #555; }
 
 /* ---------- Register extras ---------- */
@@ -72,10 +64,10 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 #name::placeholder { text-transform: none; }
 .field + .field-row, .field-row > .field + .field { margin-top: clamp(14px, 2.4vh, 22px); }
 .pc-sub { display: none; }
-.input .sel { flex: 1; min-width: 0; appearance: none; -webkit-appearance: none; border: 0; outline: 0; background: transparent; font: 500 1rem 'Poppins', 'Hind Siliguri', sans-serif; color: var(--text); cursor: pointer; }
+.input .sel { flex: 1; min-width: 0; appearance: none; -webkit-appearance: none; border: 0; outline: 0; background: transparent; font: 500 1rem var(--font); color: var(--text); cursor: pointer; }
 .input > .chev, .combo-btn .chev { width: 18px; height: 18px; margin-left: auto; color: #333; pointer-events: none; }
 .combo { position: relative; }
-.combo-btn { width: 100%; text-align: left; cursor: pointer; font: 600 .98rem 'Poppins', 'Hind Siliguri', sans-serif; color: var(--text); }
+.combo-btn { width: 100%; text-align: left; cursor: pointer; font: 600 .98rem var(--font); color: var(--text); }
 .combo-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .combo-text.placeholder { font-weight: 400; color: #9aa5a0; }
 .combo-btn[aria-expanded="true"] { border-color: var(--green); }
@@ -141,7 +133,14 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
     .bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255,255,255,.94) 0%, rgba(255,255,255,.82) 32%, rgba(255,255,255,0) 58%); }
 
     .auth { flex: none; max-width: 1188px; display: grid; grid-template-columns: minmax(0, 1fr) 440px; align-items: center; column-gap: clamp(36px, 6vw, 90px); }
-    .back, .illus-m, .intro-sub { display: none; }
+    .illus-m, .intro-sub { display: none; }
+    /* PC: back button top-left of the page (same look as .page-back on other pages); language switch is top-right */
+    .intro { position: static; }
+    .back, .auth--reg .back { position: absolute; top: 14px; left: 16px; z-index: 50; display: inline-flex; align-items: center; gap: 6px; width: auto; height: 38px; margin: 0; padding: 0 12px 0 8px;
+        border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--text); font: 600 .82rem var(--font); text-decoration: none; }
+    .back:hover { border-color: var(--green); color: var(--green); }
+    .back .ic { width: 18px; height: 18px; }
+    .back-txt { display: inline; }
     .logo { width: 300px; margin-top: 0; }
     .tagline { margin-top: 5px; font-size: .95rem; }
     .pc-h1 { display: block; margin-top: 26px; font-size: clamp(1.7rem, 2.5vw, 2.3rem); line-height: 1.3; font-weight: 700; }
@@ -185,12 +184,8 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid
 .hint { margin-top: 10px; font-size: .8rem; line-height: 1.5; color: #6b746f; }
 .input input.otp { letter-spacing: 6px; font-weight: 600; }
 .input input.otp::placeholder { letter-spacing: normal; font-weight: 400; }   /* Bangla placeholder: no gaps between letters */
-.link-btn { border: 0; background: none; padding: 0; color: var(--green); font: 600 .85rem 'Poppins', 'Hind Siliguri', sans-serif; cursor: pointer; }
+.link-btn { border: 0; background: none; padding: 0; color: var(--green); font: 600 .85rem var(--font); cursor: pointer; }
 .steps { display: flex; gap: 8px; list-style: none; margin-bottom: 16px; }
 .steps li { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--line); font-weight: 600; font-size: .85rem; color: #6b746f; background: #fff; }
 .steps li.on { border-color: var(--green); color: var(--green); }
 .steps li.done { border-color: var(--green); background: var(--green); color: #fff; }
-
-/* ---------------- blank dashboards ---------------- */
-.dash-title { margin-top: 30px; font-size: 1.8rem; color: var(--green); }
-.dash-name { margin-top: 6px; font-weight: 600; color: var(--muted); }

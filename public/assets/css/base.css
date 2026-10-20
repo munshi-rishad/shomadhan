@@ -1,0 +1,173 @@
+/* base.css - shared by EVERY page (landing, login, user, employee, admin).
+   One place for the colors and the parts that look the same everywhere:
+   colors, focus ring, icons, message boxes, buttons, language buttons, profile info card.
+   Each page's own CSS (admin.css, home.css ...) loads after this and only adds its layout. */
+:root {
+    --green: #0b6b4c;        /* main brand green */
+    --green-dark: #075a40;
+    --green-soft: #e3f5ea;   /* light green background (success, pills) */
+    --text: #1d1d1d;
+    --muted: #5b6460;
+    --line: #e1e7e4;
+    --red: #c62828;
+    --red-soft: #fdecec;
+    --gold: #f5a623;
+    --bg: #f3f7f5;           /* page background of the dashboards */
+    --focus: #f59e0b;
+    --font: 'Poppins', 'Hind Siliguri', system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+a { color: inherit; text-decoration: none; }
+.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* message boxes */
+.alert { margin-bottom: 14px; padding: 10px 14px; border-radius: 10px; font-size: .88rem; font-weight: 500; }
+.alert-ok    { background: var(--green-soft); color: var(--green-dark); }
+.alert-error { background: var(--red-soft); color: var(--red); }
+.alert-info  { background: #fff6e6; color: #8a5300; }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--green); color: #fff; font: 600 .9rem var(--font); cursor: pointer; text-decoration: none; }
+.btn:hover { background: var(--green-dark); }
+.btn-small  { height: 34px; padding: 0 12px; font-size: .8rem; }
+.btn-ghost  { background: #fff; color: var(--text); border: 1px solid var(--line); }
+.btn-ghost:hover { background: #f1f5f3; }
+.btn-danger { background: #fff; color: var(--red); border: 1px solid #f1c6c6; }
+.btn-danger:hover { background: var(--red-soft); }
+.btn-move   { background: #fff; color: var(--green); border: 1px solid #bfe0cf; }
+.btn-move:hover { background: #eef6f2; }
+.btn-warn   { background: #fff; color: #b26a00; border: 1px solid #f3d9a8; }
+.btn-warn:hover { background: #fff6e6; }
+
+/* বাংলা / English buttons (partials/lang-switch.php) */
+.lang { display: inline-flex; align-items: center; height: 38px; padding: 3px; border: 1px solid var(--line); border-radius: 20px; background: #fff; }
+.lang button { border: 0; background: none; height: 30px; padding: 0 10px; border-radius: 16px; font: 600 .78rem var(--font); cursor: pointer; color: var(--text); }
+.lang button[aria-pressed="true"] { background: var(--green); color: #fff; }
+
+/* profile info card (partials/profile-info.php) - same for admin, employee and user */
+.pf-top { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 6px 0 14px; }
+.pf-avatar { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; background: var(--green); color: #fff; font-size: 2.1rem; font-weight: 700; box-shadow: 0 0 0 6px var(--green-soft); }
+.pf-name { font-size: 1.15rem; line-height: 1.3; margin: 0; color: var(--text); }
+.pf-sub { display: inline-block; margin-top: 4px; padding: 3px 12px; border-radius: 20px; background: var(--green-soft); color: var(--green-dark); font-size: .78rem; font-weight: 600; }
+.pf-info { border-top: 1px solid var(--line); }
+.pf-info div { display: flex; justify-content: space-between; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--line); font-size: .88rem; }
+.pf-info div:last-child { border-bottom: 0; }
+.pf-info dt { color: var(--muted); flex: none; }
+.pf-info dd { font-weight: 600; text-align: right; word-break: break-all; }
+
+/* "edit my info" + "change password" cards (partials/profile-forms.php) - same for admin, employee and user */
+.pf-form h2 { font-size: 1.05rem; margin: 0 0 14px; }
+.pf-form .row2, .pf-form .row3 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.pf-form .field { min-width: 0; }
+.pf-form label { display: block; margin-bottom: 6px; font-size: .86rem; font-weight: 600; }
+.pf-form .box { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; font: 400 .95rem var(--font); color: var(--text); }
+.pf-form select.box { cursor: pointer; }
+.pf-form .box:focus, .pf-form .input.box:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px rgba(11,107,76,.12); outline: 0; }
+.pf-form .input.box { display: flex; align-items: center; gap: 6px; padding: 0 6px 0 12px; }
+.pf-form .input.box input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; border-radius: 0; outline: 0; background: transparent; font: inherit; color: inherit; }
+.pf-form .box.invalid { border-color: var(--red); }
+.pf-form .error-text { margin-top: 5px; color: var(--red); font-size: .8rem; font-weight: 500; }
+.pf-form .error-text[hidden] { display: none; }
+.pf-form .hint { margin: 12px 0 14px; font-size: .8rem; color: var(--muted); }
+.toggle { display: grid; place-items: center; width: 36px; height: 36px; border: 0; background: none; color: #6b746f; cursor: pointer; border-radius: 8px; }
+.toggle .eye { display: none; }
+.toggle[aria-pressed="true"] .eye { display: block; }
+.toggle[aria-pressed="true"] .eye-off { display: none; }
+@media (min-width: 700px) {
+    .pf-form .row2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pf-form .row3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* language buttons always at the top right of the page */
+.lang-corner { position: absolute; top: 14px; right: 16px; z-index: 50; }
+
+/* "স্বাগতম + name" card of the logged-in person (partials/who-card.php) - same for admin, employee and user */
+.side-user { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 14px; background: #eef8f2; }
+.side-user small { display: block; font-size: .72rem; color: var(--muted); }
+.side-user b { display: block; font-size: .9rem; line-height: 1.3; word-break: break-word; }
+img.avatar, img.pf-avatar, img.av-sm { object-fit: cover; background: var(--green-soft); }
+.av-sm { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--green); color: #fff; font-size: .85rem; font-weight: 700; flex: none; vertical-align: middle; }
+.avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--green); color: #fff; font-weight: 700; flex: none; }
+
+/* menu group title (same in admin, employee and user menus) */
+.nav-grp { margin: 10px 12px 2px; font-size: .7rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #8a958f; }
+
+/* left menu, same for user / employee / admin. Phone: slides in with the ☰ button. PC (900px+): always open. (js: side-menu.js) */
+.side-menu { position: fixed; top: 0; left: 0; bottom: 0; z-index: 60; width: 270px; max-width: 86vw; display: flex; flex-direction: column; padding: 18px 14px; background: #fff; border-right: 1px solid var(--line); overflow-y: auto; transform: translateX(-105%); transition: transform .25s ease; }
+.side-menu.open { transform: none; box-shadow: 8px 0 30px rgba(0,0,0,.18); }
+.side-shade { position: fixed; inset: 0; z-index: 55; background: rgba(10, 30, 22, .45); }
+.side-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.side-x { width: 34px; height: 34px; border: 0; border-radius: 50%; background: #eff4f1; font-size: 1.4rem; line-height: 1; cursor: pointer; flex: none; }
+.menu-btn { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--green); cursor: pointer; flex: none; }
+.side-logout { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--text); font: 600 .92rem var(--font); cursor: pointer; }
+.side-logout:hover { border-color: #e53935; color: #e53935; }
+.no-scroll { overflow: hidden; }
+@media (min-width: 900px) {
+    .side-menu { transform: none; z-index: 20; }
+    .side-x, .side-shade, .menu-btn { display: none !important; }
+}
+/* menu links + bottom part (logout), same for every role */
+.side-nav { display: flex; flex-direction: column; gap: 2px; }
+.side-nav a, .side-nav button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px; border: 0; border-radius: 12px; background: none; color: var(--text); font: 500 .92rem var(--font); white-space: nowrap; text-align: left; cursor: pointer; }
+.side-nav a:hover, .side-nav button:hover { background: #f1f6f3; }
+.side-nav a.on { background: var(--green); color: #fff; }
+.side-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+
+/* ---- our own "Are you sure?" box (partials/confirm-modal.php + confirm.js), same on every page */
+body.cm-on { overflow: hidden; }
+.cm-shade { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 16px; background: rgba(15, 30, 22, .5); }
+.cm-shade[hidden] { display: none; }
+.cm-box { width: min(440px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 20px 50px rgba(0, 0, 0, .25); display: flex; flex-direction: column; gap: 12px; }
+.cm-box h2 { font-size: 1.1rem; }
+.cm-box #cm-msg { color: var(--muted); font-size: .92rem; line-height: 1.5; }
+.cm-box #cm-msg:empty { display: none; }
+.cm-list { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 10px; background: #f5f8f6; font-size: .88rem; }
+.cm-list[hidden] { display: none; }
+.cm-list span { color: var(--muted); }
+.cm-list s { color: var(--red); }
+.cm-list b { color: var(--green-dark); }
+.cm-box .f { display: flex; flex-direction: column; gap: 5px; font-size: .88rem; }
+.cm-box .f[hidden] { display: none; }
+.cm-box .f > span { font-weight: 600; }
+.cm-box .f small { color: var(--muted); font-size: .78rem; }
+.cm-box input { width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; font: 400 .95rem var(--font); }
+.cm-box input:focus { border-color: var(--green); outline: 0; }
+.cm-box .error-text { color: var(--red); font-size: .8rem; font-weight: 500; }
+.cm-box .row-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+.cm-box .row-btns .btn { flex: 1 1 0; }
+.cm-box .btn[hidden] { display: none; }
+
+/* ---- "what the admin changed in your account" (partials/account-changes.php) */
+.chg-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.chg { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.chg-new { border-color: #bfe0cf; background: #f3faf6; }
+.chg-head { font-size: .9rem; }
+.chg-head small { display: block; margin-top: 2px; color: var(--muted); font-size: .78rem; }
+.chg-items { list-style: none; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: .86rem; }
+.chg-items span { color: var(--muted); }
+.chg-items s { color: var(--red); }
+.chg-items b { color: var(--green-dark); }
+.chg-compact .chg { padding: 10px; }
+.chg-compact .chg-head, .chg-compact .chg-items { font-size: .8rem; }
+
+/* ---- back button inside the page (every inner page has one, no need for the browser's back) */
+.page-back { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px 0 8px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--text); font: 600 .82rem var(--font); text-decoration: none; cursor: pointer; }
+.page-back:hover { border-color: var(--green); color: var(--green); }
+.page-back .ic { width: 18px; height: 18px; }
+
+/* my photo buttons under the profile picture */
+.pf-photo { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.pf-photo label.btn { cursor: pointer; }
+.pf-photo-hint { margin-top: 6px; text-align: center; color: var(--muted); font-size: .76rem; }
+.pf .error-text { text-align: center; margin-top: 6px; }
+
+[hidden] { display: none !important; }   /* "hidden" always hides, whatever display a class gives */
+
+/* ---- click a picture = see it big (assets/js/zoom.js) */
+.zoom-area img:not(.no-zoom), img[data-zoom] { cursor: zoom-in; }
+.zoom-box { position: fixed; inset: 0; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; background: rgba(8, 20, 14, .88); cursor: zoom-out; }
+.zoom-box img { max-width: 94vw; max-height: 84vh; object-fit: contain; border-radius: 10px; background: #fff; box-shadow: 0 20px 60px rgba(0, 0, 0, .5); }
+.zoom-size { color: #e8f2ec; font-size: .85rem; }
+.zoom-x { position: absolute; top: 14px; right: 16px; width: 42px; height: 42px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .15); color: #fff; font-size: 1.6rem; line-height: 1; cursor: pointer; }
+.zoom-x:hover { background: rgba(255, 255, 255, .3); }

@@ -1,0 +1,4 @@
+# Shomadhan project folder. Only the public/ folder may be opened in the browser.
+# Everything else (app code, config with passwords, database .sql, logs) is blocked.
+Options -Indexes
+Require all denied

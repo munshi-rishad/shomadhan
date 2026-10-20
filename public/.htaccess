@@ -1,0 +1,12 @@
+# public/ = the only folder the browser can open.
+Require all granted
+Options -Indexes
+
+# Never serve hidden files, backups or text dumps even if someone copies one here
+<FilesMatch "(^\.|\.(sql|log|ini|bak|env|md|txt|sh)$)">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+</IfModule>

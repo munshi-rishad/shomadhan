@@ -42,23 +42,32 @@ class AuthController
         view('auth/login', ['lang' => $lang, 't' => $t, 'errors' => $errors, 'notice' => $notice, 'old' => $old]);
     }
 
-    // Checks mobile + password in admins, employees and users.
+    // Checks mobile + password in the accounts table (admin, employee or user).
     // Correct -> that account's dashboard. Wrong -> error message.
     private function tryLogin($mobile, $password, $remember, array $t)
     {
+        $ip = substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45);
+
+        // Too many wrong tries? Wait first (stops password guessing)
+        if ($wait = AccountModel::loginLockedMinutes($mobile, $ip)) {
+            return ['form' => sprintf($t['err_login_locked'], $wait)];
+        }
+
         $account = AccountModel::findByMobile($mobile);
+        if (!$account) {
+            AccountModel::fakeVerify($password);     // same time as a real check
+        }
 
         // Same message for "no such mobile" and "wrong password"
         if (!$account || !AccountModel::passwordMatches($account, $password)) {
+            AccountModel::addLoginFail($mobile, $ip);
             return ['form' => $t['err_login_wrong']];
         }
-        if ($account['status'] === 'blocked') {
-            return ['form' => $t['err_account_blocked']];
-        }
-        if ($account['status'] !== 'active') {
+        if ($account['status'] !== 'active') {           // inactive: the admin turned this account off
             return ['form' => $t['err_account_inactive']];
         }
 
+        AccountModel::clearLoginFails($mobile);
         login_account($account, $remember);
         flash_set('notice', $t['login_success']);
         redirect(dashboard_url($account['role']));
@@ -139,6 +148,13 @@ class AuthController
 
         if (!$this->isPost() || !csrf_check($_POST['csrf'] ?? '')) {
             http_response_code(403);
+            echo json_encode(['ok' => false]);
+            return;
+        }
+
+        // at most 40 checks in 10 minutes per browser (stops someone listing all mobiles)
+        if (too_many('avail_hits', 40, 600)) {
+            http_response_code(429);
             echo json_encode(['ok' => false]);
             return;
         }

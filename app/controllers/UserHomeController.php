@@ -6,9 +6,10 @@
 //   user-dashboard.php?service=3       all sub-services of one service
 //   user-dashboard.php?list=popular    all popular / ?list=new all newest / ?list=services all services
 //   user-dashboard.php?q=ac            search
-//   POST action=seen                   user opened the bell -> red count becomes 0
+//   POST action=seen                   user opened the bell -> red count becomes 0 (offers + account changes)
 
 require_once APP_PATH . '/models/HomeContentModel.php';
+require_once APP_PATH . '/models/AccountChangeModel.php';
 
 class UserHomeController
 {
@@ -21,6 +22,7 @@ class UserHomeController
             header('Content-Type: application/json; charset=utf-8');
             if (($_POST['action'] ?? '') === 'seen' && csrf_check($_POST['csrf'] ?? '')) {
                 HomeContentModel::markNotificationsSeen($user['id']);
+                AccountChangeModel::markSeen('user', $user['id']);
                 echo json_encode(['ok' => true]);
             } else {
                 http_response_code(403);
@@ -36,7 +38,8 @@ class UserHomeController
             'notice'        => flash_get('notice'),
             'services'      => HomeContentModel::services(true),
             'notifications' => HomeContentModel::notifications(true, 20),
-            'unread'        => HomeContentModel::unreadCount($user['id']),
+            'changes'       => AccountChangeModel::forAccount('user', $user['id'], 10),   // what the admin changed in this account
+            'unread'        => HomeContentModel::unreadCount($user['id']) + AccountChangeModel::unseen('user', $user['id']),
             'q'             => mb_substr(trim((string)($_GET['q'] ?? '')), 0, 60, 'UTF-8'),
             'mode'          => 'home',
         ];

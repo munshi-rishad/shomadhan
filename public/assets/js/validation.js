@@ -3,15 +3,6 @@
 //  - every box takes ENGLISH keyboard characters only (Bangla letters are removed)
 //  - name = CAPITAL letters, email = small letters, mobile = digits only (max 11)
 (function () {
-    // ---- eye buttons: show / hide the password next to it (every page)
-    [].slice.call(document.querySelectorAll('.toggle')).forEach(function (toggle) {
-        var input = toggle.closest('.input').querySelector('input');
-        toggle.addEventListener('click', function () {
-            var show = input.type === 'password';
-            input.type = show ? 'text' : 'password';
-            toggle.setAttribute('aria-pressed', show ? 'true' : 'false');
-        });
-    });
     // ---- OTP box: digits only
     [].slice.call(document.querySelectorAll('input[data-digits]')).forEach(function (el) {
         el.addEventListener('input', function () { el.value = el.value.replace(/\D/g, '').slice(0, 6); });

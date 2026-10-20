@@ -1,11 +1,12 @@
 // landing.js - switches the page between Bangla and English.
-// Only elements with data-i18n="key" change (service names + the 2 buttons).
+// Only the 2 buttons (data-i18n="key") and the service names (data-bn / data-en, from the database) change.
 // Everything else on the page always stays Bangla.
 
 (function () {
     var texts = window.LANG_TEXTS;                         // { bn: {...}, en: {...} }
     var buttons = document.querySelectorAll('[data-lang]');
     var items = document.querySelectorAll('[data-i18n]');
+    var names = document.querySelectorAll('[data-bn]');     // service names: both languages are on the element
 
     function setLanguage(lang) {
         if (!texts || !texts[lang]) { return; }
@@ -16,6 +17,10 @@
             if (texts[lang][key] !== undefined) {
                 items[i].textContent = texts[lang][key];
             }
+        }
+
+        for (var n = 0; n < names.length; n++) {
+            names[n].textContent = names[n].getAttribute('data-' + lang) || names[n].textContent;
         }
 
         // highlight the active button

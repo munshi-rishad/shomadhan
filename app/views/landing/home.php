@@ -1,16 +1,7 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title><?= e($bn['page_title']) ?></title>
-
-    <!-- Fonts: Hind Siliguri = Bangla, Poppins = stylish English letters and numbers -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="<?= e(asset('assets/css/landing.css')) ?>">
+<?php view('partials/head', ['title' => $bn['page_title'], 'css' => 'landing']); ?>
 </head>
 <body>
 
@@ -48,14 +39,14 @@
                 <img src="<?= e(asset($promo)) ?>" alt="<?= e($bn['promo_alt']) ?>">
             </div>
 
-            <!-- The 5 service icons come from ServiceModel (a loop) -->
+            <!-- Service icons = the first services the admin made (admin dashboard -> Services) -->
             <ul class="services">
                 <?php foreach ($services as $service): ?>
                     <li>
                         <span class="tile tile-<?= e($service['color']) ?>">
-                            <img src="assets/images/icons/<?= e($service['icon']) ?>" alt="">
+                            <img src="<?= e(asset($service['icon'])) ?>" alt="">
                         </span>
-                        <span class="label" data-i18n="<?= e($service['key']) ?>"><?= e($t[$service['key']]) ?></span>
+                        <span class="label" data-bn="<?= e($service['name_bn']) ?>" data-en="<?= e($service['name_en']) ?>"><?= e($service['name_' . $lang]) ?></span>
                     </li>
                 <?php endforeach; ?>
             </ul>
@@ -81,7 +72,7 @@
 </div>
 
 <!-- Both languages are given to JavaScript, so the switch is instant -->
-<script>window.LANG_TEXTS = <?= json_encode($allTexts, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?>;</script>
+<script>window.LANG_TEXTS = <?= json_encode($switch, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
 <script src="<?= e(asset('assets/js/landing.js')) ?>"></script>
 </body>
 </html>

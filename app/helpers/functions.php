@@ -64,15 +64,22 @@ function flash_get($key, $default = '')
 // lang_texts() -> ['bn', [...texts...]]  (language from the "lang" cookie, Bangla by default)
 function lang_texts()
 {
-    $all = [
-        'bn' => require APP_PATH . '/lang/bn.php',
-        'en' => require APP_PATH . '/lang/en.php',
-    ];
-    $lang = 'bn';
-    if (isset($_COOKIE['lang']) && isset($all[$_COOKIE['lang']])) {
-        $lang = $_COOKIE['lang'];
+    $lang = ($_COOKIE['lang'] ?? '') === 'en' ? 'en' : 'bn';
+    return [$lang, require APP_PATH . '/lang/' . $lang . '.php'];     // only the chosen language file is loaded
+}
+
+// Simple limit per browser: true = too many tries ($max in the last $seconds). Otherwise counts this try.
+// too_many('fp_hits', 10, 600)  ->  at most 10 tries in 10 minutes
+function too_many($key, $max, $seconds)
+{
+    $now  = time();
+    $hits = array_filter($_SESSION[$key] ?? [], function ($ts) use ($now, $seconds) { return $ts > $now - $seconds; });
+    if (count($hits) >= $max) {
+        return true;
     }
-    return [$lang, $all[$lang]];
+    $hits[] = $now;
+    $_SESSION[$key] = array_values($hits);
+    return false;
 }
 
 // Small log file in storage/logs/ (for errors you don't want to show visitors)

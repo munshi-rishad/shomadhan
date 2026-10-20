@@ -2,9 +2,11 @@
 // app/helpers/auth.php
 // Login helpers: who is logged in, log in, log out, and the "Remember me" cookie.
 //
-// Session:  $_SESSION['auth'] = ['role' => 'admin'|'employee'|'user', 'id' => 5] after a correct login.
-// Remember me: cookie "shomadhan_remember" = role:id:secret, kept for 30 days.
-//   The table keeps only sha256(secret) in remember_token. A new secret is made every time it is used.
+// Session:  $_SESSION['auth'] = ['kind' => 'staff'|'user', 'id' => 5] after a correct login
+//           (staff = admin / employee table, user = users table). The role is read fresh from the table on every page,
+//           so if an admin changes someone's role, their next page already follows it.
+// Remember me: cookie "shomadhan_remember" = a random secret, kept for 30 days.
+//   The remember_tokens table keeps only sha256(secret), one row per device. A new secret is made every time it is used.
 
 const REMEMBER_COOKIE = 'shomadhan_remember';
 const REMEMBER_DAYS   = 30;
@@ -23,12 +25,12 @@ function current_account()
     if (!$auth) {
         return null;
     }
-    $key = $auth['role'] . ':' . $auth['id'];
+    $key = ($auth['kind'] ?? '') . ':' . $auth['id'];
     if (!array_key_exists($key, $cache)) {
-        $cache[$key] = AccountModel::find($auth['role'], (int)$auth['id']);
+        $cache[$key] = AccountModel::findByKind($auth['kind'] ?? '', (int)$auth['id']);
     }
     $account = $cache[$key];
-    if (!$account || $account['status'] !== 'active') {   // deleted or blocked while logged in
+    if (!$account || $account['status'] !== 'active') {   // deleted or made inactive while logged in
         logout_account();
         return null;
     }
@@ -46,12 +48,23 @@ function redirect_if_logged_in()
 // Each dashboard calls this with its role
 function require_role($role)
 {
+    $account = require_first_password_done();
+    if ($account['role'] !== $role) {
+        redirect(dashboard_url($account['role']));
+    }
+    return $account;
+}
+
+// Logged in AND has set their own password. Someone the admin made with a one-time password
+// must set a new password first (set-password.php); until then no other page opens.
+function require_first_password_done()
+{
     $account = current_account();
     if (!$account) {
         redirect('login.php');
     }
-    if ($account['role'] !== $role) {
-        redirect(dashboard_url($account['role']));
+    if (!empty($account['must_change_password'])) {
+        redirect('set-password.php');
     }
     return $account;
 }
@@ -59,17 +72,28 @@ function require_role($role)
 function login_account(array $account, $remember)
 {
     session_regenerate_id(true);             // new session id after login
-    $_SESSION['auth'] = ['role' => $account['role'], 'id' => (int)$account['id']];
+    $_SESSION['auth'] = ['kind' => $account['kind'], 'id' => (int)$account['id']];
     unset($_SESSION['popup_seen']);          // show the home page popup again after each login
+    try {
+        AccountModel::touchLogin($account['role'], (int)$account['id']);   // "last login" shown to admin and on the profile
+    } catch (PDOException $ex) {
+        app_log('error', 'last login: ' . $ex->getMessage());
+    }
     if ($remember) {
         remember_issue($account['role'], (int)$account['id']);
     }
 }
 
+// Logs out this browser only (other devices with "remember me" stay logged in)
 function logout_account()
 {
-    if (!empty($_SESSION['auth'])) {
-        AccountModel::clearRememberToken($_SESSION['auth']['role'], (int)$_SESSION['auth']['id']);
+    $secret = (string)($_COOKIE[REMEMBER_COOKIE] ?? '');
+    if ($secret !== '') {
+        try {
+            AccountModel::forgetDevice(hash('sha256', $secret));
+        } catch (PDOException $ex) {
+            app_log('error', 'logout: ' . $ex->getMessage());
+        }
     }
     remember_clear_cookie();
     unset($_SESSION['auth']);
@@ -78,10 +102,14 @@ function logout_account()
 
 function remember_issue($role, $id)
 {
+    $old = (string)($_COOKIE[REMEMBER_COOKIE] ?? '');
+    if ($old !== '') {
+        AccountModel::forgetDevice(hash('sha256', $old));   // this browser had an older token: replace it, don't keep both
+    }
     $secret  = bin2hex(random_bytes(32));
     $expires = time() + REMEMBER_DAYS * 86400;
-    AccountModel::setRememberToken($role, $id, hash('sha256', $secret), date('Y-m-d H:i:s', $expires));
-    remember_set_cookie($role . ':' . $id . ':' . $secret, $expires);
+    AccountModel::addDevice($role, $id, hash('sha256', $secret), date('Y-m-d H:i:s', $expires));
+    remember_set_cookie($secret, $expires);
 }
 
 function remember_set_cookie($value, $expires)
@@ -109,23 +137,19 @@ function auth_from_remember_cookie()
     if (!empty($_SESSION['auth']) || empty($_COOKIE[REMEMBER_COOKIE])) {
         return;
     }
-    $parts = explode(':', (string)$_COOKIE[REMEMBER_COOKIE]);
-    if (count($parts) !== 3 || !isset(AccountModel::TABLES[$parts[0]]) || !ctype_digit($parts[1]) || !ctype_xdigit($parts[2])) {
+    $secret = (string)$_COOKIE[REMEMBER_COOKIE];
+    if (strlen($secret) !== 64 || !ctype_xdigit($secret)) {
         remember_clear_cookie();
         return;
     }
-    list($role, $id, $secret) = $parts;
     try {
-        $account = AccountModel::find($role, (int)$id);
-        $ok = $account
-            && $account['status'] === 'active'
-            && $account['remember_token'] !== null
-            && strtotime($account['remember_expires']) > time()
-            && hash_equals($account['remember_token'], hash('sha256', $secret));
-        if (!$ok) {
+        $hash = hash('sha256', $secret);
+        $account = AccountModel::findByDevice($hash);
+        if (!$account || $account['status'] !== 'active') {
             remember_clear_cookie();
             return;
         }
+        AccountModel::forgetDevice($hash);   // used once: login_account() below gives this device a new secret
         login_account($account, true);       // also makes a new cookie secret
     } catch (PDOException $ex) {
         app_log('error', 'remember-me: ' . $ex->getMessage());
