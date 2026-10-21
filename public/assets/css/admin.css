@@ -300,75 +300,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); outline:
 .pill-bad { background: #fdecec; color: var(--red); }
 
 /* ===== Phone list cards ===== */
-/* Phone: each row becomes a card, every value has its column name in front (nothing hidden off-screen). */
+/* Phone: search + filters (the cards themselves are in "Phone list cards" at the end). */
 @media (max-width: 899px) {
-    .tbl-list thead { display: none; }
-    /* compact card: 2 values per line (small title above each), name / picture / buttons take a full line */
-    .tbl-list, .tbl-list tbody { display: block; width: 100%; }
-    .tbl-list tr {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 6px 14px;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 10px 12px;
-        margin-bottom: 10px;
-    }
-    .tbl-list td {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1px;
-        padding: 0;
-        border: 0;
-        white-space: normal;
-        text-align: left;
-        min-width: 0;
-        overflow-wrap: anywhere;
-    }
-    .tbl-list td[data-label]::before {
-        content: attr(data-label);
-        color: var(--muted);
-        font-size: var(--fs-2xs);
-    }
-    .tbl-list td.cell-name,
-    .tbl-list td.cell-photo,
-    .tbl-list td.cell-img,
-    .tbl-list td.cell-wrap,
-    .tbl-list td.cell-full {
-        grid-column: 1 / -1;
-    }
-    .tbl-list td.cell-name::before { display: none; }
-    .tbl-list td.cell-name { order: -1; display: block; padding-right: 64px; }   /* name first, on top of the card */
-    /* small picture / logo in the card's corner */
-    .tbl-list td.cell-thumb { position: absolute; top: 10px; right: 12px; }
-    .tbl-list td.cell-thumb::before { display: none; }
-    .tbl-list td.cell-thumb .tile { width: 48px; height: 48px; }
-    .tbl-list td.cell-thumb .thumb-square { width: 64px; height: 64px; }
-    .tbl-list td.cell-thumb .thumb-none { display: none; }
-    .tbl-list tr:has(td.cell-thumb img.thumb-square) td.cell-name { min-height: 66px; padding-right: 80px; }
-    .tbl-list.tbl-media td.cell-acts { grid-column: 1 / -1; }   /* 3 buttons (edit, show/hide, delete): one full line */
-    .tbl-list tr:has(td.cell-thumb) td.cell-name { min-height: 52px; }
     .form-grid .f-chk { margin-top: 0; }
-    /* buttons at the bottom-right, next to the last value (no extra line) */
-    .tbl-list td.cell-acts { grid-column: -2 / -1; align-self: end; }
-    .tbl-list td.cell-acts .acts { width: 100%; justify-content: flex-end; }
-    .tbl-list tr { position: relative; }
-    .tbl-list td.cell-id {
-        position: absolute;
-        top: 10px;
-        right: 12px;
-        flex-direction: row;
-        gap: 4px;
-        font-size: var(--fs-xs);
-        color: var(--muted);
-    }   /* "ID 3" in the card's corner, not a line of its own */
-    .tbl-list td.cell-id::before { font-size: var(--fs-2xs); }
-    /* bookings / top-ups: the corner holds a code + date on two lines, so it sits right-aligned
-       without its label, and the name on the left leaves room for it */
-    .tbl-list td.cell-id:has(br) { flex-direction: column; align-items: flex-end; gap: 0; text-align: right; }
-    .tbl-list td.cell-id:has(br)::before { display: none; }
-    .tbl-list tr:has(td.cell-id br) td.cell-name { padding-right: 150px; }
     /* search + filters: search box and button on one line, filters 2 per line */
     .list-search { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
     .list-search input[type="search"] { max-width: none; }
@@ -723,24 +657,129 @@ input:focus, select:focus, textarea:focus {
 .permit-item .btn { background: #fff; }
 
 /* ===== Phone polish ===== */
-/* Phone list cards: 2 or more buttons get their own line at the bottom (side by side, not one under another);
-   long addresses wrap at spaces; the corner code + date of bookings / top-ups never covers the first values;
-   the government-paper line: each paper on its own line with its button on the right. */
+/* The government-paper line on phones: each paper on its own line with its button on the right. */
 @media (max-width: 899px) {
-    .tbl-list td.cell-acts:has(.acts > :nth-child(2)) { grid-column: 1 / -1; }
-    .tbl-list td.cell-acts .acts { flex-wrap: wrap; }
-    .tbl-list td.cell-wrap { word-break: normal; overflow-wrap: anywhere; max-width: none; }
-    .tbl-list tr:has(td.cell-id br) td.cell-name { min-height: 60px; }
     .permit-note { gap: 6px; }
     .permit-note p { width: 100%; }
     .permit-item { width: 100%; justify-content: space-between; }
-    /* people lists: the value after a whole-width email moves up beside the mobile (no half-empty line) */
-    .people-list tr { grid-auto-flow: row dense; }
-    /* a value + a smaller line under it: the cell already stacks them, so the line break would add a gap */
-    .tbl-list td:not(.cell-name) > br { display: none; }
 }
 .permit-item .btn { flex: none; white-space: nowrap; }
 /* Phone: filters + sort share the 2-per-line grid; an odd last one takes the full line */
 @media (max-width: 899px) {
     .list-filters > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+
+/* ===== Phone list cards ===== */
+/* Phone: each table row becomes one tidy card.
+   Top line: picture / logo, name (with its small second line), ID or booking code on the right.
+   Then one value per line: column name on the left, value on the right, a thin dashed line between them.
+   Long text (address, message, link) and fields you type in: column name on top, text under it.
+   Buttons: last line, side by side, same width. */
+@media (max-width: 899px) {
+    .tbl-list thead { display: none; }
+    .tbl-list, .tbl-list tbody { display: block; width: 100%; }
+    .tbl-list tr {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        column-gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+        padding: 12px 14px 2px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 4px 14px rgba(16, 60, 44, .05);
+    }
+    .tbl-list td {
+        grid-column: 1 / -1;
+        display: block;
+        min-width: 0;
+        max-width: none;
+        padding: 9px 0;
+        border: 0;
+        border-top: 1px dashed var(--line);
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: anywhere;
+        text-align: right;
+        font-size: var(--fs-sm);
+        line-height: 1.45;
+    }
+    .tbl-list td[data-label]::before {
+        content: attr(data-label);
+        float: left;
+        max-width: 46%;
+        margin-right: 12px;
+        text-align: left;
+        color: var(--muted);
+        font-size: var(--fs-xs);
+        font-weight: 500;
+    }
+    .tbl-list td small { color: var(--muted); }
+
+    /* -- top line: picture, name, ID -- */
+    .tbl-list td.cell-thumb,
+    .tbl-list td.cell-photo,
+    .tbl-list td.cell-name,
+    .tbl-list td.cell-id {
+        grid-row: 1;
+        align-self: center;
+        padding: 0 0 12px;
+        border-top: 0;
+    }
+    .tbl-list td.cell-thumb, .tbl-list td.cell-photo { grid-column: 1; text-align: left; }
+    .tbl-list td.cell-thumb::before, .tbl-list td.cell-photo::before, .tbl-list td.cell-name::before { display: none; }
+    .tbl-list td.cell-name { grid-column: 1 / 3; text-align: left; font-size: var(--fs-md); }
+    .tbl-list tr:has(td.cell-thumb, td.cell-photo) td.cell-name { grid-column: 2 / 3; }
+    .tbl-list tr:has(td.cell-thumb .thumb-none) td.cell-name { grid-column: 1 / 3; }
+    .tbl-list td.cell-thumb:has(.thumb-none) { display: none; }
+    .tbl-list td.cell-name b { font-size: var(--fs-md); }
+    .tbl-list td.cell-name .who { display: flex; align-items: center; gap: 10px; }
+    .tbl-list td.cell-id { grid-column: 3; text-align: right; font-size: var(--fs-xs); color: var(--muted); white-space: nowrap; }
+    .tbl-list td.cell-id::before { float: none; margin-right: 4px; font-size: var(--fs-2xs); }
+    .tbl-list td.cell-id:has(br)::before { display: none; }   /* booking: code + date, no label needed */
+    .tbl-list td.cell-id b { color: var(--text); }
+    .tbl-list td.cell-thumb .tile,
+    .tbl-list td.cell-thumb img,
+    .tbl-list td.cell-photo .tile,
+    .tbl-list td.cell-photo img.thumb-sm {
+        display: grid;
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        object-fit: cover;
+    }
+    .tbl-list td.cell-thumb .tile img, .tbl-list td.cell-photo .tile img { width: 26px; height: 26px; border-radius: 0; margin: auto; }
+
+    /* -- long text and typing fields: column name on top -- */
+    .tbl-list td.cell-wrap,
+    .tbl-list td:has(input:not([type=hidden]):not([type=checkbox]), select, textarea) { text-align: left; word-break: normal; }
+    .tbl-list td.cell-wrap::before,
+    .tbl-list td:has(input:not([type=hidden]):not([type=checkbox]), select, textarea)::before {
+        float: none;
+        display: block;
+        max-width: none;
+        margin: 0 0 4px;
+    }
+    .tbl-list td input:not([type=checkbox]),
+    .tbl-list td select { width: 100%; max-width: none !important; }
+    .tbl-list td.cell-acts::before { display: none; }
+
+    /* -- banner picture: whole width -- */
+    .tbl-list td.cell-img:not(.cell-thumb) { padding-top: 0; border-top: 0; text-align: left; }
+    .tbl-list td.cell-img:not(.cell-thumb) img { width: 100%; height: auto; border-radius: 10px; }
+
+    /* -- buttons: last line, side by side, same width -- */
+    .tbl-list td.cell-acts { padding: 10px 0 12px; border-top: 1px solid var(--line); text-align: left; }
+    .tbl-list td.cell-acts .acts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+        gap: 8px;
+        width: 100%;
+    }
+    .tbl-list td.cell-acts .acts > * { min-width: 0; }
+    .tbl-list td.cell-acts .btn { padding-left: 6px; padding-right: 6px; white-space: nowrap; }
+    .tbl-list td.cell-acts .acts > * > .btn,
+    .tbl-list td.cell-acts .acts > .btn,
+    .tbl-list td.cell-acts .acts summary.btn { width: 100%; justify-content: center; }
 }

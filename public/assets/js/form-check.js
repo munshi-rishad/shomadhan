@@ -1,9 +1,13 @@
 /* form-check.js - loaded on every page with a form: eye buttons for passwords + checks forms before they are sent
    (the server checks again, always).
    A form with data-check is checked. Each field to check has:
-     data-rule="name | mobile | gmail | email | password | otp | same:<field name>"
+     data-rule="name | mobile | gmail | email | password | otp | same:<field name>
+                | range (number between its min / max) | minlen (data-min letters at least)
+                | photo (picture file: data-msg-type, data-msg-big + data-max-bytes,
+                         data-msg-square + data-min-px = square and at least that many pixels)"
      data-msg="error text"          (shown under the field)
-     required                        (empty is an error; without it, empty is allowed)
+     required                        (empty is an error; without it, empty is allowed;
+                                      a required field without data-rule is checked too, e.g. a dropdown)
      data-unique="mobile | email"    (live AJAX check: already used by another account? needs data-unique-url on the form,
                                       + data-unique-kind="account|provider", data-unique-role / data-unique-id = the row being edited)
    A submit button with formnovalidate skips the checks. */
@@ -39,6 +43,16 @@
         },
         otp: function (v) {
             return /^\d{6}$/.test(v.trim());
+        },
+        range: function (v, el) {
+            var n = Number(v);
+            return /^\d+$/.test(v.trim()) && n >= Number(el.min) && n <= Number(el.max);
+        },
+        minlen: function (v, el) {
+            return v.replace(/\s+/g, ' ').trim().length >= Number(el.getAttribute('data-min') || 1);
+        },
+        photo: function (v, el) {
+            return !el._bad;      // set when the file was chosen (see "Picture files" below)
         }
     };
 
@@ -88,7 +102,11 @@
             var other = el.form.elements[rule.slice(5)];
             ok = !!other && other.value === value;
         } else if (RULES[rule]) {
-            ok = RULES[rule](value);
+            ok = RULES[rule](value, el);
+        }
+        if (!ok && el._bad) {       // a picture with a problem: its own message
+            mark(el, el._bad);
+            return false;
         }
         if (ok && el._taken) {      // live check said: already used
             mark(el, el._taken);
@@ -99,7 +117,55 @@
     }
 
     [].slice.call(document.querySelectorAll('form[data-check]')).forEach(function (form) {
-        var fields = [].slice.call(form.querySelectorAll('[data-rule]'));
+        var fields = [].slice.call(form.querySelectorAll('[data-rule], [required]'));
+
+        // ---- Picture files: right type, not too big, square and big enough (read in the browser) ----
+        fields.filter(function (el) { return el.getAttribute('data-rule') === 'photo'; }).forEach(function (el) {
+            el.addEventListener('change', function () {
+                var file = el.files && el.files[0];
+                el._bad = '';
+                if (!file) {
+                    check(el);
+                    return;
+                }
+                if (['image/png', 'image/jpeg', 'image/webp'].indexOf(file.type) < 0) {
+                    el._bad = el.getAttribute('data-msg-type');
+                } else if (file.size > Number(el.getAttribute('data-max-bytes') || Infinity)) {
+                    el._bad = el.getAttribute('data-msg-big');
+                }
+                if (el._bad || !window.URL) {
+                    check(el);
+                    return;
+                }
+                var img = new Image();
+                var src = URL.createObjectURL(file);
+                img.onload = function () {
+                    var w = img.naturalWidth;
+                    var h = img.naturalHeight;
+                    var min = Number(el.getAttribute('data-min-px') || 0);
+                    var pick = el.closest('.photo-pick');
+                    var face = pick && pick.querySelector('.pf-avatar');
+                    if (w !== h || w < min) {
+                        var parts = [min, min, w, h];
+                        el._bad = (el.getAttribute('data-msg-square') || '').replace(/%d/g, function () { return parts.shift(); });
+                        URL.revokeObjectURL(src);
+                    } else if (face) {      // a good photo: show it in the round picture next to the field
+                        var shown = document.createElement('img');
+                        shown.className = 'pf-avatar';
+                        shown.alt = '';
+                        shown.src = src;
+                        face.replaceWith(shown);
+                    }
+                    check(el);
+                };
+                img.onerror = function () {
+                    el._bad = el.getAttribute('data-msg-type');
+                    URL.revokeObjectURL(src);
+                    check(el);
+                };
+                img.src = src;
+            });
+        });
 
         // ---- On send: check every field; stop at the first wrong one ----
         form.addEventListener('submit', function (ev) {
@@ -187,6 +253,9 @@
                     check(el);
                 }
             });
+            if (el.tagName === 'SELECT') {      // a dropdown is checked as soon as something is picked
+                el.addEventListener('change', function () { check(el); });
+            }
         });
     });
 })();

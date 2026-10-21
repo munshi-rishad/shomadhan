@@ -56,7 +56,6 @@ return [
     'ph_email' => 'Enter your email',
     'ph_password_reg' => 'Use at least 8 characters',
     'label_area' => 'Area',
-    'ph_area' => 'Select your area',
     'area_search' => 'Search area',
     'area_none' => 'No area found',
     'label_gender' => 'Gender',

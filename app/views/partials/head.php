@@ -104,3 +104,4 @@
     <?php /* Shared styles first, then the page's own */ ?>
     <link rel="stylesheet" href="<?= e(asset('assets/css/base.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('assets/css/' . $css . '.css')) ?>">
+    <script src="<?= e(asset('assets/js/keep-scroll.js')) ?>"></script>

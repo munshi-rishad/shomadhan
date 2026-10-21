@@ -99,20 +99,23 @@ $pw = $isProviders ? '' : ' data-confirm-pw';          // account changes need t
         <div class="f f-half photo-pick">
             <?php view('partials/avatar', ['name' => $a['name'] ?? '?', 'photo' => $a['photo'] ?? null, 'class' => 'pf-avatar']); ?>
             <label class="f"><span><?= e($t['adm_photo']) ?><?= $needPhoto ? ' *' : '' ?><?= size_tag('photos', $t) ?></span>
-                <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" data-label="<?= e($t['adm_photo']) ?>"<?= $needPhoto ? ' required' : '' ?>>
+                <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" data-label="<?= e($t['adm_photo']) ?>"<?= $needPhoto ? ' required' : '' ?>
+                       data-rule="photo" data-min-px="<?= PHOTO_MIN ?>" data-max-bytes="<?= PHOTO_MAX_BYTES ?>"
+                       data-msg="<?= e($t['ph_err_need']) ?>" data-msg-type="<?= e(sprintf($t['adm_err_type'], 'PNG, JPG, WEBP')) ?>"
+                       data-msg-big="<?= e($t['ph_err_too_big']) ?>" data-msg-square="<?= e($t['ph_err_square']) ?>">
                 <small><?= e(sprintf($t['ph_hint'], PHOTO_MIN)) ?></small><?= $err('photo') ?></label>
         </div>
         <label class="f"><span><?= e($t['adm_name']) ?> *</span><input type="text" name="name" maxlength="50" required data-rule="name" data-msg="<?= e($t['err_name_format']) ?>" data-label="<?= e($t['adm_name']) ?>" value="<?= $val('name', $a['name'] ?? '') ?>"><small><?= e($t['acc_name_hint']) ?></small><?= $err('name') ?></label>
         <label class="f"><span><?= e($t['adm_col_mobile']) ?> *</span><input type="text" name="mobile" inputmode="numeric" maxlength="11" required data-rule="mobile" data-unique="mobile" data-msg="<?= e($t['err_mobile_format']) ?>" data-label="<?= e($t['adm_col_mobile']) ?>" value="<?= $val('mobile', $a['mobile'] ?? '') ?>" placeholder="01XXXXXXXXX"><?= $err('mobile') ?></label>
 
         <label class="f"><span><?= e($t['adm_col_email']) ?> <small><?= e($t['optional']) ?></small></span><input type="email" name="email" maxlength="60" data-rule="gmail" data-unique="email" data-msg="<?= e($t['err_email']) ?>" data-label="<?= e($t['adm_col_email']) ?>" value="<?= $val('email', $a['email'] ?? '') ?>" placeholder="name@gmail.com"><?= $err('email') ?></label>
-        <?= $select('area', 'adm_col_area', ['' => $t['ph_area']] + array_combine($areas, $areas), $old['area'] ?? ($a['area'] ?? ''), ' required') ?>
-        <?= $select('gender', 'adm_col_gender', ['' => $t['ph_gender']] + $genders, $old['gender'] ?? ($a['gender'] ?? ''), ' required') ?>
+        <?= $select('area', 'adm_col_area', ['' => $t['ph_gender']] + array_combine($areas, $areas), $old['area'] ?? ($a['area'] ?? ''), ' required data-msg="' . e($t['err_area']) . '"') ?>
+        <?= $select('gender', 'adm_col_gender', ['' => $t['ph_gender']] + $genders, $old['gender'] ?? ($a['gender'] ?? ''), ' required data-msg="' . e($t['err_gender']) . '"') ?>
         <?php if ($role === 'provider'): /* providers: service, age, status, address, note */ ?>
-            <?= $select('service_id', 'pv_service', $sv, $old['service_id'] ?? ($a['service_id'] ?? '')) ?>
-            <label class="f"><span><?= e($t['pv_age']) ?> *</span><input type="number" name="age" min="18" max="80" required data-label="<?= e($t['pv_age']) ?>" value="<?= $val('age', $a['age'] ?? '') ?>"><?= $err('age') ?></label>
-            <?= $select('status', 'adm_status', $statuses, $old['status'] ?? ($a['status'] ?? 'active')) ?>
-            <label class="f f-half"><span><?= e($t['pv_address']) ?> *</span><input type="text" name="address" maxlength="200" required data-label="<?= e($t['pv_address']) ?>" value="<?= $val('address', $a['address'] ?? '') ?>" placeholder="<?= e($t['pv_address_ph']) ?>"><?= $err('address') ?></label>
+            <?= $select('service_id', 'pv_service', $sv, $old['service_id'] ?? ($a['service_id'] ?? ''), ' required data-msg="' . e($t['adm_err_required']) . '"') ?>
+            <label class="f"><span><?= e($t['pv_age']) ?> *</span><input type="number" name="age" min="18" max="80" required data-rule="range" data-msg="<?= e($t['pv_err_age']) ?>" data-label="<?= e($t['pv_age']) ?>" value="<?= $val('age', $a['age'] ?? '') ?>"><?= $err('age') ?></label>
+            <?= $select('status', 'adm_status', $statuses, $old['status'] ?? ($a['status'] ?? 'active'), ' required data-msg="' . e($t['adm_err_required']) . '"') ?>
+            <label class="f f-half"><span><?= e($t['pv_address']) ?> *</span><input type="text" name="address" maxlength="200" required data-rule="minlen" data-min="5" data-msg="<?= e($t['pv_err_address']) ?>" data-label="<?= e($t['pv_address']) ?>" value="<?= $val('address', $a['address'] ?? '') ?>" placeholder="<?= e($t['pv_address_ph']) ?>"><?= $err('address') ?></label>
             <label class="f f-half"><span><?= e($t['pv_note']) ?></span><input type="text" name="note" maxlength="255" data-label="<?= e($t['pv_note']) ?>" value="<?= $val('note', $a['note'] ?? '') ?>" placeholder="<?= e($t['pv_note_ph']) ?>"><?= $err('note') ?></label>
         <?php else: /* accounts: status (locked for myself), temporary password only when adding */ ?>
             <?php if ($me): ?>
@@ -218,7 +221,7 @@ $pw = $isProviders ? '' : ' data-confirm-pw';          // account changes need t
                     <?php elseif ($c === 'last_login_at'): ?>
                         <td<?= $lbl($c) ?>><small><?= $r['last_login_at'] ? e(date('d-m-Y h:i A', strtotime($r['last_login_at']))) : e($t['acc_never']) ?></small></td>
                     <?php else: /* email: whole card width on phone (long addresses would split) */ ?>
-                        <td<?= $c === 'email' && !empty($r[$c]) ? ' class="cell-full"' : '' ?><?= $lbl($c) ?>><?= ($r[$c] ?? '') === '' || $r[$c] === null ? '—' : e($r[$c]) ?></td>
+                        <td<?= $c === 'email' && !empty($r[$c]) ? ' class="cell-full"' : '' ?><?= $lbl($c) ?>><?= ($r[$c] ?? '') === '' || $r[$c] === null ? '—' : str_replace('@', '@<wbr>', e($r[$c])) ?></td>
                     <?php endif; ?>
                 <?php endforeach; ?>
                 <?php /* actions: a deleted one can only be restored; others: edit, change role, delete (not myself) */ ?>
