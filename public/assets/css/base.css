@@ -2,8 +2,14 @@
    One place for the colors and the parts that look the same everywhere:
    colors, focus ring, icons, message boxes, buttons, language buttons, profile info card.
    Each page's own CSS (admin.css, home.css ...) loads after this and only adds its layout. */
+
+/* ===== Colors and text sizes ===== */
+/* The site tokens. Every page reads these; change a value here to change it everywhere. */
 :root {
-    --green: #0b6b4c;        /* main brand green */
+    /* screen units; on PC fixed to a 1920 x 910 screen (see the zoom part) so every laptop looks the same */
+    --dvh: 1vh;
+    --dvw: 1vw;
+    --green: #0b6b4c;   /* main brand green */
     --green-dark: #075a40;
     --green-soft: #e3f5ea;   /* light green background (success, pills) */
     --text: #1d1d1d;
@@ -12,65 +18,175 @@
     --red: #c62828;
     --red-soft: #fdecec;
     --gold: #f5a623;
-    --bg: #f3f7f5;           /* page background of the dashboards */
+    --bg: #f3f7f5;   /* page background of the dashboards */
     --focus: #f59e0b;
     --font: 'Poppins', 'Hind Siliguri', system-ui, sans-serif;
+
+    /* TEXT SIZES - the only font sizes used on the site (every CSS file uses these).
+       Change one here and it changes on every page for every role. */
+    --fs-2xs: .76rem;  /* badges, red counters, tiny tags */
+    --fs-xs: .84rem;   /* small notes, hints, table headings, dates */
+    --fs-sm: .9rem;    /* labels, buttons, menu items, table text */
+    --fs-md: .94rem;   /* normal text, form fields */
+    --fs-base: 1rem;   /* bigger normal text, card names */
+    --fs-lg: 1.15rem;   /* card / section headings */
+    --fs-xl: 1.4rem;   /* page headings, big numbers */
+    --fs-2xl: 1.75rem;   /* large page titles */
+    --fs-3xl: 2.2rem;   /* hero titles */
+    --fs-4xl: 2.8rem;   /* biggest hero number */
 }
+
+/* ===== Reset, links, icons, focus ring ===== */
+/* Plain defaults for every page. */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 a { color: inherit; text-decoration: none; }
-.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.ic {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: none;
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
 
-/* message boxes */
-.alert { margin-bottom: 14px; padding: 10px 14px; border-radius: 10px; font-size: .88rem; font-weight: 500; }
-.alert-ok    { background: var(--green-soft); color: var(--green-dark); }
+/* ===== Message boxes ===== */
+/* .alert boxes above forms and lists, on every page. */
+.alert {
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+}
+.alert-ok { background: var(--green-soft); color: var(--green-dark); }
 .alert-error { background: var(--red-soft); color: var(--red); }
-.alert-info  { background: #fff6e6; color: #8a5300; }
+.alert-info { background: #fff6e6; color: #8a5300; }
 
-/* buttons */
-.btn { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--green); color: #fff; font: 600 .9rem var(--font); cursor: pointer; text-decoration: none; }
+/* ===== Buttons ===== */
+/* .btn and its colour variants, on every page. */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--green);
+    color: #fff;
+    font: 600 var(--fs-md) var(--font);
+    cursor: pointer;
+    text-decoration: none;
+}
 .btn:hover { background: var(--green-dark); }
-.btn-small  { height: 34px; padding: 0 12px; font-size: .8rem; }
-.btn-ghost  { background: #fff; color: var(--text); border: 1px solid var(--line); }
+.btn-small { height: 34px; padding: 0 12px; font-size: var(--fs-xs); }
+.btn-ghost { background: #fff; color: var(--text); border: 1px solid var(--line); }
 .btn-ghost:hover { background: #f1f5f3; }
 .btn-danger { background: #fff; color: var(--red); border: 1px solid #f1c6c6; }
 .btn-danger:hover { background: var(--red-soft); }
-.btn-move   { background: #fff; color: var(--green); border: 1px solid #bfe0cf; }
+.btn-move { background: #fff; color: var(--green); border: 1px solid #bfe0cf; }
 .btn-move:hover { background: #eef6f2; }
-.btn-warn   { background: #fff; color: #b26a00; border: 1px solid #f3d9a8; }
+.btn-warn { background: #fff; color: #b26a00; border: 1px solid #f3d9a8; }
 .btn-warn:hover { background: #fff6e6; }
 
-/* বাংলা / English buttons (partials/lang-switch.php) */
-.lang { display: inline-flex; align-items: center; height: 38px; padding: 3px; border: 1px solid var(--line); border-radius: 20px; background: #fff; }
-.lang button { border: 0; background: none; height: 30px; padding: 0 10px; border-radius: 16px; font: 600 .78rem var(--font); cursor: pointer; color: var(--text); }
+/* ===== Language buttons ===== */
+/* The বাংলা / English switch (partials/lang-switch.php), on every page. */
+.lang {
+    display: inline-flex;
+    align-items: center;
+    height: 38px;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #fff;
+}
+.lang button {
+    border: 0;
+    background: none;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 16px;
+    font: 600 var(--fs-xs) var(--font);
+    cursor: pointer;
+    color: var(--text);
+}
 .lang button[aria-pressed="true"] { background: var(--green); color: #fff; }
 
-/* profile info card (partials/profile-info.php) - same for admin, employee and user */
-.pf-top { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 6px 0 14px; }
-.pf-avatar { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; background: var(--green); color: #fff; font-size: 2.1rem; font-weight: 700; box-shadow: 0 0 0 6px var(--green-soft); }
-.pf-name { font-size: 1.15rem; line-height: 1.3; margin: 0; color: var(--text); }
-.pf-sub { display: inline-block; margin-top: 4px; padding: 3px 12px; border-radius: 20px; background: var(--green-soft); color: var(--green-dark); font-size: .78rem; font-weight: 600; }
-.pf-info { border-top: 1px solid var(--line); }
-.pf-info div { display: flex; justify-content: space-between; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--line); font-size: .88rem; }
-.pf-info div:last-child { border-bottom: 0; }
-.pf-info dt { color: var(--muted); flex: none; }
-.pf-info dd { font-weight: 600; text-align: right; word-break: break-all; }
-
-/* "edit my info" + "change password" cards (partials/profile-forms.php) - same for admin, employee and user */
-.pf-form h2 { font-size: 1.05rem; margin: 0 0 14px; }
+/* ===== Profile forms ===== */
+/* "Edit my info" + "Change password" cards (partials/profile-forms.php), every role. */
+.pf-form h2 { font-size: var(--fs-base); margin: 0 0 14px; }
 .pf-form .row2, .pf-form .row3 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .pf-form .field { min-width: 0; }
-.pf-form label { display: block; margin-bottom: 6px; font-size: .86rem; font-weight: 600; }
-.pf-form .box { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; font: 400 .95rem var(--font); color: var(--text); }
+.pf-form label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+}
+.pf-form .box {
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    font: 400 var(--fs-md) var(--font);
+    color: var(--text);
+}
 .pf-form select.box { cursor: pointer; }
-.pf-form .box:focus, .pf-form .input.box:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px rgba(11,107,76,.12); outline: 0; }
-.pf-form .input.box { display: flex; align-items: center; gap: 6px; padding: 0 6px 0 12px; }
-.pf-form .input.box input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; border-radius: 0; outline: 0; background: transparent; font: inherit; color: inherit; }
+.pf-form .box:focus, .pf-form .input.box:focus-within {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(11,107,76,.12);
+    outline: 0;
+}
+.pf-form .input.box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 6px 0 12px;
+}
+.pf-form .input.box input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+}
 .pf-form .box.invalid { border-color: var(--red); }
-.pf-form .error-text { margin-top: 5px; color: var(--red); font-size: .8rem; font-weight: 500; }
+.pf-form .error-text {
+    margin-top: 5px;
+    color: var(--red);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+}
 .pf-form .error-text[hidden] { display: none; }
-.pf-form .hint { margin: 12px 0 14px; font-size: .8rem; color: var(--muted); }
-.toggle { display: grid; place-items: center; width: 36px; height: 36px; border: 0; background: none; color: #6b746f; cursor: pointer; border-radius: 8px; }
+.pf-form .hint { margin: 12px 0 14px; font-size: var(--fs-xs); color: var(--muted); }
+.toggle {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    background: none;
+    color: #6b746f;
+    cursor: pointer;
+    border-radius: 8px;
+}
 .toggle .eye { display: none; }
 .toggle[aria-pressed="true"] .eye { display: block; }
 .toggle[aria-pressed="true"] .eye-off { display: none; }
@@ -79,23 +195,133 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     .pf-form .row3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-/* language buttons always at the top right of the page */
-.lang-corner { position: absolute; top: 14px; right: 16px; z-index: 50; }
+/* ===== Corner language buttons and avatars ===== */
+/* Language buttons fixed at the top right; round picture / first letter used in menus and lists. */
+.lang-corner {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    z-index: 50;
+}
+/* round picture with the first letter (admin list "added by", photo pick box) */
+.pf-avatar {
+    display: grid;
+    place-items: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    font-size: var(--fs-3xl);
+    font-weight: 700;
+    box-shadow: 0 0 0 6px var(--green-soft);
+}
 img.avatar, img.pf-avatar, img.av-sm { object-fit: cover; background: var(--green-soft); }
-.av-sm { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--green); color: #fff; font-size: .85rem; font-weight: 700; flex: none; vertical-align: middle; }
-.avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--green); color: #fff; font-weight: 700; flex: none; }
+.av-sm {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    flex: none;
+    vertical-align: middle;
+}
+.avatar {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    font-weight: 700;
+    flex: none;
+}
 
-/* menu group title (same in admin, employee and user menus) */
-.nav-grp { margin: 14px 12px 4px; font-size: .7rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #8a958f; }
+/* ===== Menu group title ===== */
+/* Small grey heading between menu groups (admin, employee and user menus). */
+.nav-grp {
+    margin: 14px 12px 4px;
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #8a958f;
+}
 
-/* left menu, same for user / employee / admin. Phone: slides in with the ☰ button. PC (900px+): always open. (js: side-menu.js) */
-.side-menu { position: fixed; top: 0; left: 0; bottom: 0; z-index: 60; width: 270px; max-width: 86vw; display: flex; flex-direction: column; padding: 18px 14px; background: #fff; border-right: 1px solid var(--line); overflow-y: auto; transform: translateX(-105%); transition: transform .25s ease; }
+/* ===== Left side menu ===== */
+/* Same for user / employee / admin. Phone: slides in with the ☰ button. PC (900px+): always open.
+   (js: side-menu.js) */
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 60;
+    width: 270px;
+    max-width: 86vw;
+    display: flex;
+    flex-direction: column;
+    padding: 18px 14px;
+    background: #fff;
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+    transform: translateX(-105%);
+    transition: transform .25s ease;
+}
 .side-menu.open { transform: none; box-shadow: 8px 0 30px rgba(0,0,0,.18); }
-.side-shade { position: fixed; inset: 0; z-index: 55; background: rgba(10, 30, 22, .45); }
-.side-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-.side-x { width: 34px; height: 34px; border: 0; border-radius: 50%; background: #eff4f1; font-size: 1.4rem; line-height: 1; cursor: pointer; flex: none; }
-.menu-btn { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--green); cursor: pointer; flex: none; }
-.side-logout { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--text); font: 600 .92rem var(--font); cursor: pointer; }
+.side-shade {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(10, 30, 22, .45);
+}
+.side-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+.side-x {
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 50%;
+    background: #eff4f1;
+    font-size: var(--fs-xl);
+    line-height: 1;
+    cursor: pointer;
+    flex: none;
+}
+.menu-btn {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--green);
+    cursor: pointer;
+    flex: none;
+}
+.side-logout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--text);
+    font: 600 var(--fs-md) var(--font);
+    cursor: pointer;
+}
 .side-logout:hover { border-color: #e53935; color: #e53935; }
 .no-scroll { overflow: hidden; }
 @media (min-width: 900px) {
@@ -104,88 +330,1132 @@ img.avatar, img.pf-avatar, img.av-sm { object-fit: cover; background: var(--gree
 }
 /* menu links + bottom part (logout), same for every role */
 .side-nav { display: flex; flex-direction: column; gap: 4px; }
-.side-nav a, .side-nav button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 12px; border: 0; border-radius: 12px; background: none; color: var(--text); font: 500 .92rem var(--font); white-space: nowrap; text-align: left; cursor: pointer; }
+.side-nav a, .side-nav button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 9px 12px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    color: var(--text);
+    font: 500 var(--fs-md) var(--font);
+    white-space: nowrap;
+    text-align: left;
+    cursor: pointer;
+}
 .side-nav a:hover, .side-nav button:hover { background: #f1f6f3; }
 .side-nav a.on { background: var(--green); color: #fff; }
-.side-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.side-nav .nav-n {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: #e5484d;
+    color: #fff;
+    font: 700 var(--fs-2xs)/20px var(--font);
+    text-align: center;
+}
+.side-nav .nav-n { flex: none; }
+.side-bottom {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+}
 
-/* ---- our own "Are you sure?" box (partials/confirm-modal.php + confirm.js), same on every page */
+/* ===== Confirm box ===== */
+/* Our own "Are you sure?" box (partials/confirm-modal.php + confirm.js), on every page. */
 body.cm-on { overflow: hidden; }
-.cm-shade { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 16px; background: rgba(15, 30, 22, .5); }
+.cm-shade {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(15, 30, 22, .5);
+}
 .cm-shade[hidden] { display: none; }
-.cm-box { width: min(440px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 20px 50px rgba(0, 0, 0, .25); display: flex; flex-direction: column; gap: 12px; }
-.cm-box h2 { font-size: 1.1rem; }
-.cm-box #cm-msg { color: var(--muted); font-size: .92rem; line-height: 1.5; }
+.cm-box {
+    width: min(440px, 100%);
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.cm-box h2 { font-size: var(--fs-lg); }
+.cm-box #cm-msg { color: var(--muted); font-size: var(--fs-md); line-height: 1.5; }
 .cm-box #cm-msg:empty { display: none; }
-.cm-list { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 10px; background: #f5f8f6; font-size: .88rem; }
+.cm-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #f5f8f6;
+    font-size: var(--fs-sm);
+}
 .cm-list[hidden] { display: none; }
 .cm-list span { color: var(--muted); }
 .cm-list s { color: var(--red); }
 .cm-list b { color: var(--green-dark); }
-.cm-box .f { display: flex; flex-direction: column; gap: 5px; font-size: .88rem; }
+.cm-box .f {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: var(--fs-sm);
+}
 .cm-box .f[hidden] { display: none; }
 .cm-box .f > span { font-weight: 600; }
-.cm-box .f small { color: var(--muted); font-size: .78rem; }
-.cm-box input { width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; font: 400 .95rem var(--font); }
+.cm-box .f small { color: var(--muted); font-size: var(--fs-xs); }
+.cm-box input {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font: 400 var(--fs-md) var(--font);
+}
 .cm-box input:focus { border-color: var(--green); outline: 0; }
-.cm-box .error-text { color: var(--red); font-size: .8rem; font-weight: 500; }
+.cm-box .error-text { color: var(--red); font-size: var(--fs-xs); font-weight: 500; }
 .cm-box .row-btns { display: flex; gap: 10px; flex-wrap: wrap; }
 .cm-box .row-btns .btn { flex: 1 1 0; }
 .cm-box .btn[hidden] { display: none; }
 
-/* ---- "what the admin changed in your account" (partials/account-changes.php) */
-.chg-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-.chg { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+/* ===== Account changes list ===== */
+/* "What the admin changed in your account" (partials/account-changes.php). */
+.chg-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.chg {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+}
 .chg-new { border-color: #bfe0cf; background: #f3faf6; }
-.chg-head { font-size: .9rem; }
-.chg-head small { display: block; margin-top: 2px; color: var(--muted); font-size: .78rem; }
-.chg-items { list-style: none; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: .86rem; }
+.chg-head { font-size: var(--fs-md); }
+.chg-head small {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: var(--fs-xs);
+}
+.chg-items {
+    list-style: none;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: var(--fs-sm);
+}
 .chg-items span { color: var(--muted); }
 .chg-items s { color: var(--red); }
 .chg-items b { color: var(--green-dark); }
 .chg-compact .chg { padding: 10px; }
-.chg-compact .chg-head, .chg-compact .chg-items { font-size: .8rem; }
+.chg-compact .chg-head, .chg-compact .chg-items { font-size: var(--fs-xs); }
 
-/* ---- back button inside the page (every inner page has one, no need for the browser's back) */
-.page-back { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px 0 8px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--text); font: 600 .82rem var(--font); text-decoration: none; cursor: pointer; }
+/* ===== Back button ===== */
+/* In-page back button on every inner page (no need for the browser's back). */
+.page-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 12px 0 8px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--text);
+    font: 600 var(--fs-sm) var(--font);
+    text-decoration: none;
+    cursor: pointer;
+}
 .page-back:hover { border-color: var(--green); color: var(--green); }
 .page-back .ic { width: 18px; height: 18px; }
 
-/* my photo buttons under the profile picture */
-.pf-photo { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-.pf-photo label.btn { cursor: pointer; }
-.pf-photo-hint { margin-top: 6px; text-align: center; color: var(--muted); font-size: .76rem; }
-.pf .error-text { text-align: center; margin-top: 6px; }
-
 [hidden] { display: none !important; }   /* "hidden" always hides, whatever display a class gives */
 
-/* ---- click a profile picture = see it a little bigger (assets/js/zoom.js) */
+/* ===== Photo zoom ===== */
+/* Click a profile picture to see it a little bigger (assets/js/zoom.js). */
 img.has-photo { cursor: zoom-in; }
 a img.has-photo, button img.has-photo { cursor: pointer; }
-.zoom-box { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(8, 20, 14, .55); cursor: zoom-out; }
-.zoom-box img { width: min(260px, 70vw); aspect-ratio: 1; object-fit: cover; border-radius: 50%; border: 4px solid #fff; background: #fff; box-shadow: 0 16px 40px rgba(0, 0, 0, .4); }
-.zoom-x { position: absolute; top: 14px; right: 16px; width: 42px; height: 42px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .15); color: #fff; font-size: 1.6rem; line-height: 1; cursor: pointer; }
+.zoom-box {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(8, 20, 14, .55);
+    cursor: zoom-out;
+}
+.zoom-box img {
+    width: min(260px, 70vw);
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    background: #fff;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, .4);
+}
+.zoom-x {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .15);
+    color: #fff;
+    font-size: var(--fs-2xl);
+    line-height: 1;
+    cursor: pointer;
+}
 .zoom-x:hover { background: rgba(255, 255, 255, .3); }
 
-/* me-chip: my picture + name top-right (all roles), opens my profile */
-.me-chip { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px 0 4px; border: 1px solid var(--line); border-radius: 20px; background: #fff; color: var(--text); }
+/* ===== Me chip ===== */
+/* My picture + name at the top right (all roles); opens my profile. */
+.me-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 12px 0 4px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #fff;
+    color: var(--text);
+}
 .me-chip:hover, .me-chip.on { border-color: var(--green); }
 .me-chip > span:last-child { display: flex; flex-direction: column; line-height: 1.15; }
-.me-chip b { font-size: .78rem; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.me-chip small { font-size: .68rem; color: var(--green); font-weight: 600; }
-.me-chip .av-sm { width: 30px; height: 30px; font-size: .8rem; }
-@media (max-width: 899px) {   /* phone: only the picture, it still opens my profile */
+.me-chip b {
+    font-size: var(--fs-xs);
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.me-chip small { font-size: var(--fs-2xs); color: var(--green); font-weight: 600; }
+.me-chip .av-sm { width: 30px; height: 30px; font-size: var(--fs-xs); }
+@media (max-width: 899px) {
+    /* phone: only the picture, it still opens my profile */
     .me-chip { padding: 0 3px; }
     .me-chip > span:last-child { display: none; }
 }
 
-/* ---- PC: the whole site looks like browser zoom 90% while the browser stays at 100% (user's choice).
-   CSS zoom also shrinks "full screen" sizes, so those are divided by .9 to fill the screen again. */
+/* ===== Top bar contact items ===== */
+/* Phone / email / hours + the "কাস্টমার কেয়ার" button in the top bar (user home + About / Terms / Privacy).
+   Texts: Admin -> "সাইট তথ্য" */
+.sc-items {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+}
+.sc-items > a, .sc-items > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 3px 10px 3px 3px;
+    border-radius: 999px;
+    color: #1f3b30;
+    font: 600 var(--fs-sm) var(--font);
+    white-space: nowrap;
+}
+.sc-items > a:hover { background: var(--green-soft); color: var(--green-dark); }
+.sc-dot {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--green-soft);
+    color: var(--green);
+}
+.sc-dot .ic { width: 15px; height: 15px; }
+.care-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 14px 0 5px;
+    border-radius: 999px;
+    background: #25d366;
+    color: #fff;
+    font: 600 var(--fs-sm) var(--font);
+    white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(37,211,102,.28);
+}
+.care-btn:hover { background: #1fbd5a; }
+.care-btn .sc-dot { background: rgba(255,255,255,.25); color: #fff; }
+@media (max-width: 1023px) {
+    .sc-hours { display: none !important; }
+}
+@media (max-width: 1023px) {
+    .sc-email { display: none !important; }
+}
+@media (max-width: 700px) {
+    .sc-items { display: none; }
+    .care-btn { width: 38px; padding: 0; justify-content: center; }   /* phone: icon only */
+    .care-txt { display: none; }
+}
+
+/* ===== Site footer ===== */
+/* Thin footer bar of the user home + About / Terms / Privacy pages. Texts: Admin -> "সাইট তথ্য" */
+.site-footer {
+    background: #eef7f2;
+    border-top: 1px solid #d5e8dd;
+    color: #3b4a43;
+    font: 500 var(--fs-xs) var(--font);
+}
+.sf-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px 18px;
+    padding: 10px 16px;
+    text-align: center;
+}
+.sf-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 14px;
+}
+.sf-links a { color: var(--green-dark); font-weight: 600; }
+.sf-links a:hover { text-decoration: underline; }
+.sf-addr { display: inline-flex; align-items: center; gap: 5px; }
+.sf-addr .ic { width: 15px; height: 15px; color: var(--green); }
+.sf-social { display: inline-flex; gap: 6px; }
+.sf-social a {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--green);
+    border: 1px solid #cfe4d8;
+}
+.sf-social a:hover { background: var(--green); color: #fff; }
+.sf-social .ic { width: 15px; height: 15px; }
+@media (min-width: 900px) {
+    .sf-bar { justify-content: space-between; padding: 9px 28px; }
+    .sf-copy { order: 0; }
+    .sf-links { order: 1; }
+    .sf-addr { order: 2; margin-left: auto; }
+    .sf-social { order: 3; }
+}
+
+/* ===== PC zoom ===== */
+/* PC: the whole site looks like browser zoom 90% (on a 1920 px wide screen) while the browser stays at 100%.
+   Every other PC / laptop screen shows the SAME page scaled to its width, so nothing moves or changes size between screens
+   (that is why PC media queries only use 1024px or the screen shape, never other widths).
+   The user dashboard (<html class="u-page">) looks like 110% of that = 99%.
+   CSS zoom also changes "full screen" sizes, so those are divided by --z to fill the screen again. */
 @media (min-width: 1024px) {
-    html { zoom: .9; }
-    html .side-menu { bottom: auto; height: calc(100vh / .9); }
-    html .side-shade, html .cm-shade, html .zoom-box, html .popup { inset: auto; top: 0; left: 0; width: calc(100vw / .9); height: calc(100vh / .9); }
-    html .cm-box { max-height: calc(100vh / .9 - 32px); }
-    html .adm, html .shell, html .page, html body { min-height: calc(100vh / .9); }
-    html .adm-side { height: calc(100vh / .9); }
+    /* --zs = screen width x browser zoom / 1920 (set in partials/head.php): at 100% a laptop shows exactly the same page as a 1920 PC, only smaller */
+    /* 1% of a 1920 x 910 screen; at browser zoom 90% the screen holds more (--bz from partials/head.php) */
+    :root { --dvh: calc(9.1px / var(--bz, 1) * var(--fit, 1)); --dvw: calc(19.2px / var(--bz, 1) * var(--fit, 1)); }
+    html { --zb: .9; --z: calc(var(--zb) * var(--zs, 1)); zoom: var(--z); }
+    html.u-page { --zb: .99; }   /* user pages = 110% look (0.9 x 1.1) */
+    html .side-menu { bottom: auto; height: calc(100vh / var(--z)); }
+    html .side-shade, html .cm-shade, html .zoom-box, html .popup {
+        inset: auto;
+        top: 0;
+        left: 0;
+        width: calc(100vw / var(--z));
+        height: calc(100vh / var(--z));
+    }
+    html .cm-box { max-height: calc(100vh / var(--z) - 32px); }
+    html .adm, html .shell, html .page, html body { min-height: calc(100vh / var(--z)); }
+    html .adm-side { height: calc(100vh / var(--z)); }
+}
+
+/* ===== Phone bottom bar ===== */
+/* Home / Profile tabs of the user pages (partials/user-tabbar). Hidden on PC. */
+.tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    display: flex;
+    justify-content: space-around;
+    gap: 6px;
+    padding: 6px 12px calc(6px + env(safe-area-inset-bottom));
+    background: #fff;
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -6px 18px rgba(0,0,0,.05);
+}
+.tabbar { gap: 2px; padding-left: 6px; padding-right: 6px; }
+.tabbar a {
+    flex: 1;
+    min-width: 0;
+    max-width: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 7px 2px;
+    border-radius: 14px;
+    font: 600 var(--fs-2xs) var(--font);
+    color: #4b5651;
+    white-space: nowrap;
+}
+.tabbar a > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.tabbar .tab-ic { position: relative; display: grid; }
+.tabbar a .ic { width: 23px; height: 23px; }
+.tabbar .count {
+    position: absolute;
+    top: -5px;
+    right: -9px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: #e5484d;
+    color: #fff;
+    font: 700 var(--fs-2xs)/17px var(--font);
+    text-align: center;
+}
+.tabbar a.on { background: var(--green-soft); color: var(--green-dark); }
+body:has(> .tabbar) { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+@media (min-width: 900px) {
+    .tabbar { display: none; }
+    body:has(> .tabbar) { padding-bottom: 0; }
+}
+
+/* ===== Bookings and chats: shared parts ===== */
+/* Status pills, chips, chat avatars. Used on the user pages AND the office dashboard (same look for everyone). */
+.bk-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 12px;
+    font: 600 var(--fs-xs) var(--font);
+    white-space: nowrap;
+}
+.bk-pill .ic { width: 14px; height: 14px; }
+.bp-pending { background: #fff3dc; color: #a35f00; }
+.bp-ongoing { background: #e3effc; color: #1f5fa8; }
+.bp-completed { background: var(--green-soft); color: var(--green-dark); }
+.bp-cancelled { background: var(--red-soft); color: var(--red); }
+.chip {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: #f0f4f2;
+    color: #3d4642;
+    font: 600 var(--fs-2xs) var(--font);
+    white-space: nowrap;
+}
+.msg-n {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: #e5484d;
+    color: #fff;
+    font: 700 var(--fs-2xs) var(--font);
+}
+.ch-av {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #eff1f0;
+    font: 700 var(--fs-base) var(--font);
+}
+.ch-av img { width: 26px; height: 26px; object-fit: contain; }
+.ch-av.has-photo { object-fit: cover; }
+img.ch-av { padding: 0; }
+.ch-sup { background: var(--green); color: #fff; }
+.ch-sup .ic { width: 24px; height: 24px; }
+
+/* chat box: head, message list, send form (assets/js/chat.js) */
+.chat {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+}
+.chat-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+}
+.chat-back {
+    display: none;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+}
+.chat-title { display: flex; flex-direction: column; min-width: 0; }
+.chat-title b {
+    font-size: var(--fs-md);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.chat-title small { font-size: var(--fs-xs); color: var(--muted); }
+.chat-title small a { color: var(--green); font-weight: 600; }
+.chat-chips {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+.chat-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+    background: #f6faf8;
+}
+.ch-day { align-self: center; }
+.ch-day span {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    background: #e7eeea;
+    color: #4b5651;
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+}
+.ch-empty {
+    margin: auto;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    text-align: center;
+    max-width: 320px;
+}
+.ch-msg {
+    max-width: min(78%, 520px);
+    align-self: flex-start;
+    padding: 8px 12px 6px;
+    border-radius: 14px 14px 14px 4px;
+    background: #fff;
+    border: 1px solid var(--line);
+}
+.ch-msg.mine {
+    align-self: flex-end;
+    border-radius: 14px 14px 4px 14px;
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+}
+.ch-msg p { font-size: var(--fs-sm); line-height: 1.5; overflow-wrap: anywhere; }
+.ch-who {
+    display: block;
+    margin-bottom: 2px;
+    font-size: var(--fs-2xs);
+    font-weight: 700;
+    color: var(--green);
+}
+.ch-msg.mine .ch-who { color: #cdeedd; }
+.ch-msg time {
+    display: block;
+    margin-top: 2px;
+    text-align: right;
+    font-size: var(--fs-2xs);
+    opacity: .7;
+}
+.chat-send {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 10px;
+    border-top: 1px solid var(--line);
+}
+.chat-send textarea {
+    box-sizing: border-box;
+    overflow-y: hidden;
+    line-height: 20px;
+    flex: 1;
+    min-width: 0;
+    min-height: 42px;
+    max-height: 140px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 21px;
+    font: 400 var(--fs-md) var(--font);
+    resize: none;
+    outline: 0;
+}
+.chat-send textarea:focus { border-color: var(--green); }
+.chat-send textarea.invalid { border-color: var(--red); }
+.chat-go { gap: 6px; border-radius: 21px; }
+.chat-go .ic { width: 18px; height: 18px; }
+.chat-send .error-text { flex-basis: 100%; }
+.chat-pick {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px dashed var(--line);
+    border-radius: 16px;
+    color: var(--muted);
+    font-size: var(--fs-md);
+}
+.chat-pick .ic { width: 42px; height: 42px; color: #b9c7c0; }
+@media (max-width: 899px) {
+    .chat-back { display: grid; }
+    .chat-go span { display: none; }
+    .chat-go { width: 42px; padding: 0; }
+}
+
+/* ===== Status tabs ===== */
+/* Tabs with counts (user: my bookings; office: bookings, add-money requests). */
+.u-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: 12px;
+    padding-bottom: 2px;
+}
+.u-tabs::-webkit-scrollbar { display: none; }
+.u-tab {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 19px;
+    background: #fff;
+    font: 600 var(--fs-sm) var(--font);
+    color: #3d4642;
+}
+.u-tab .ic { width: 17px; height: 17px; }
+.u-tab.on { background: var(--green); border-color: var(--green); color: #fff; }
+
+/* ===== Chats page ===== */
+/* User messages + office messages: search, filter chips, chat list and the open chat. */
+.msg-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 14px;
+    margin-bottom: 10px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #fbfdfc;
+}
+.msg-search:focus-within { border-color: var(--green); }
+.msg-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: 400 var(--fs-md) var(--font);
+}
+.msg-chips {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: 12px;
+}
+.msg-chips::-webkit-scrollbar { display: none; }
+.msg-chips a {
+    flex: none;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 14px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    font: 600 var(--fs-xs) var(--font);
+    color: #3d4642;
+    background: #fff;
+}
+.msg-chips a.on { background: var(--green); border-color: var(--green); color: #fff; }
+.msg-sup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #e7f6ee, #f4fbf7);
+    border: 1px solid #cfe9db;
+}
+.msg-sup.on { border-color: var(--green); }
+.msg-sup-txt {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.msg-sup-txt b { font-size: var(--fs-md); }
+.msg-sup-txt small {
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.msg-sup-go {
+    flex: none;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 14px;
+    border-radius: 17px;
+    background: var(--green);
+    color: #fff;
+    font: 600 var(--fs-xs) var(--font);
+}
+.msg-h { font-size: var(--fs-md); margin-bottom: 6px; }
+.msg-none { padding: 10px 0; }
+.msg-list { list-style: none; display: grid; gap: 6px; }
+.msg-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: #fff;
+}
+.msg-item:hover { border-color: #bfe0cf; }
+.msg-item.on { border-color: var(--green); background: #f2faf6; }
+.msg-item-txt {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+.msg-item-top { display: flex; justify-content: space-between; gap: 8px; }
+.msg-item-top b {
+    font-size: var(--fs-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.msg-item-top time { flex: none; font-size: var(--fs-2xs); color: var(--muted); }
+.msg-item-last {
+    font-size: var(--fs-xs);
+    color: #4b5651;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.msg-item-chips { display: flex; align-items: center; gap: 6px; }
+.msg-item-chips .bk-pill { height: 22px; font-size: var(--fs-2xs); }
+.msg-item-chips .msg-n { margin-left: auto; }
+.msg-tip { margin-top: 10px; font-size: var(--fs-xs); color: var(--muted); }
+.msg-tip a { color: var(--green); font-weight: 600; }
+.msg-pane { display: none; }
+
+@media (max-width: 899px) {
+    /* open chat = full screen (its own back button), like a chat app */
+    .msg.has-chat .msg-side { display: none; }
+    .msg.has-chat .msg-pane {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 70;
+        background: #fff;
+    }
+    .msg.has-chat .chat {
+        border: 0;
+        border-radius: 0;
+        height: 100%;
+        height: 100dvh;
+    }
+}
+@media (min-width: 900px) {
+    /* messages: list left, chat right, the whole thing fits the screen (only the chat scrolls) */
+    .msg {
+        display: grid;
+        grid-template-columns: 360px minmax(0, 1fr);
+        gap: 16px;
+        min-height: 420px;
+    }
+    .msg-side {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+    .msg-pane { display: block; min-height: 0; }
+    .msg-list { align-content: start; }
+}
+
+/* ===== Public footer ===== */
+/* Dark green footer of the welcome / login / register pages (partials/public-footer.php).
+   The page itself fills the first screen, so the footer only shows when scrolling down. */
+.pub-foot { background: #0b5a40; color: #d7ecE2; font: 400 var(--fs-sm) var(--font); }
+.pub-foot .ic { width: 16px; height: 16px; flex: none; }
+.pf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 26px 20px;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 34px 20px 26px;
+}
+.pf-brand { grid-column: 1 / -1; }
+.pf-logo {
+    width: 150px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: #fff;
+}
+.pf-tag { margin-top: 10px; font-weight: 600; color: #fff; }
+.pf-about {
+    margin-top: 8px;
+    max-width: 34em;
+    line-height: 1.6;
+    color: #bfdccf;
+}
+.pf-social { display: flex; gap: 10px; margin-top: 14px; }
+.pf-social:empty { display: none; }
+.pf-social a {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.12);
+    color: #fff;
+    transition: background .2s;
+}
+.pf-social a:hover { background: rgba(255,255,255,.25); }
+.pf-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+.pf-col h3 { margin-bottom: 4px; font-size: var(--fs-base); color: #fff; }
+.pf-col > a, .pf-col > p {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: #d7ece2;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+.pf-col > a:hover { color: #fff; }
+.pf-col > a .ic, .pf-col > p .ic { margin-top: 2px; color: #8fd3b2; }
+.pf-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 20px;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 14px 20px calc(16px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(255,255,255,.14);
+    font-size: var(--fs-xs);
+    color: #bfdccf;
+}
+.pf-badges i { margin: 0 8px; font-style: normal; opacity: .5; }
+@media (min-width: 900px) {
+    .pf-grid { grid-template-columns: 1.4fr 1fr 1.2fr 1.1fr; gap: 30px; padding: 44px 40px 30px; }
+    .pf-brand { grid-column: auto; }
+    .pf-bottom { padding: 16px 40px 18px; }
+}
+@media (min-width: 1024px) {
+    html body:has(> .pub-foot) > .page { min-height: calc(100vh / var(--z)); }
+}   /* PC zoom: the page = the real first screen */
+
+/* ===== My profile ===== */
+/* partials/profile-page.php - the SAME profile page for user, employee and admin:
+   header card, left menu of parts, the open part on the right. */
+.pf2 .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 14px rgba(15, 60, 40, .04);
+}
+/* white cards of the profile (the user pages' .u-card, here so the dashboards have it too) */
+.pf2 .u-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 4px 14px rgba(15, 60, 40, .04);
+}
+.pf-head { margin-bottom: 4px; }
+.pf-role { margin-left: 6px; vertical-align: middle; font-size: var(--fs-xs); }
+/* the photo rule under the name (square, at least 150 px, max 2 MB) */
+.pf-who p.pf-ph-rule { font-size: var(--fs-xs); color: var(--muted); word-break: normal; }
+.pf-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    border-radius: 18px;
+    background: linear-gradient(110deg, #e8f6ef 0%, #f4fbf7 55%, #dff1e8 100%);
+    border: 1px solid #d3ecdf;
+}
+.pf-pic { position: relative; flex: none; }
+.pf-pic .pf-av {
+    display: grid;
+    place-items: center;
+    object-fit: cover;
+    background: var(--green-soft);
+    color: var(--green);
+    font-weight: 700;
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 14px rgba(11,107,76,.18);
+    font-size: var(--fs-3xl);
+}
+.pf-cam {
+    position: absolute;
+    right: -2px;
+    bottom: 2px;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    border: 2px solid #fff;
+    cursor: pointer;
+}
+.pf-cam .ic { width: 15px; height: 15px; }
+.pf-who { min-width: 0; flex: 1; }
+.pf-who h2 { font-size: var(--fs-xl); font-weight: 700; margin-bottom: 4px; }
+.pf-who p {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 3px;
+    font-size: var(--fs-sm);
+    color: #3d4a44;
+    word-break: break-all;
+}
+.pf-who p .ic {
+    width: 15px;
+    height: 15px;
+    color: var(--green);
+    flex: none;
+}
+.pf-edit-btn {
+    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--green);
+    color: var(--green);
+    background: #fff;
+    font-weight: 600;
+    font-size: var(--fs-sm);
+}
+.pf-edit-btn .ic, .pf-small-btn .ic { width: 15px; height: 15px; }
+.pf-photo-err { position: absolute; left: 20px; bottom: 4px; }
+.pf-body { display: grid; gap: 14px; align-items: start; }
+.pf-menu h2 { font-size: var(--fs-base); margin: 2px 4px 8px; }
+.pf-menu ul { list-style: none; display: grid; gap: 2px; }
+.pf-menu a, button.pf-out {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 8px;
+    border-radius: 12px;
+    color: inherit;
+    text-align: left;
+    background: none;
+    border: 0;
+    font: inherit;
+    cursor: pointer;
+}
+.pf-menu a:hover, button.pf-out:hover { background: var(--green-soft); }
+.pf-menu a > .ic:first-child, .pf-out .ic {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 8px;
+    border-radius: 10px;
+    background: var(--green-soft);
+    color: var(--green);
+}
+.pf-menu a > span, .pf-out span { flex: 1; min-width: 0; display: grid; }
+.pf-menu b, .pf-out b { font-size: var(--fs-md); font-weight: 600; }
+.pf-menu small, .pf-out small { font-size: var(--fs-xs); color: var(--muted); }
+.pf-menu a > .ic:last-child {
+    width: 16px;
+    height: 16px;
+    color: var(--muted);
+    flex: none;
+}
+.pf-menu a.on { background: var(--green-soft); box-shadow: inset 3px 0 0 var(--green); }
+.pf-menu a.on b { color: var(--green); }
+@media (min-width: 900px) {
+    /* the part open on the right is green in the list (no :target = my info) */
+    .pf2:not(:has(.pf-panel > :target)) .pf-menu a[data-part="details"],
+    .pf2:has(#info:target) .pf-menu a[data-part="details"],
+    .pf2:has(#password:target) .pf-menu a[data-part="password"],
+    .pf2:has(#favourites:target) .pf-menu a[data-part="favourites"],
+    .pf2:has(#details:target) .pf-menu a[data-part="details"] {
+        background: var(--green-soft);
+        box-shadow: inset 3px 0 0 var(--green);
+    }
+    .pf2:not(:has(.pf-panel > :target)) .pf-menu a[data-part="details"] b,
+    .pf2:has(#info:target) .pf-menu a[data-part="details"] b,
+    .pf2:has(#password:target) .pf-menu a[data-part="password"] b,
+    .pf2:has(#favourites:target) .pf-menu a[data-part="favourites"] b,
+    .pf2:has(#details:target) .pf-menu a[data-part="details"] b {
+        color: var(--green);
+    }
+}
+button.pf-out { margin-top: 6px; border-top: 1px solid var(--line); border-radius: 0 0 12px 12px; }   /* thin line above "log out" */
+.pf-out .ic { background: #fdecec !important; color: var(--red) !important; }
+.pf-out b { color: var(--red); }
+.pf-sec-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.pf-sec-head h2 { font-size: var(--fs-base); }
+.pf-sec-head p { font-size: var(--fs-xs); color: var(--muted); margin-top: 2px; }
+.pf-small-btn {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 9px;
+    background: var(--green-soft);
+    color: var(--green);
+    font-weight: 600;
+    font-size: var(--fs-sm);
+}
+.pf-box { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.pf-box + .pf-box { margin-top: 12px; }
+.pf-box h3 { font-size: var(--fs-md); margin-bottom: 6px; color: var(--green); }
+.pf-rows > div {
+    display: grid;
+    grid-template-columns: minmax(130px, 34%) 1fr;
+    gap: 10px;
+    padding: 9px 0;
+    border-top: 1px solid var(--line);
+    font-size: var(--fs-sm);
+}
+.pf-rows > div:first-child { border-top: 0; }
+.pf-rows dt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+}
+.pf-rows dt .ic {
+    width: 16px;
+    height: 16px;
+    color: var(--green);
+    flex: none;
+}
+.pf-rows dd { font-weight: 600; word-break: break-word; }
+.pf-none { color: var(--muted); font-weight: 400; font-style: italic; }
+.pf-favs { margin-top: 4px; }
+/* which part of the panel shows: #details first, a clicked part (:target) instead */
+.pf-panel > .pf-sec, .pf-panel > .pf-form, .pf-back { display: none; }
+.pf-panel > :target { display: block; }
+.pf-back { margin-bottom: 10px; }
+@media (min-width: 900px) {
+    .pf-body { grid-template-columns: minmax(0, 310px) minmax(0, 1fr); }
+    .pf-panel > #details { display: block; }
+    .pf-panel:has(> :target) > #details:not(:target) { display: none; }
+    .pf-out { display: none; }   /* the left menu already has "log out" */
+}
+@media (max-width: 899px) {
+    .pf-hero { gap: 14px; padding: 14px; align-items: flex-start; }
+    .pf-pic .pf-av { width: 72px; height: 72px; font-size: var(--fs-2xl); }
+    .pf-who h2 { font-size: var(--fs-base); }
+    .pf-who p { font-size: var(--fs-xs); }
+    .pf-edit-btn { padding: 5px 12px; font-size: var(--fs-xs); margin-top: 8px; }
+    .pf2:has(.pf-panel > :target) > .u-head,
+    .pf2:has(.pf-panel > :target) > .pf-head,
+    .pf2:has(.pf-panel > :target) .pf-hero,
+    .pf2:has(.pf-panel > :target) .pf-menu {
+        display: none;
+    }
+    .pf-panel:has(> :target) > .pf-back { display: inline-flex; }
+    .pf-rows > div { grid-template-columns: 1fr; gap: 2px; }
+}
+
+@media (min-width: 900px) {
+    .pf-menu small { display: none; }
+    .pf-menu a { padding: 13px 10px; }
+}
+
+/* ===== Phone polish ===== */
+/* Phone (< 900px) fixes found by checking every page at 360 px:
+   status tabs never hide behind the screen edge (4 tabs = 2 x 2, 3 tabs = one row),
+   words wrap whole (no "Qu-arter" splits) unless a single word is longer than the line. */
+@media (max-width: 899px) {
+    .u-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); overflow: visible; }
+    .u-tabs:has(> :nth-child(4)) { grid-auto-flow: row; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .u-tab { justify-content: center; min-width: 0; padding: 0 10px; }
+    .pf-who p { word-break: normal; overflow-wrap: anywhere; }
+    /* site footer: contact lines (long email) take the whole width */
+    .pf-contact { grid-column: 1 / -1; }
+    .pf-grid { grid-auto-flow: row dense; }   /* "support" links move up beside "quick links" */
+    /* chat filter chips wrap to a second line instead of hiding behind the edge */
+    .msg-chips { flex-wrap: wrap; overflow: visible; }
 }

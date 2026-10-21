@@ -1,6 +1,7 @@
 <?php
 // app/validators/RegisterValidator.php
 // Server-side checks for the register form (same rules as validation.js).
+// nameError() / emailError() / GENDERS are also used by AccountValidator and AdminController.
 
 require_once __DIR__ . '/LoginValidator.php';
 
@@ -8,7 +9,15 @@ class RegisterValidator
 {
     const GENDERS = ['male', 'female', 'other'];
 
-    // Name: English letters only, 2-50 characters (saved in CAPITAL letters)
+    // ---- Clean a name before saving ----
+    // Trims, turns runs of spaces into one space and makes it CAPITAL letters: "  rishad   ahmed" -> "RISHAD AHMED"
+    public static function cleanName($name)
+    {
+        return strtoupper(preg_replace('/\s+/', ' ', trim((string)$name)));
+    }
+
+    // ---- Name ----
+    // English letters only, 2-50 characters (saved in CAPITAL letters)
     public static function nameError($name, array $t)
     {
         $name = preg_replace('/\s+/', ' ', trim((string)$name));
@@ -21,7 +30,8 @@ class RegisterValidator
         return '';
     }
 
-    // Email: optional, but if written it must be a Gmail address
+    // ---- Email ----
+    // Optional, but if written it must be a Gmail address
     public static function emailError($email, array $t)
     {
         $email = strtolower(trim((string)$email));
@@ -31,11 +41,12 @@ class RegisterValidator
         return '';
     }
 
-    // Returns [errors, clean data]
+    // ---- The whole register form ----
+    // Returns [errors, clean data]. $areas = the allowed areas (AreaModel::getAll()).
     public static function validate(array $post, array $t, array $areas)
     {
         $data = [
-            'name'     => strtoupper(preg_replace('/\s+/', ' ', trim((string)($post['name'] ?? '')))),
+            'name'     => self::cleanName($post['name'] ?? ''),
             'mobile'   => trim((string)($post['mobile'] ?? '')),
             'email'    => strtolower(trim((string)($post['email'] ?? ''))),
             'password' => (string)($post['password'] ?? ''),

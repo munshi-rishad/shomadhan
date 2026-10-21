@@ -1,4 +1,10 @@
-<?php // app/views/partials/confirm-modal.php - our own "Are you sure?" box (assets/js/confirm.js runs it). needs $t ?>
+<?php
+// app/views/partials/confirm-modal.php
+// Our own "Are you sure?" box, used instead of the browser's confirm(). Hidden until assets/js/confirm.js opens it.
+// Included once at the bottom of the admin layout and the user pages (user/home.php).
+// The data-* texts are read by confirm.js. The password field shows only for changes that need the admin's password.
+// Needs: $t
+?>
 <div class="cm-shade" id="cm" hidden role="dialog" aria-modal="true" aria-labelledby="cm-title"
      data-sure="<?= e($t['cm_sure']) ?>" data-none="<?= e($t['cm_none']) ?>" data-cancel="<?= e($t['adm_cancel']) ?>" data-close="<?= e($t['cm_close']) ?>"
      data-yes="<?= e($t['cm_yes']) ?>" data-no="<?= e($t['cm_no']) ?>" data-new-photo="<?= e($t['chg_photo_new']) ?>">

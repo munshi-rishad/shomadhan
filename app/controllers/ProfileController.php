@@ -1,17 +1,24 @@
 <?php
 // app/controllers/ProfileController.php
-// Profile of the logged-in person: their info + change password under it.
-//   user             -> profile.php
-//   admin / employee -> ?page=profile inside their dashboard
+// CONTROLLER for the profile of the logged-in person: their info, photo and change password.
+//   user             -> profile.php (show())
+//   admin / employee -> ?page=profile inside their dashboard; AdminController calls
+//                       savePhoto(), saveInfo() and changePassword() from here.
+// Each save function returns the errors ([] = saved), so both sides decide where to go next.
 
 require_once APP_PATH . '/validators/LoginValidator.php';
 require_once APP_PATH . '/validators/RegisterValidator.php';
 require_once APP_PATH . '/validators/AccountValidator.php';
 require_once APP_PATH . '/models/AreaModel.php';
 require_once APP_PATH . '/helpers/upload.php';
+require_once APP_PATH . '/models/HomeContentModel.php';
+require_once APP_PATH . '/models/AccountChangeModel.php';
+require_once APP_PATH . '/models/MessageModel.php';
+require_once APP_PATH . '/controllers/UserHomeController.php';
 
 class ProfileController
 {
+    // ---- The user's profile page (profile.php) ----
     public function show()
     {
         $account = current_account();
@@ -23,8 +30,8 @@ class ProfileController
         }
         list($lang, $t) = lang_texts();
         $errors = [];
-        $box = '';                               // which form had the error: 'info' or 'password'
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+        $box = '';                               // which form had the error: 'photo', 'info' or 'password'
+        if (is_post()) {
             $action = (string)($_POST['action'] ?? '');
             if ($action === 'photo' || $action === 'photo_remove') {
                 $box = 'photo';
@@ -37,23 +44,23 @@ class ProfileController
             }
             if (!$errors) {
                 flash_set('notice', $done);
-                redirect('profile.php');
+                redirect('profile.php#details');     // back to my info (not the form)
             }
         }
-        view('auth/profile', [
-            'lang'    => $lang,
-            't'       => $t,
-            'errors'  => $errors,
-            'account' => $account,
-            'notice'  => flash_get('notice'),
-            'back'    => dashboard_url($account['role']),
-            'box'     => $box,
-            'old'     => $box === 'info' ? $_POST : [],
-            'areas'   => $account['role'] === 'user' ? AreaModel::getAll() : [],
-        ]);
+        // the user's profile sits in the same frame as the other user pages (left menu, top bar, phone tab bar)
+        $data = UserHomeController::frame($account, $lang, $t, 'profile');
+        $data += [
+            'errors' => $errors,
+            'box'    => $box,
+            'old'    => $box === 'info' ? $_POST : [],
+            'areas'  => AreaModel::getAll(),
+            'favs'   => FavouriteModel::forUser($account['id']),
+        ];
+        view('user/home', $data);
     }
 
-    // My own photo: new square picture (old one is deleted), or remove it ($remove, users only: staff must keep one).
+    // ---- Save or remove my photo ----
+    // New square picture (old one is deleted), or remove it ($remove, users only: staff must keep one).
     public static function savePhoto(array $account, $remove, array $t)
     {
         if (!csrf_check($_POST['csrf'] ?? '')) {
@@ -81,6 +88,7 @@ class ProfileController
         return [];
     }
 
+    // ---- Save my info ----
     // Edit your own info: name, email (+ area, gender for users). Returns errors ([] = saved).
     public static function saveInfo(array $account, array $post, array $t)
     {
@@ -88,12 +96,15 @@ class ProfileController
             return ['form' => $t['err_csrf']];
         }
         $role = $account['role'];
-        list($d, $e) = AccountValidator::info($post, $role, $account['id'], $t);
-        if ($e) {
-            return $e;
+        list($data, $errors) = AccountValidator::info($post, $role, $account['id'], $t);
+        if ($errors) {
+            return $errors;
         }
         try {
-            AccountModel::updateProfile($role, $account['id'], $d);
+            AccountModel::updateProfile($role, $account['id'], $data);
+            if ($role === 'user') {          // only users have birth date + address
+                AccountModel::updateUserExtra($account['id'], $data['birth_date'], $data['address']);
+            }
         } catch (PDOException $ex) {
             app_log('error', 'profile info: ' . $ex->getMessage());
             return ['form' => $t['err_server']];
@@ -101,6 +112,7 @@ class ProfileController
         return [];
     }
 
+    // ---- Change my password ----
     // Change your own password: current + new + new again. Returns errors ([] = saved).
     public static function changePassword(array $account, array $post, array $t)
     {

@@ -1,6 +1,12 @@
-<?php // app/views/admin/popular.php - admin orders the "জনপ্রিয় সেবা" with ▲ ▼ arrows. Unticked = not popular. ?>
+<?php
+// app/views/admin/popular.php - ?page=popular
+// The admin orders the "জনপ্রিয় সেবা" (popular services) with ▲ ▼ arrows. Unticked = not popular.
+// The arrows only move rows in the browser (script below); "save" sends rank[id] = 1, 2, 3 ... for the ticked rows.
+// Shown inside admin/layout.php (AdminController). Gets: $items (all sub-services, popular first) + the layout's $t, $base.
+?>
 <h1 class="adm-h1"><?= e($t['adm_menu_popular']) ?></h1>
 <p class="adm-sub"><?= e($t['adm_popular_sub']) ?></p>
+<?php /* ---- Ranking table + save ---- */ ?>
 <form class="card" method="post" action="<?= e($base) ?>?page=popular" id="rank-form">
     <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
     <input type="hidden" name="action" value="save">
@@ -28,6 +34,7 @@
     </table></div>
     <div class="row-btns"><button class="btn" type="submit"><?= e($t['adm_save_ranking']) ?></button></div>
 </form>
+<?php /* ---- Moving rows and renumbering ---- */ ?>
 <script>
 // ▲ ▼ move a row; ticked rows get numbers 1, 2, 3 ... from top to bottom (that is the ranking)
 (function () {

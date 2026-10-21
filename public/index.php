@@ -1,10 +1,8 @@
 <?php
-// public/index.php
-// The first file that runs. Open it in the browser:
-// http://localhost/shomadhan/public/
+// public/index.php  ->  http://localhost/shomadhan/public/
+// The welcome page (the first page visitors see): coupon picture, service icons, register / login buttons.
 
 require_once __DIR__ . '/../app/bootstrap.php';
 require_once APP_PATH . '/controllers/HomeController.php';
 
-$home = new HomeController();
-$home->index();
+(new HomeController())->index();

@@ -1,10 +1,18 @@
-<?php // app/views/admin/sub-services.php - services inside a category (name, photo, price, rating, popular rank) ?>
+<?php
+// app/views/admin/sub-services.php - ?page=sub-services
+// Services inside a category (name, photo, price, rating, popular rank) and which providers give each one.
+// Shown inside admin/layout.php (AdminController). Gets: $services (categories), $items (sub-services of the filter),
+// $filter (category id, 0 = all), $edit (row or null), $providers, $picked (provider ids of the edited row),
+// $pvNames (sub-service id => provider names) + the layout's $t, $base, $old, $err, $val, $hidden.
+?>
 <h1 class="adm-h1"><?= e($t['adm_menu_subs']) ?></h1>
 <p class="adm-sub"><?= e($t['adm_subs_sub']) ?></p>
 
+<?php /* No category yet: point to the services page first */ ?>
 <?php if (!$services): ?>
     <p class="alert alert-error"><?= e($t['adm_need_service_first']) ?> <a class="link" href="<?= e($base) ?>?page=services"><?= e($t['adm_menu_services']) ?> →</a></p>
 <?php else: ?>
+<?php /* ---- Add / edit form. $q keeps the chosen category in every address of this page ---- */ ?>
 <?php $s = $edit ?: []; $isEdit = (bool)$edit; $q = '&service=' . (int)$filter; ?>
 <form class="card form-grid" method="post" enctype="multipart/form-data" action="<?= e($base) ?>?page=sub-services<?= $q ?><?= $isEdit ? '&edit=' . (int)$s['id'] : '' ?>">
     <h2><?= e($isEdit ? $t['adm_sub_edit'] : $t['adm_sub_add']) ?></h2>
@@ -13,7 +21,8 @@
     <input type="hidden" name="id" value="<?= (int)($s['id'] ?? 0) ?>">
     <label class="f f-wide f-half"><span><?= e($t['adm_which_service']) ?> *</span>
         <select name="service_id" required id="sub-service">
-            <?php $cur = (int)($old['service_id'] ?? ($s['service_id'] ?? $filter)); foreach ($services as $sv): ?>
+            <?php $cur = (int)($old['service_id'] ?? ($s['service_id'] ?? $filter)); ?>
+            <?php foreach ($services as $sv): ?>
                 <option value="<?= (int)$sv['id'] ?>"<?= (int)$sv['id'] === $cur ? ' selected' : '' ?>><?= e($sv['name_bn'] . ' / ' . $sv['name_en']) ?></option>
             <?php endforeach; ?>
         </select><?= $err('service_id') ?></label>
@@ -28,7 +37,7 @@
         <input type="file" name="image" accept="image/png,image/jpeg,image/webp">
         <small><?= e(img_hint('sub-services', $t, $t['adm_photo_hint']) . ($isEdit ? ' ' . $t['adm_keep_old'] : '')) ?></small><?= $err('image') ?>
         <?php if (!empty($s['image'])): ?><img class="thumb" src="<?= e($s['image']) ?>" alt=""><?php endif; ?></label>
-    <!-- who gives this service: only providers of the chosen category are shown (pv-filter script below) -->
+    <?php /* Who gives this service: only providers of the chosen category are shown (script at the bottom) */ ?>
     <fieldset class="f f-wide">
         <span><?= e($t['pv_who_gives']) ?></span>
         <?php $picked = array_map('intval', (array)($old['providers'] ?? $picked)); ?>
@@ -50,6 +59,7 @@
     </div>
 </form>
 
+<?php /* ---- All sub-services, with a category filter ---- */ ?>
 <div class="card">
     <div class="card-top">
         <h2><?= e($t['adm_all_subs']) ?></h2>
@@ -57,7 +67,9 @@
             <input type="hidden" name="page" value="sub-services">
             <select name="service" onchange="this.form.submit()">
                 <option value="0"><?= e($t['adm_all']) ?></option>
-                <?php foreach ($services as $sv): ?><option value="<?= (int)$sv['id'] ?>"<?= (int)$sv['id'] === (int)$filter ? ' selected' : '' ?>><?= e($sv['name_bn']) ?></option><?php endforeach; ?>
+                <?php foreach ($services as $sv): ?>
+                    <option value="<?= (int)$sv['id'] ?>"<?= (int)$sv['id'] === (int)$filter ? ' selected' : '' ?>><?= e($sv['name_bn']) ?></option>
+                <?php endforeach; ?>
             </select>
         </form>
     </div>
@@ -77,9 +89,7 @@
                 <td class="cell-acts"><div class="acts">
                     <a class="btn btn-small btn-ghost" href="<?= e($base) ?>?page=sub-services<?= $q ?>&edit=<?= (int)$x['id'] ?>"><?= e($t['adm_edit']) ?></a>
                     <form method="post" action="<?= e($base) ?>?page=sub-services<?= $q ?>" data-confirm-danger data-confirm="<?= e($t['adm_confirm_delete']) ?>">
-                        <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
-                        <input type="hidden" name="action" value="delete">
-                        <input type="hidden" name="id" value="<?= (int)$x['id'] ?>">
+                        <?= $hidden('delete', $x['id']) ?>
                         <button class="btn btn-small btn-danger" type="submit"><?= e($t['adm_delete']) ?></button>
                     </form>
                     </div>
@@ -90,6 +100,7 @@
     </table></div>
 </div>
 <?php endif; ?>
+<?php /* ---- Provider list follows the chosen category ---- */ ?>
 <script>
 // sub-service form: show only the providers of the chosen category (others are unticked, the server also keeps only these)
 (function () {

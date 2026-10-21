@@ -1,4 +1,8 @@
-<?php // app/views/admin/changes.php - what an admin changed in MY account (who, when, what). Same list as the user's bell. ?>
+<?php
+// app/views/admin/changes.php - ?page=changes
+// What the office changed in MY account (who, when, what). The same list the user sees under the bell.
+// Shown inside admin/layout.php (AdminController). Gets: $changes (AccountChangeModel::forAccount rows) + $t.
+?>
 <h1 class="adm-h1"><?= e($t['chg_title']) ?></h1>
 <p class="adm-sub"><?= e($t['chg_sub']) ?></p>
 <div class="card">

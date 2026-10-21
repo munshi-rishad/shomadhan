@@ -1,4 +1,9 @@
-<?php // app/views/partials/order-arrows.php - ▲ ▼ buttons that move one row up / down (banners, services). Needs $t, $action, $id, $first, $last ?>
+<?php
+// app/views/partials/order-arrows.php
+// ▲ ▼ buttons that move one row up / down in the admin lists (banners, services).
+// Posts action=move + id + dir=up|down. The top row's ▲ and the bottom row's ▼ are disabled.
+// Needs: $t, $action (form address), $id, $first, $last
+?>
 <form class="mover" method="post" action="<?= e($action) ?>">
     <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
     <input type="hidden" name="action" value="move">

@@ -1,128 +1,347 @@
-/* admin.css - admin dashboard */
-body { font-family: var(--font); color: var(--text); background: var(--bg); font-size: 15px; }
+/* admin.css - the office dashboard: every admin and employee page (admin/layout.php).
+   Forms, tables, list search / filters, bookings and messages. Phone first, PC from 900px.
+   Shared parts (buttons, menu, chat, profile) are in base.css. */
+
+/* ===== Page frame ===== */
+/* Body, phone top bar, main area and page title. */
+body {
+    font-family: var(--font);
+    color: var(--text);
+    background: var(--bg);
+    font-size: var(--fs-md);
+}
 
 .adm { min-height: 100vh; position: relative; }
 /* phone: top bar with ☰ + logo; the left menu (base.css .side-menu) slides in */
-.adm-bar { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #fff; border-bottom: 1px solid var(--line); }
+.adm-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+}
 .adm-logo { width: 130px; }
 .adm-brand { display: flex; flex-direction: column; gap: 2px; }
 .adm-brand .adm-logo { width: 150px; }
-.adm-role { font-size: .75rem; font-weight: 600; color: var(--green); }
+.adm-role { font-size: var(--fs-xs); font-weight: 600; color: var(--green); }
 .adm-nav { margin-top: 14px; }
 .adm-main { padding: 18px 14px 40px; min-width: 0; }   /* uses the full width of the screen */
-.adm-h1 { font-size: 1.45rem; }
-.adm-sub { margin: 4px 0 16px; color: var(--muted); font-size: .9rem; line-height: 1.5; }
+.adm-h1 { font-size: var(--fs-xl); }
+.adm-sub {
+    margin: 4px 0 16px;
+    color: var(--muted);
+    font-size: var(--fs-md);
+    line-height: 1.5;
+}
 
-.card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
-.card h2 { font-size: 1.05rem; margin-bottom: 12px; }
-.card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+/* ===== Cards and form fields ===== */
+/* White card box, form grid, labels, inputs, tick boxes, button row. */
+.card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+.card h2 { font-size: var(--fs-base); margin-bottom: 12px; }
+.card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
 .card-top h2 { margin: 0; }
 .form-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 .form-grid h2 { margin: 0; }
-.f { display: flex; flex-direction: column; gap: 5px; font-size: .88rem; }
+.f {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: var(--fs-sm);
+}
 .f > span { font-weight: 600; }
-.size-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #eef0ff; color: #3a3f9e; font-size: 12px; font-weight: 700; white-space: nowrap; vertical-align: 1px; }
-.f small { color: var(--muted); font-size: .78rem; }
-input[type=text], input[type=number], input[type=url], input[type=password], input[type=email], select, textarea { width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; font: 400 .95rem var(--font); background: #fff; color: var(--text); }
+.size-tag {
+    display: inline-block;
+    margin: -3px 0 -3px 6px;
+    padding: 0 8px;
+    line-height: 1.55;
+    border-radius: 999px;
+    background: #eef0ff;
+    color: #3a3f9e;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    white-space: nowrap;
+    vertical-align: baseline;
+}
+.f small { color: var(--muted); font-size: var(--fs-xs); }
+input[type=text],
+input[type=number],
+input[type=url],
+input[type=password],
+input[type=email],
+input[type=date],
+input[type=time],
+input[type=tel],
+select,
+textarea {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font: 400 var(--fs-md) var(--font);
+    background: #fff;
+    color: var(--text);
+}
 textarea { height: auto; padding: 10px 12px; resize: vertical; }
-input[type=file] { font: inherit; font-size: .85rem; padding: 8px; border: 1px dashed #b9c6c0; border-radius: 10px; background: #fafcfb; }
+input[type=file] {
+    font: inherit;
+    font-size: var(--fs-sm);
+    padding: 8px;
+    border: 1px dashed #b9c6c0;
+    border-radius: 10px;
+    background: #fafcfb;
+}
 input:focus, select:focus, textarea:focus { border-color: var(--green); outline: 0; }
-.chk { display: flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 500; cursor: pointer; }
-.form-grid .f-chk { align-self: start; margin-top: 30px; }   /* tick box next to a field: same line as the field's box, not its title */
+.chk {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--fs-md);
+    font-weight: 500;
+    cursor: pointer;
+}
+/* tick box next to a field: same line as the field's box, not its title */
+.form-grid .f-chk { align-self: start; margin-top: 30px; }
 .chk input { width: 18px; height: 18px; accent-color: var(--green); }
-.error-text { color: var(--red); font-size: .8rem; font-weight: 500; }
-.row-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.error-text { color: var(--red); font-size: var(--fs-xs); font-weight: 500; }
+.row-btns {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
 .card > .row-btns { margin-top: 14px; }
 
-
+/* ===== Links and empty lists ===== */
+/* Green text links and the "nothing here" line. */
 .link { color: var(--green); font-weight: 600; }
 .empty { color: var(--muted); padding: 8px 0; }
 
-
+/* ===== Tables ===== */
+/* List tables, move up / down arrows, action buttons, icon tiles, thumbnails, on / off pills. */
 .table-wrap { overflow-x: auto; }
-.tbl { width: 100%; border-collapse: collapse; font-size: .88rem; }
-.tbl th { text-align: left; font-size: .78rem; color: var(--muted); font-weight: 600; padding: 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.tbl { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.tbl th {
+    text-align: left;
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    font-weight: 600;
+    padding: 8px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
 .tbl td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .tbl small { color: var(--muted); }
 .tbl tr.dim td { opacity: .6; }
 .tbl tr.dim td:first-child, .tbl tr.dim td:nth-child(4) { opacity: 1; }
 .mover { display: flex; align-items: center; gap: 6px; }
-.rank-no { display: inline-grid; place-items: center; min-width: 30px; height: 30px; border-radius: 8px; background: #e3f5ea; color: var(--green); font-weight: 700; }
-.arw { width: 32px; height: 30px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--green); font-size: .8rem; cursor: pointer; }
+.rank-no {
+    display: inline-grid;
+    place-items: center;
+    min-width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: #e3f5ea;
+    color: var(--green);
+    font-weight: 700;
+}
+.arw {
+    width: 32px;
+    height: 30px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--green);
+    font-size: var(--fs-xs);
+    cursor: pointer;
+}
 .arw:hover:not(:disabled) { background: var(--green); color: #fff; border-color: var(--green); }
 .arw:disabled { opacity: .3; cursor: default; }
-.acts { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-.tile { display: inline-grid; place-items: center; width: 50px; height: 50px; border-radius: 12px; }
+.acts {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.tile {
+    display: inline-grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+}
 .tile img { width: 28px; height: 28px; object-fit: contain; }
-.tile-sand { background: #fdf3dc; } .tile-sky { background: #e3effc; } .tile-mint { background: #dff5ea; }
-.tile-rose { background: #fde6e6; } .tile-lilac { background: #eee8fb; } .tile-gray { background: #eff1f0; }
+.tile-sand { background: #fdf3dc; }
+.tile-sky { background: #e3effc; }
+.tile-mint { background: #dff5ea; }
+.tile-rose { background: #fde6e6; }
+.tile-lilac { background: #eee8fb; }
+.tile-gray { background: #eff1f0; }
 .thumb { margin-top: 6px; width: 160px; border-radius: 10px; }
-.thumb-sm { width: 64px; height: 46px; object-fit: cover; border-radius: 8px; }
-.pill { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: .75rem; font-weight: 600; }
+.thumb-sm {
+    width: 64px;
+    height: 46px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    white-space: nowrap;
+}
 .pill-on { background: #e3f5ea; color: var(--green-dark); }
 .pill-off { background: #eee; color: #777; }
 .rank { width: 70px !important; }
 
-
-.welcome-now { display: block; width: 100%; max-width: 600px; aspect-ratio: 600 / 225; object-fit: cover; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--line); }
+/* ===== Welcome picture ===== */
+/* Current welcome coupon picture (welcome page) and the old filter select. */
+.welcome-now {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 600 / 225;
+    object-fit: cover;
+    margin-bottom: 12px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+}
 .filter select { width: auto; }
 
-/* lists: users / employees / admins / products */
+/* ===== List search, sort and pager ===== */
+/* Users / employees / admins / products lists. */
 .list-search { display: flex; gap: 8px; flex-wrap: wrap; }
 .list-search { align-items: center; }
 .list-search > .btn, .list-search > select, .list-filters select { height: 40px !important; }
-.list-search input[type="search"] { flex: 1 1 160px; max-width: 380px; min-width: 0; height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; font: inherit; }
-.list-count { margin: 10px 0 4px; font-size: .82rem; color: var(--muted); }
+.list-search input[type="search"] {
+    flex: 1 1 160px;
+    max-width: 380px;
+    min-width: 0;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font: inherit;
+}
+.list-count { margin: 10px 0 4px; font-size: var(--fs-sm); color: var(--muted); }
 .tbl-list td { white-space: nowrap; }
-.sort { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); }
+.sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--muted);
+}
 .sort:hover, .sort.on { color: var(--green); }
-.sort-ic { font-size: .7rem; opacity: .55; }
+.sort-ic { font-size: var(--fs-2xs); opacity: .55; }
 .sort.on .sort-ic { opacity: 1; }
-.pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 14px; font-size: .85rem; color: var(--muted); }
+.pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 14px;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+}
 
+/* ===== PC layout ===== */
+/* 900px+: menu column on the left, page on the right; form fields 2 per line. */
 @media (min-width: 900px) {
     .adm { display: grid; grid-template-columns: 250px 1fr; }
     .adm-bar { display: none; }
-    .adm-side { position: sticky; height: 100vh; width: auto; max-width: none; padding: 20px 16px; }
+    .adm-side {
+        position: sticky;
+        height: 100vh;
+        width: auto;
+        max-width: none;
+        padding: 20px 16px;
+    }
     .adm-brand .adm-logo { width: 150px; }
     .adm-main { padding: 28px 32px 50px; }
     .form-grid { grid-template-columns: 1fr 1fr; }
     .form-grid h2, .f-wide { grid-column: 1 / -1; }
 }
 
-/* add / edit account */
+/* ===== Add / edit account box ===== */
+/* Fold-out box around the add form; the "add" button hides while it is open. */
 .acc-box summary { list-style: none; width: max-content; }
 .acc-box summary::-webkit-details-marker { display: none; }
 .acc-box[open] summary { display: none; }
 .acc-box .btn-hide { display: none; }
 .acc-box:not([open]) { padding: 0; border: 0; background: none; }
 
-/* profile */
-.pf-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
-.pf-grid .card { margin-bottom: 0; }
-.pf-col { display: grid; gap: 16px; min-width: 0; }
-@media (min-width: 1100px) { .pf-grid { grid-template-columns: 340px minmax(0, 1fr); } }
-
-
-/* list filters */
-.list-filters { display: flex; gap: 8px; flex-wrap: wrap; flex: 0 1 auto; }
-.list-filters select { width: auto; max-width: 100%; font-size: .85rem; }
+/* ===== List filters ===== */
+/* Filter selects next to the search box; .mobile-sort only shows on phones. */
+.list-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 0 1 auto;
+}
+.list-filters select { width: auto; max-width: 100%; font-size: var(--fs-sm); }
 .list-filters select.on { border-color: var(--green); color: var(--green); font-weight: 600; }
-.mobile-sort { display: none; width: auto !important; font-size: .85rem !important; }
+.mobile-sort { display: none; width: auto !important; font-size: var(--fs-sm) !important; }
 .pill-bad { background: #fdecec; color: var(--red); }
 
-/* phone: each row becomes a card, every value has its column name in front (nothing hidden off-screen) */
+/* ===== Phone list cards ===== */
+/* Phone: each row becomes a card, every value has its column name in front (nothing hidden off-screen). */
 @media (max-width: 899px) {
     .tbl-list thead { display: none; }
     /* compact card: 2 values per line (small title above each), name / picture / buttons take a full line */
     .tbl-list, .tbl-list tbody { display: block; width: 100%; }
-    .tbl-list tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 14px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
-    .tbl-list td { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 0; border: 0; white-space: normal; text-align: left; min-width: 0; overflow-wrap: anywhere; }
-    .tbl-list td[data-label]::before { content: attr(data-label); color: var(--muted); font-size: .72rem; }
-    .tbl-list td.cell-name, .tbl-list td.cell-photo, .tbl-list td.cell-img, .tbl-list td.cell-wrap, .tbl-list td.cell-full { grid-column: 1 / -1; }
+    .tbl-list tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 6px 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin-bottom: 10px;
+    }
+    .tbl-list td {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1px;
+        padding: 0;
+        border: 0;
+        white-space: normal;
+        text-align: left;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+    .tbl-list td[data-label]::before {
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: var(--fs-2xs);
+    }
+    .tbl-list td.cell-name,
+    .tbl-list td.cell-photo,
+    .tbl-list td.cell-img,
+    .tbl-list td.cell-wrap,
+    .tbl-list td.cell-full {
+        grid-column: 1 / -1;
+    }
     .tbl-list td.cell-name::before { display: none; }
     .tbl-list td.cell-name { order: -1; display: block; padding-right: 64px; }   /* name first, on top of the card */
-    .tbl-list td.cell-thumb { position: absolute; top: 10px; right: 12px; }   /* small picture / logo in the card's corner */
+    /* small picture / logo in the card's corner */
+    .tbl-list td.cell-thumb { position: absolute; top: 10px; right: 12px; }
     .tbl-list td.cell-thumb::before { display: none; }
     .tbl-list td.cell-thumb .tile { width: 48px; height: 48px; }
     .tbl-list td.cell-thumb .thumb-square { width: 64px; height: 64px; }
@@ -131,11 +350,25 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); outline:
     .tbl-list.tbl-media td.cell-acts { grid-column: 1 / -1; }   /* 3 buttons (edit, show/hide, delete): one full line */
     .tbl-list tr:has(td.cell-thumb) td.cell-name { min-height: 52px; }
     .form-grid .f-chk { margin-top: 0; }
-    .tbl-list td.cell-acts { grid-column: -2 / -1; align-self: end; }   /* buttons at the bottom-right, next to the last value (no extra line) */
+    /* buttons at the bottom-right, next to the last value (no extra line) */
+    .tbl-list td.cell-acts { grid-column: -2 / -1; align-self: end; }
     .tbl-list td.cell-acts .acts { width: 100%; justify-content: flex-end; }
     .tbl-list tr { position: relative; }
-    .tbl-list td.cell-id { position: absolute; top: 10px; right: 12px; flex-direction: row; gap: 4px; font-size: .78rem; color: var(--muted); }   /* "ID 3" in the card's corner, not a line of its own */
-    .tbl-list td.cell-id::before { font-size: .72rem; }
+    .tbl-list td.cell-id {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        flex-direction: row;
+        gap: 4px;
+        font-size: var(--fs-xs);
+        color: var(--muted);
+    }   /* "ID 3" in the card's corner, not a line of its own */
+    .tbl-list td.cell-id::before { font-size: var(--fs-2xs); }
+    /* bookings / top-ups: the corner holds a code + date on two lines, so it sits right-aligned
+       without its label, and the name on the left leaves room for it */
+    .tbl-list td.cell-id:has(br) { flex-direction: column; align-items: flex-end; gap: 0; text-align: right; }
+    .tbl-list td.cell-id:has(br)::before { display: none; }
+    .tbl-list tr:has(td.cell-id br) td.cell-name { padding-right: 150px; }
     /* search + filters: search box and button on one line, filters 2 per line */
     .list-search { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
     .list-search input[type="search"] { max-width: none; }
@@ -147,59 +380,158 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); outline:
     .mobile-sort { display: flex; }
 }
 
-.list-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 10px 0 4px; }
+/* ===== List bar and field errors ===== */
+/* Count line above lists, small hints, red border on a wrong field. */
+.list-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 10px 0 4px;
+}
 .list-bar .list-count { margin: 0; }
-.hint-sm { font-size: .8rem; color: var(--muted); }
+.hint-sm { font-size: var(--fs-xs); color: var(--muted); }
 .f input.invalid, .f select.invalid { border-color: var(--red); }
 .error-text[hidden] { display: none; }
 
-/* big screens (web): more boxes side by side, so pages fit the screen without scrolling */
-@media (min-width: 1400px) {
+/* ===== Big screens ===== */
+/* Web (1024px+): more boxes side by side, so pages fit the screen without scrolling. */
+@media (min-width: 1024px) {
     .form-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 16px; }
     .form-grid .f-half { grid-column: span 2; }
     .card { padding: 16px 20px; }
 }
 
-
-/* top bar of every page: back button (left), bell + language + me (right). Stays on top when the page scrolls */
-.adm-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+/* ===== Page top bar ===== */
+/* Back button (left), bell + language + me (right). Stays on top when the page scrolls. */
+.adm-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
 .adm-top:not(:has(.page-back)) { margin-bottom: 0; }
 .adm-bar { position: sticky; top: 0; z-index: 25; }
-.adm-top-r { display: flex; align-items: center; gap: 10px; margin-left: auto; position: fixed; top: 12px; right: 14px; z-index: 30; }   /* phone: inside the top bar */
-.bell { position: relative; display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--text); }
+.adm-top-r {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    position: fixed;
+    top: 12px;
+    right: 14px;
+    z-index: 30;
+}   /* phone: inside the top bar */
+.bell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--text);
+}
 .bell:hover, .bell.on { border-color: var(--green); color: var(--green); }
-.bell .count { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--red); color: #fff; font-size: .7rem; font-weight: 700; display: grid; place-items: center; }
+.bell .count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: var(--red);
+    color: #fff;
+    font-size: var(--fs-2xs);
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+}
 @media (min-width: 900px) {
-    .adm-top { position: sticky; top: 0; z-index: 20; min-height: 38px; margin: -28px -32px 14px; padding: 14px 32px; background: rgba(244, 248, 246, .92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+    .adm-top {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        min-height: 38px;
+        margin: -28px -32px 14px;
+        padding: 14px 32px;
+        background: rgba(244, 248, 246, .92);
+        backdrop-filter: blur(6px);
+        border-bottom: 1px solid var(--line);
+    }
     .adm-top:not(:has(.page-back)) { margin-bottom: 14px; }
     .adm-top-r { position: static; }
 }
 
+/* menu: my name box under the logo (the group titles are in base.css .nav-grp) */
 .adm-side .side-user { margin: 12px 0 4px; }
 
-/* menu group titles: style in base.css (.nav-grp) */
-.gone-by { color: var(--muted); font-size: .78rem; }
+/* small grey "deleted by" note */
+.gone-by { color: var(--muted); font-size: var(--fs-xs); }
 
-/* account / provider form: photo + small notes */
-.photo-pick { flex-direction: row; align-items: center; gap: 14px; }
-.photo-pick .pf-avatar { width: 72px; height: 72px; font-size: 1.7rem; box-shadow: none; flex: none; }
+/* ===== Account / provider form ===== */
+/* Photo picker, small notes, provider tick-box list. */
+.photo-pick { flex-direction: row; align-items: flex-start; gap: 14px; }
+.photo-pick .pf-avatar {
+    width: 72px;
+    height: 72px;
+    font-size: var(--fs-2xl);
+    box-shadow: none;
+    flex: none;
+}
 .photo-pick .f { flex: 0 1 560px; min-width: 0; }
 .photo-pick input[type=file] { width: 100%; min-width: 0; }
-.note-line { color: var(--muted); font-size: .8rem; align-self: center; }
-.who { display: inline-flex; align-items: center; gap: 10px; text-align: left; }
+.note-line { color: var(--muted); font-size: var(--fs-xs); align-self: center; }
+.who {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+}
 .who small { white-space: normal; }
-.pv-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; max-height: 260px; overflow-y: auto; padding: 4px; }
+.pv-pick {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 4px;
+}
 .pv-pick .chk { padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
-.pv-pick .chk small { display: block; color: var(--muted); font-size: .75rem; font-weight: 400; }
+.pv-pick .chk small {
+    display: block;
+    color: var(--muted);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+}
 .pv-pick .chk.off { opacity: .55; }
-.pv-names { display: block; margin-top: 2px; color: var(--muted); font-size: .76rem; white-space: normal; }
+.pv-names {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: var(--fs-xs);
+    white-space: normal;
+}
 
-/* tables (every admin / employee list): framed box, coloured title row, striped rows, line between columns.
+/* ===== Tables on PC ===== */
+/* Every admin / employee list: framed box, coloured title row, striped rows, line between columns.
    Phone: list rows become cards (above), so this is for wider screens. */
 @media (min-width: 900px) {
     .table-wrap { border: 1px solid var(--line); border-radius: 12px; }
     .tbl { border-collapse: separate; border-spacing: 0; }
-    .tbl th { background: #eef5f1; color: var(--green-dark); font-size: .8rem; padding: 11px 12px; border-bottom: 1px solid #d5e5dc; position: sticky; top: 0; z-index: 1; }
+    .tbl th {
+        background: #eef5f1;
+        color: var(--green-dark);
+        font-size: var(--fs-xs);
+        padding: 11px 12px;
+        border-bottom: 1px solid #d5e5dc;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
     .tbl th + th, .tbl td + td { border-left: 1px solid #edf1ef; }
     .tbl th:first-child { border-top-left-radius: 12px; }
     .tbl th:last-child { border-top-right-radius: 12px; }
@@ -211,10 +543,32 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); outline:
     .tbl .sort.on { color: var(--green); }
 }
 
-/* pictures in tables (banners, popups): same size in every row, click = see big */
-.thumb-banner { display: block; width: 320px; max-width: 100%; aspect-ratio: 8 / 1; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
-.thumb-square { display: block; width: 84px; height: 84px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); flex: none; }
-.thumb-none { display: grid; place-items: center; color: var(--muted); background: var(--bg, #f4f6f5); }
+/* ===== Pictures in tables ===== */
+/* Banners and popups: same size in every row, click = see big. */
+.thumb-banner {
+    display: block;
+    width: 320px;
+    max-width: 100%;
+    aspect-ratio: 8 / 1;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+}
+.thumb-square {
+    display: block;
+    width: 84px;
+    height: 84px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    flex: none;
+}
+.thumb-none {
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    background: var(--bg, #f4f6f5);
+}
 .tbl-media td { vertical-align: middle; }
 .tbl-media input[type=text] { min-width: 200px; }
 .tbl-media input.num { width: 90px; }
@@ -223,7 +577,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); outline:
 .tbl-media tr.dim td { opacity: 1; }
 .tbl tr.dim .thumb-banner, .tbl tr.dim .thumb-square { opacity: .45; }
 /* tick boxes group inside a form (sub-service providers): no browser frame */
-fieldset.f { border: 0; padding: 0; margin: 0; min-width: 0; }
+fieldset.f {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+}
 fieldset.f > span { font-weight: 600; }
 @media (max-width: 899px) {
     .tbl-list td.cell-img { align-items: center; }
@@ -233,6 +592,8 @@ fieldset.f > span { font-weight: 600; }
 .pv-pick .chk > span:last-child { min-width: 0; }
 .pv-pick .chk small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* ===== Phone fixes ===== */
+/* Top bar and form grid on small screens. */
 /* phone top bar: menu, logo, bell, language, my picture must fit on one line (no overlap at 360px) */
 @media (max-width: 899px) {
     .adm-bar .adm-logo { width: 92px; }
@@ -246,13 +607,140 @@ fieldset.f > span { font-weight: 600; }
 /* phone forms: short boxes 2 per line; long ones (file, text area, wide, tick-box groups, buttons) take the full line */
 @media (max-width: 899px) {
     .form-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
-    .form-grid > h2, .form-grid .f-wide, .form-grid .f-half, .form-grid .row-btns, .form-grid fieldset, .form-grid .note-line,
-    .form-grid .f:has(input[type=file]), .form-grid .f:has(textarea), .form-grid .chk { grid-column: 1 / -1; }
+    .form-grid > h2,
+    .form-grid .f-wide,
+    .form-grid .f-half,
+    .form-grid .row-btns,
+    .form-grid fieldset,
+    .form-grid .note-line,
+    .form-grid .f:has(input[type=file]),
+    .form-grid .f:has(textarea),
+    .form-grid .chk {
+        grid-column: 1 / -1;
+    }
 }
 
-/* two cards side by side on PC (welcome page: current picture + change form) */
+/* ===== Two cards side by side ===== */
+/* PC (welcome page): current picture + change form. */
 .pair { display: grid; gap: 16px; align-items: start; }
 .pair > .card { margin-bottom: 0; }
 .pair .form-grid { grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 1100px) { .pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@media (min-width: 1024px) {
+    .pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
 .photo-pick.f-half .f { flex: 1 1 auto; }
+
+/* ===== Bookings, add-money, coupons, messages ===== */
+/* Codes, phone links, the assign select, the cancel pop-up form, and the messages page height. */
+.mono { font-family: ui-monospace, Consolas, monospace; letter-spacing: .4px; }
+.tbl a.tel { color: var(--green); font-weight: 600; }
+.bk-note { color: #7a5a00; }
+.bk-pts { color: #a35f00; font-weight: 600; }
+.bk-why { color: var(--red); }
+.bk-assign { display: flex; gap: 6px; align-items: center; }
+.bk-assign select {
+    height: 34px;
+    max-width: 190px;
+    padding: 0 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font: inherit;
+    font-size: var(--fs-xs);
+}
+.bk-cancel { position: relative; }
+.bk-cancel > summary { list-style: none; }
+.bk-cancel > summary::-webkit-details-marker { display: none; }
+.bk-cancel[open] > summary { background: var(--red-soft); }
+.bk-cancel form {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    z-index: 20;
+    display: flex;
+    gap: 6px;
+    width: 300px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 10px 26px rgba(0,0,0,.14);
+}
+.bk-cancel input {
+    flex: 1;
+    min-width: 0;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font: inherit;
+    font-size: var(--fs-sm);
+}
+.adm-msg .adm-sub { margin-bottom: 10px; }
+@media (min-width: 900px) {
+    /* top bar + gap above, small gap below: the page itself does not scroll */
+    .adm-msg { height: calc(100vh / var(--z, 1) - 100px); }
+    .adm-main:has(.adm-msg) { padding-bottom: 16px; }
+}
+@media (max-width: 899px) {
+    .bk-assign { width: 100%; }
+    .bk-assign select { flex: 1; max-width: none; }
+    .bk-cancel form {
+        position: static;
+        width: auto;
+        margin-top: 6px;
+        box-shadow: none;
+    }
+}
+
+/* ===== Date picker and focus ring ===== */
+/* Date input in our green; the focus ring for every field (last, so it wins). */
+input[type=date] { cursor: pointer; }
+input[type=date]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .7; }
+input:focus, select:focus, textarea:focus {
+    outline: 0;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(11,107,76,.12);
+}
+.form-grid .f-chk { align-self: center; }
+
+/* ===== Government papers ===== */
+/* Yellow box on top of a page whose work needs a government paper (admin/layout.php, app/data/permits.php):
+   the line, then each paper with its "read more" button (source page) */
+.permit-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    margin-bottom: 14px;
+    padding: 8px 14px;
+    border: 1px solid #f3d9a4;
+    border-radius: 10px;
+    background: #fff8e8;
+    color: #7a4b00;
+    font-size: var(--fs-sm);
+}
+.permit-item { display: inline-flex; align-items: center; gap: 8px; }
+.permit-item .btn { background: #fff; }
+
+/* ===== Phone polish ===== */
+/* Phone list cards: 2 or more buttons get their own line at the bottom (side by side, not one under another);
+   long addresses wrap at spaces; the corner code + date of bookings / top-ups never covers the first values;
+   the government-paper line: each paper on its own line with its button on the right. */
+@media (max-width: 899px) {
+    .tbl-list td.cell-acts:has(.acts > :nth-child(2)) { grid-column: 1 / -1; }
+    .tbl-list td.cell-acts .acts { flex-wrap: wrap; }
+    .tbl-list td.cell-wrap { word-break: normal; overflow-wrap: anywhere; max-width: none; }
+    .tbl-list tr:has(td.cell-id br) td.cell-name { min-height: 60px; }
+    .permit-note { gap: 6px; }
+    .permit-note p { width: 100%; }
+    .permit-item { width: 100%; justify-content: space-between; }
+    /* people lists: the value after a whole-width email moves up beside the mobile (no half-empty line) */
+    .people-list tr { grid-auto-flow: row dense; }
+    /* a value + a smaller line under it: the cell already stacks them, so the line break would add a gap */
+    .tbl-list td:not(.cell-name) > br { display: none; }
+}
+.permit-item .btn { flex: none; white-space: nowrap; }
+/* Phone: filters + sort share the 2-per-line grid; an odd last one takes the full line */
+@media (max-width: 899px) {
+    .list-filters > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+}

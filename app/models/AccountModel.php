@@ -8,22 +8,26 @@
 // One mobile / email = one person: the database keeps it unique inside each table, takenBy() checks both tables.
 // Passwords and OTPs are saved as a bcrypt hash. Nobody, not even the admin, can read or set someone else's password.
 // Deleted people (soft delete, deleted_at filled) are skipped everywhere: they can't log in, reset password or be edited.
+// Used by login / register / forgot password, the profile pages and the admin panel. Loaded by app/bootstrap.php.
 
 class AccountModel
 {
-    const ROLES = ['admin', 'employee', 'user'];
+    // Forgot password OTP
+    const OTP_MINUTES      = 10;   // an OTP works for 10 minutes
+    const MAX_OTP_TRIES    = 5;    // 5 wrong OTPs -> must ask for a new one
+    const OTP_WAIT_SECONDS = 60;   // a new OTP can be sent only once a minute (stops email spam)
 
-    const OTP_MINUTES   = 10;  // OTP works for 10 minutes
-    const MAX_OTP_TRIES = 5;   // 5 wrong OTPs -> must ask for a new one
+    // Too many wrong logins inside LOGIN_LOCK_MIN minutes = wait
+    const LOGIN_MAX_MOBILE     = 5;    // for one mobile from one internet address (so a stranger can't lock someone else out)
+    const LOGIN_MAX_MOBILE_ALL = 50;   // for one mobile from all addresses together
+    const LOGIN_MAX_IP         = 20;   // from one internet address, any mobile
+    const LOGIN_LOCK_MIN       = 15;
+
+    // ---- Small database helpers
 
     private static function db()
     {
         return Database::get();
-    }
-
-    private static function table($role)
-    {
-        return $role === 'user' || $role === 'users' ? 'users' : 'staff';
     }
 
     private static function one($sql, array $args)
@@ -38,7 +42,25 @@ class AccountModel
         self::db()->prepare($sql)->execute($args);
     }
 
-    // adds 'role' + 'kind' so the rest of the website can treat staff and users the same way
+    // "?, ?, ?" for $count values
+    private static function placeholders($count)
+    {
+        return rtrim(str_repeat('?, ', $count), ', ');
+    }
+
+    // 'user' / 'users' -> users table, anything else (admin, employee, staff) -> staff table
+    private static function table($role)
+    {
+        return $role === 'user' || $role === 'users' ? 'users' : 'staff';
+    }
+
+    // Column that links a row of remember_tokens to its owner
+    private static function ownerColumn($role)
+    {
+        return self::table($role) === 'users' ? 'user_id' : 'staff_id';
+    }
+
+    // Adds 'role' + 'kind' so the rest of the website can treat staff and users the same way
     private static function shape($row, $table)
     {
         if (!$row) {
@@ -56,19 +78,29 @@ class AccountModel
         return self::shape(self::one('SELECT * FROM ' . $table . ' WHERE id = ? AND deleted_at IS NULL', [$id]), $table);
     }
 
+    // One account of this role, live or deleted ($deleted). Staff rows must also have this role.
+    private static function findWithRole($role, $id, $deleted)
+    {
+        $table = self::table($role);
+        $isStaff = $table === 'staff';
+        $sql = 'SELECT * FROM ' . $table . ' WHERE id = ? AND deleted_at IS ' . ($deleted ? 'NOT NULL' : 'NULL')
+             . ($isStaff ? ' AND role = ?' : '');
+        return self::shape(self::one($sql, $isStaff ? [$id, $role] : [$id]), $table);
+    }
+
     // Only if it has this role (admin lists: an id from the "admins" page must be an admin)
     public static function find($role, $id)
     {
-        $table = self::table($role);
-        $sql = 'SELECT * FROM ' . $table . ' WHERE id = ? AND deleted_at IS NULL' . ($table === 'staff' ? ' AND role = ?' : '');
-        return self::shape(self::one($sql, $table === 'staff' ? [$id, $role] : [$id]), $table);
+        return self::findWithRole($role, $id, false);
     }
 
-    // Staff first, then users
+    // Live account by a column, staff first, then users.
+    // live_mobile / live_email are NULL for deleted rows, so deleted people are never found.
     private static function findBy($column, $value)
     {
         foreach (['staff', 'users'] as $table) {
-            if ($row = self::one('SELECT * FROM ' . $table . ' WHERE ' . $column . ' = ?', [$value])) {
+            $row = self::one('SELECT * FROM ' . $table . ' WHERE ' . $column . ' = ?', [$value]);
+            if ($row) {
                 return self::shape($row, $table);
             }
         }
@@ -95,16 +127,17 @@ class AccountModel
         return self::findByEmail($email) !== null;
     }
 
-    // Mobile or email already used by another person (staff or user)? $role + $id = the account being edited (skip itself)
+    // Mobile or email already used by another person (staff or user)?
+    // $role + $id = the account being edited (it skips itself)
     public static function takenBy($column, $value, $role = '', $id = 0)
     {
         if ($value === '' || $value === null) {
             return false;
         }
-        $col = $column === 'email' ? 'live_email' : 'live_mobile';
+        $liveColumn = $column === 'email' ? 'live_email' : 'live_mobile';
         foreach (['staff', 'users'] as $table) {
-            $skip = $role !== '' && self::table($role) === $table ? (int)$id : 0;
-            if (self::one('SELECT id FROM ' . $table . ' WHERE ' . $col . ' = ? AND id <> ?', [$value, $skip])) {
+            $skipId = $role !== '' && self::table($role) === $table ? (int)$id : 0;
+            if (self::one('SELECT id FROM ' . $table . ' WHERE ' . $liveColumn . ' = ? AND id <> ?', [$value, $skipId])) {
                 return true;
             }
         }
@@ -139,30 +172,42 @@ class AccountModel
     public static function setPassword($role, $id, $password)
     {
         $table = self::table($role);
-        self::run('UPDATE ' . $table . ' SET password = ?' . ($table === 'staff' ? ', must_change_password = 0' : '') . ' WHERE id = ?',
-            [self::hash($password), $id]);
+        $hash = self::hash($password);
+        $sql = 'UPDATE ' . $table . ' SET password = ?' . ($table === 'staff' ? ', must_change_password = 0' : '') . ' WHERE id = ?';
+        self::run($sql, [$hash, $id]);
         self::forgetAllDevices($role, $id);
+
+        // I changed my own password: this browser stays logged in, all others are out
+        $auth = $_SESSION['auth'] ?? null;
+        $kind = $table === 'staff' ? 'staff' : 'user';
+        if ($auth && (int)$auth['id'] === (int)$id && ($auth['kind'] ?? '') === $kind) {
+            $_SESSION['auth']['pw'] = pw_mark($hash);
+        }
     }
 
-    // ---- Too many wrong logins: 5 wrong for one mobile, or 20 from one internet address, in 15 minutes = wait
-    const LOGIN_MAX_MOBILE = 5;
-    const LOGIN_MAX_IP     = 20;
-    const LOGIN_LOCK_MIN   = 15;
+    // ---- Too many wrong logins
 
     // Minutes to wait (0 = can try now)
     public static function loginLockedMinutes($mobile, $ip)
     {
-        $r = self::one(
+        $recent = 'created_at > NOW() - INTERVAL ' . self::LOGIN_LOCK_MIN . ' MINUTE';
+        $counts = self::one(
             'SELECT
-               (SELECT COUNT(*) FROM login_attempts WHERE mobile = ? AND created_at > NOW() - INTERVAL ' . self::LOGIN_LOCK_MIN . ' MINUTE) AS by_mobile,
-               (SELECT COUNT(*) FROM login_attempts WHERE ip = ? AND created_at > NOW() - INTERVAL ' . self::LOGIN_LOCK_MIN . ' MINUTE) AS by_ip,
-               (SELECT MIN(created_at) FROM login_attempts WHERE (mobile = ? OR ip = ?) AND created_at > NOW() - INTERVAL ' . self::LOGIN_LOCK_MIN . ' MINUTE) AS first_try',
-            [$mobile, $ip, $mobile, $ip]
+               (SELECT COUNT(*) FROM login_attempts WHERE mobile = ? AND ip = ? AND ' . $recent . ') AS by_mobile,
+               (SELECT COUNT(*) FROM login_attempts WHERE mobile = ? AND ' . $recent . ') AS by_mobile_all,
+               (SELECT COUNT(*) FROM login_attempts WHERE ip = ? AND ' . $recent . ') AS by_ip,
+               (SELECT MIN(created_at) FROM login_attempts WHERE (mobile = ? OR ip = ?) AND ' . $recent . ') AS first_try',
+            [$mobile, $ip, $mobile, $ip, $mobile, $ip]
         );
-        if ((int)$r['by_mobile'] < self::LOGIN_MAX_MOBILE && (int)$r['by_ip'] < self::LOGIN_MAX_IP) {
+        $locked = (int)$counts['by_mobile'] >= self::LOGIN_MAX_MOBILE
+               || (int)$counts['by_mobile_all'] >= self::LOGIN_MAX_MOBILE_ALL
+               || (int)$counts['by_ip'] >= self::LOGIN_MAX_IP;
+        if (!$locked) {
             return 0;
         }
-        return max(1, (int)ceil((strtotime($r['first_try']) + self::LOGIN_LOCK_MIN * 60 - time()) / 60));
+        // the lock ends LOGIN_LOCK_MIN minutes after the oldest counted try
+        $unlockAt = strtotime($counts['first_try']) + self::LOGIN_LOCK_MIN * 60;
+        return max(1, (int)ceil(($unlockAt - time()) / 60));
     }
 
     public static function addLoginFail($mobile, $ip)
@@ -176,17 +221,13 @@ class AccountModel
         self::run('DELETE FROM login_attempts WHERE mobile = ?', [$mobile]);
     }
 
+    // Saves the time of a successful login (shown in the admin lists)
     public static function touchLogin($role, $id)
     {
         self::run('UPDATE ' . self::table($role) . ' SET last_login_at = NOW() WHERE id = ?', [$id]);
     }
 
     // ---- Remember me: one row per device in remember_tokens (only the sha256 of the cookie secret is saved)
-
-    private static function ownerColumn($role)
-    {
-        return self::table($role) === 'users' ? 'user_id' : 'staff_id';
-    }
 
     public static function addDevice($role, $id, $tokenHash, $expires)
     {
@@ -197,11 +238,14 @@ class AccountModel
     // The person this device's token belongs to (not deleted, token not expired), or null
     public static function findByDevice($tokenHash)
     {
-        $r = self::one('SELECT staff_id, user_id FROM remember_tokens WHERE token_hash = ? AND expires_at > NOW()', [$tokenHash]);
-        if (!$r) {
+        $token = self::one('SELECT staff_id, user_id FROM remember_tokens WHERE token_hash = ? AND expires_at > NOW()', [$tokenHash]);
+        if (!$token) {
             return null;
         }
-        return $r['staff_id'] !== null ? self::findByKind('staff', $r['staff_id']) : self::findByKind('user', $r['user_id']);
+        if ($token['staff_id'] !== null) {
+            return self::findByKind('staff', $token['staff_id']);
+        }
+        return self::findByKind('user', $token['user_id']);
     }
 
     public static function forgetDevice($tokenHash)
@@ -209,31 +253,33 @@ class AccountModel
         self::run('DELETE FROM remember_tokens WHERE token_hash = ?', [$tokenHash]);
     }
 
-    // logs the person out of "remember me" on every device (new password, made inactive, deleted)
+    // Logs the person out of "remember me" on every device (new password, made inactive, deleted)
     public static function forgetAllDevices($role, $id)
     {
         self::run('DELETE FROM remember_tokens WHERE ' . self::ownerColumn($role) . ' = ?', [$id]);
     }
 
     // ---- Forgot password OTP
-    const OTP_WAIT_SECONDS = 60;    // a new OTP can be sent only once a minute (stops email spam)
 
     // Seconds to wait before another OTP can be sent (0 = can send now)
     public static function otpWaitSeconds($role, $id)
     {
-        $r = self::one('SELECT TIMESTAMPDIFF(SECOND, NOW(), otp_expires) AS left_s FROM ' . self::table($role) . ' WHERE id = ? AND otp_expires IS NOT NULL', [$id]);
-        if (!$r || $r['left_s'] === null) {
+        $row = self::one('SELECT TIMESTAMPDIFF(SECOND, NOW(), otp_expires) AS left_s FROM ' . self::table($role)
+                       . ' WHERE id = ? AND otp_expires IS NOT NULL', [$id]);
+        if (!$row || $row['left_s'] === null) {
             return 0;
         }
-        $sentAgo = self::OTP_MINUTES * 60 - (int)$r['left_s'];      // seconds since the last OTP was sent
+        $sentAgo = self::OTP_MINUTES * 60 - (int)$row['left_s'];      // seconds since the last OTP was sent
         return max(0, self::OTP_WAIT_SECONDS - $sentAgo);
     }
 
     // Returns the new 6-digit OTP. Only its hash is saved (like a password), so even someone who sees the table can't use it.
+    // The try counter starts again only when the old OTP has already run out.
     public static function newOtp($role, $id)
     {
         $otp = (string)random_int(100000, 999999);
-        self::run('UPDATE ' . self::table($role) . ' SET otp = ?, otp_attempts = 0, otp_expires = DATE_ADD(NOW(), INTERVAL ' . self::OTP_MINUTES . ' MINUTE) WHERE id = ?',
+        self::run('UPDATE ' . self::table($role) . ' SET otp = ?, otp_attempts = IF(otp_expires > NOW(), otp_attempts, 0),'
+                . ' otp_expires = DATE_ADD(NOW(), INTERVAL ' . self::OTP_MINUTES . ' MINUTE) WHERE id = ?',
             [password_hash($otp, PASSWORD_DEFAULT), $id]);
         return $otp;
     }
@@ -246,11 +292,13 @@ class AccountModel
         if (!$row || $row['otp'] === null || !$row['fresh']) {
             return 'expired';
         }
-        if ((int)$row['otp_attempts'] >= self::MAX_OTP_TRIES) {
+        // take one try first, in one step (two quick requests can't both use the same try)
+        $st = self::db()->prepare('UPDATE ' . $table . ' SET otp_attempts = otp_attempts + 1 WHERE id = ? AND otp_attempts < ?');
+        $st->execute([$id, self::MAX_OTP_TRIES]);
+        if ($st->rowCount() === 0) {
             return 'too_many';
         }
         if (!password_verify($otp, $row['otp'])) {
-            self::run('UPDATE ' . $table . ' SET otp_attempts = otp_attempts + 1 WHERE id = ?', [$id]);
             return (int)$row['otp_attempts'] + 1 >= self::MAX_OTP_TRIES ? 'too_many' : 'wrong';
         }
         return 'ok';
@@ -258,8 +306,8 @@ class AccountModel
 
     public static function otpTriesLeft($role, $id)
     {
-        $r = self::one('SELECT otp_attempts FROM ' . self::table($role) . ' WHERE id = ?', [$id]);
-        return max(0, self::MAX_OTP_TRIES - (int)($r['otp_attempts'] ?? 0));
+        $row = self::one('SELECT otp_attempts FROM ' . self::table($role) . ' WHERE id = ?', [$id]);
+        return max(0, self::MAX_OTP_TRIES - (int)($row['otp_attempts'] ?? 0));
     }
 
     public static function clearOtp($role, $id)
@@ -269,62 +317,71 @@ class AccountModel
 
     // ---- Create / change
 
-    // Info columns each role has (users also have area and gender)
+    // Info columns an account has. Same for every role (like the register page); $role is kept for callers.
     public static function infoColumns($role)
     {
-        return ['name', 'mobile', 'email', 'area', 'gender'];   // same info for every role (like the register page)
+        return ['name', 'mobile', 'email', 'area', 'gender'];
     }
 
+    // Values of $cols from the form data, in the same order. Empty email is saved as NULL, others lower case.
     private static function values(array $cols, array $d)
     {
-        return array_map(function ($c) use ($d) {
-            if ($c === 'email') {
+        return array_map(function ($col) use ($d) {
+            if ($col === 'email') {
                 return ($d['email'] ?? '') === '' ? null : strtolower($d['email']);
             }
-            return $d[$c];
+            return $d[$col];
         }, $cols);
+    }
+
+    // UPDATE these columns of one account from the form data
+    private static function updateColumns($role, $id, array $cols, array $d)
+    {
+        $args = self::values($cols, $d);
+        $args[] = $id;
+        self::run('UPDATE ' . self::table($role) . ' SET ' . implode(' = ?, ', $cols) . ' = ? WHERE id = ?', $args);
     }
 
     // New customer from the register page. Returns the new id.
     public static function createUser(array $d)
     {
-        $cols = ['name', 'mobile', 'email', 'area', 'gender'];
+        $cols = self::infoColumns('user');
         $args = self::values($cols, $d);
         $args[] = self::hash($d['password']);
-        self::run('INSERT INTO users (' . implode(', ', $cols) . ', password) VALUES (?, ?, ?, ?, ?, ?)', $args);
+        self::run('INSERT INTO users (' . implode(', ', $cols) . ', password) VALUES (' . self::placeholders(count($cols) + 1) . ')', $args);
         return (int)self::db()->lastInsertId();
     }
 
-    // New admin / employee made by an admin. $d: name, mobile, email, password (one-time), status, photo, created_by.
+    // New admin / employee made by an admin. $d: info columns, password (one-time), status, photo, created_by.
     // must_change_password = 1: on the first login they must set their own password.
     public static function createStaff($role, array $d)
     {
         $cols = self::infoColumns($role);
         $args = array_merge([$role], self::values($cols, $d), [self::hash($d['password']), $d['status'], $d['photo'], $d['created_by']]);
         self::run('INSERT INTO staff (role, ' . implode(', ', $cols) . ', password, status, photo, created_by, must_change_password)
-                   VALUES (?, ' . rtrim(str_repeat('?, ', count($cols)), ', ') . ', ?, ?, ?, ?, 1)', $args);
+                   VALUES (?, ' . self::placeholders(count($cols)) . ', ?, ?, ?, ?, 1)', $args);
         return (int)self::db()->lastInsertId();
     }
 
     // Admin edits someone: info (+ status). Never the password (only its owner can change it).
     public static function update($role, $id, array $d)
     {
-        $cols = array_merge(self::infoColumns($role), ['status']);
-        $args = self::values($cols, $d);
-        $args[] = $id;
-        self::run('UPDATE ' . self::table($role) . ' SET ' . implode(' = ?, ', $cols) . ' = ? WHERE id = ?', $args);
+        self::updateColumns($role, $id, array_merge(self::infoColumns($role), ['status']), $d);
         if ($d['status'] !== 'active') {           // made inactive -> logged out of "remember me" everywhere
             self::forgetAllDevices($role, $id);
         }
     }
 
-    // Own profile: name, email (+ area, gender for users). Mobile and status only the admin can change.
+    // Own profile: everything except the mobile. Mobile and status only the admin can change.
     public static function updateProfile($role, $id, array $d)
     {
-        $cols = array_values(array_diff(self::infoColumns($role), ['mobile']));
-        $args = self::values($cols, $d);
-        $args[] = $id;
-        self::run('UPDATE ' . self::table($role) . ' SET ' . implode(' = ?, ', $cols) . ' = ? WHERE id = ?', $args);
+        self::updateColumns($role, $id, array_values(array_diff(self::infoColumns($role), ['mobile'])), $d);
+    }
+
+    // Customers only: date of birth + full address (empty = not given)
+    public static function updateUserExtra($id, $birth, $address)
+    {
+        self::run('UPDATE users SET birth_date = ?, address = ? WHERE id = ?', [$birth !== '' ? $birth : null, $address !== '' ? $address : null, $id]);
     }
 
     public static function setPhoto($role, $id, $path)
@@ -342,16 +399,15 @@ class AccountModel
     // They can't log in any more and their mobile / email can be used for a new account.
     public static function delete($role, $id, $by)
     {
-        self::run('UPDATE ' . self::table($role) . ' SET deleted_at = NOW(), deleted_by = ?, otp = NULL, otp_expires = NULL WHERE id = ? AND deleted_at IS NULL', [$by, $id]);
+        self::run('UPDATE ' . self::table($role) . ' SET deleted_at = NOW(), deleted_by = ?, otp = NULL, otp_expires = NULL'
+                . ' WHERE id = ? AND deleted_at IS NULL', [$by, $id]);
         self::forgetAllDevices($role, $id);
     }
 
     // A deleted account with this role (for the "restore" button), or null
     public static function findDeleted($role, $id)
     {
-        $table = self::table($role);
-        $sql = 'SELECT * FROM ' . $table . ' WHERE id = ? AND deleted_at IS NOT NULL' . ($table === 'staff' ? ' AND role = ?' : '');
-        return self::shape(self::one($sql, $table === 'staff' ? [$id, $role] : [$id]), $table);
+        return self::findWithRole($role, $id, true);
     }
 
     public static function restore($role, $id)

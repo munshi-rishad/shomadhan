@@ -1,13 +1,14 @@
-<?php // app/views/admin/profile.php - my profile inside the admin / employee dashboard (same cards as the user's profile page) ?>
-<h1 class="adm-h1"><?= e($t['pf_title']) ?></h1>
-<p class="adm-sub"><?= e($t['pf_sub']) ?></p>
-
-<div class="pf-grid">
-    <div class="card pf-card">
-        <?php view('partials/profile-info', ['t' => $t, 'account' => $account, 'action' => $base . '?page=profile', 'photoError' => $errors['photo'] ?? '']); ?>
-    </div>
-    <div class="pf-col">
-        <?php view('partials/profile-forms', ['t' => $t, 'account' => $account, 'errors' => $errors, 'box' => $box ?? '',
-            'old' => $old, 'areas' => [], 'action' => $base . '?page=profile']); ?>
-    </div>
-</div>
+<?php
+// app/views/admin/profile.php - ?page=profile
+// My profile inside the admin / employee dashboard. The page itself is partials/profile-page.php:
+// the SAME profile page the user has (photo + rule, my account list, my info / edit / password parts).
+// Shown inside admin/layout.php (AdminController). Gets: $account, $errors, $old, optional $box + the layout's $t, $base.
+view('partials/profile-page', [
+    't'       => $t,
+    'account' => $account,
+    'errors'  => $errors,
+    'old'     => $old,
+    'box'     => $box ?? '',
+    'areas'   => AreaModel::getAll(),
+    'action'  => $base . '?page=profile',
+]);

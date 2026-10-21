@@ -6,21 +6,28 @@
 //   3. new   -> type a new password twice -> saved as a hash -> login page
 //      (passwords are hashed, so the old password can never be shown)
 // Works for admins, employees (staff table) and users (users table).
+// Also the first-login "set your own password" page (set-password.php, firstPassword()).
+// The steps are kept in $_SESSION['reset'] = ['role', 'id', 'email', 'step' => 'otp'|'new', 'until'].
 
 require_once APP_PATH . '/helpers/mail.php';
 
 class PasswordController
 {
+    // ---- Forgot password page: shows the current step and handles its form ----
     public function forgot()
     {
         redirect_if_logged_in();
+
+        // "start again" link: forget the steps done so far
         if (isset($_GET['restart'])) {
             unset($_SESSION['reset']);
             redirect('forgot-password.php');
         }
         list($lang, $t) = lang_texts();
         $reset  = $_SESSION['reset'] ?? null;
-        if ($reset && ($reset['step'] ?? '') === 'new' && ($reset['until'] ?? 0) < time()) {   // 10 minutes to set the new password
+
+        // after the OTP there are 10 minutes to set the new password; then start again
+        if ($reset && ($reset['step'] ?? '') === 'new' && ($reset['until'] ?? 0) < time()) {
             unset($_SESSION['reset']);
             $reset = null;
         }
@@ -28,7 +35,8 @@ class PasswordController
         $errors = [];
         $old    = ['email' => ''];
 
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+        // each form sends action=email|resend|otp|new; it only counts on its own step
+        if (is_post()) {
             if (!csrf_check($_POST['csrf'] ?? '')) {
                 $errors['form'] = $t['err_csrf'];
             } else {
@@ -55,6 +63,7 @@ class PasswordController
             if (!$errors) {
                 redirect('forgot-password.php');      // show the next step (refresh won't re-send the form)
             }
+            // something was wrong: show the same page with the errors (the step may have changed)
             $reset = $_SESSION['reset'] ?? null;
             $step  = $reset['step'] ?? 'email';
         }
@@ -70,7 +79,7 @@ class PasswordController
         ]);
     }
 
-    // STEP 1: email -> OTP
+    // ---- STEP 1: email -> OTP ----
     private function stepEmail($email, array $t)
     {
         if ($email === '') {
@@ -93,7 +102,9 @@ class PasswordController
         return $this->sendOtp($account, $t);
     }
 
-    // Makes an OTP and sends it to the email (Gmail settings: config/mail.php). The OTP is never shown on screen.
+    // ---- Make an OTP and email it ----
+    // Gmail settings: config/mail.php. The OTP is never shown on screen.
+    // Used by step 1 and by the "send again" button on step 2.
     private function sendOtp($account, array $t)
     {
         if (!$account) {
@@ -103,13 +114,8 @@ class PasswordController
         if ($wait = AccountModel::otpWaitSeconds($account['role'], $account['id'])) {
             return ['form' => sprintf($t['err_otp_wait'], $wait)];
         }
-        $otp  = AccountModel::newOtp($account['role'], $account['id']);
-        $html = '<div style="font-family:Arial,sans-serif;font-size:15px;color:#222">'
-              . '<p>' . e($t['otp_mail_hello']) . ' ' . e($account['name']) . ',</p>'
-              . '<p>' . e($t['otp_mail_line']) . '</p>'
-              . '<p style="font-size:28px;font-weight:bold;letter-spacing:6px;color:#0b6b4c">' . $otp . '</p>'
-              . '<p>' . e(sprintf($t['otp_mail_expire'], AccountModel::OTP_MINUTES)) . '</p></div>';
-        $text = $t['otp_mail_line'] . ' ' . $otp . "\n" . sprintf($t['otp_mail_expire'], AccountModel::OTP_MINUTES);
+        $otp = AccountModel::newOtp($account['role'], $account['id']);
+        list($html, $text) = $this->otpMail($account, $otp, $t);
         $sent = send_mail($account['email'], $account['name'], $t['otp_mail_subject'], $html, $text);
 
         if (!$sent) {
@@ -121,7 +127,20 @@ class PasswordController
         return [];
     }
 
-    // STEP 2: check the OTP
+    // The OTP email: [HTML body, plain-text copy]
+    private function otpMail(array $account, $otp, array $t)
+    {
+        $expire = sprintf($t['otp_mail_expire'], AccountModel::OTP_MINUTES);
+        $html = '<div style="font-family:Arial,sans-serif;font-size:15px;color:#222">'
+              . '<p>' . e($t['otp_mail_hello']) . ' ' . e($account['name']) . ',</p>'
+              . '<p>' . e($t['otp_mail_line']) . '</p>'
+              . '<p style="font-size:28px;font-weight:bold;letter-spacing:6px;color:#0b6b4c">' . $otp . '</p>'
+              . '<p>' . e($expire) . '</p></div>';
+        $text = $t['otp_mail_line'] . ' ' . $otp . "\n" . $expire;
+        return [$html, $text];
+    }
+
+    // ---- STEP 2: check the OTP ----
     private function stepOtp(array $reset, $otp, array $t)
     {
         $otp = preg_replace('/\D/', '', $otp);
@@ -138,6 +157,7 @@ class PasswordController
         if ($result === 'wrong') {
             return ['otp' => sprintf($t['err_otp_wrong'], AccountModel::otpTriesLeft($reset['role'], $reset['id']))];
         }
+        // correct: the OTP can't be used again; 10 minutes for step 3
         AccountModel::clearOtp($reset['role'], $reset['id']);
         session_regenerate_id(true);
         $_SESSION['reset']['step']  = 'new';
@@ -146,7 +166,7 @@ class PasswordController
         return [];
     }
 
-    // STEP 3: new password twice -> saved as a hash
+    // ---- STEP 3: new password twice -> saved as a hash ----
     private function stepNew(array $reset, array $post, array $t)
     {
         require_once APP_PATH . '/validators/LoginValidator.php';
@@ -163,6 +183,7 @@ class PasswordController
             unset($_SESSION['reset']);
             return ['form' => $t['err_server']];
         }
+        // saved: wrong login tries are forgotten and the login page shows the mobile
         AccountModel::setPassword($account['role'], $account['id'], $new);
         AccountModel::clearLoginFails($account['mobile']);
         unset($_SESSION['reset']);
@@ -171,7 +192,8 @@ class PasswordController
         return [];
     }
 
-    // FIRST LOGIN: an admin made this account with a one-time password. Before any other page opens,
+    // ---- FIRST LOGIN (set-password.php) ----
+    // An admin made this account with a one-time password. Before any other page opens,
     // the person types a new password twice. Then the one-time password stops working.
     public function firstPassword()
     {
@@ -184,7 +206,7 @@ class PasswordController
         }
         list($lang, $t) = lang_texts();
         $errors = [];
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+        if (is_post()) {
             require_once APP_PATH . '/validators/LoginValidator.php';
             $new   = (string)($_POST['new'] ?? '');
             $again = (string)($_POST['again'] ?? '');
@@ -200,7 +222,9 @@ class PasswordController
             if (!$errors) {
                 try {
                     AccountModel::setPassword($account['role'], $account['id'], $new);
-                    login_account(AccountModel::findByKind($account['kind'], $account['id']), isset($_COOKIE[REMEMBER_COOKIE]));   // fresh session
+                    // log in again with the new password (fresh session); keep "remember me" if it was on
+                    $fresh = AccountModel::findByKind($account['kind'], $account['id']);
+                    login_account($fresh, isset($_COOKIE[REMEMBER_COOKIE]));
                     flash_set('notice', $t['fl_done']);
                     redirect(dashboard_url($account['role']));
                 } catch (PDOException $ex) {
@@ -212,6 +236,7 @@ class PasswordController
         view('auth/set-password', ['lang' => $lang, 't' => $t, 'errors' => $errors, 'account' => $account]);
     }
 
+    // ---- Hide most of an email ----
     // rishad.ahmed@gmail.com -> ri**********@gmail.com
     private function maskEmail($email)
     {

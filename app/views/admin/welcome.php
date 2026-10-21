@@ -1,8 +1,15 @@
-<?php // app/views/admin/welcome.php - change the coupon picture on the welcome page ?>
+<?php
+// app/views/admin/welcome.php - ?page=welcome
+// Change the coupon picture on the welcome page (landing/home.php), or go back to the default picture.
+// Shown inside admin/layout.php (AdminController). Gets: $welcome (picture in use), $default (built-in picture)
+// + the layout's $t, $base, $err.
+?>
 <h1 class="adm-h1"><?= e($t['adm_menu_welcome']) ?></h1>
 <p class="adm-sub"><?= e($t['adm_welcome_sub']) ?></p>
 
-<div class="pair">   <!-- PC: current picture and the change form side by side -->
+<?php /* PC: the current picture and the change form side by side */ ?>
+<div class="pair">
+<?php /* ---- Current picture + "back to default" button ---- */ ?>
 <div class="card">
     <h2><?= e($t['adm_welcome_now']) ?></h2>
     <img class="welcome-now" src="<?= e(asset($welcome)) ?>" alt="">
@@ -15,6 +22,7 @@
     <?php endif; ?>
 </div>
 
+<?php /* ---- Upload a new picture ---- */ ?>
 <form class="card form-grid" method="post" enctype="multipart/form-data" action="<?= e($base) ?>?page=welcome">
     <h2><?= e($t['adm_welcome_change']) ?></h2>
     <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">

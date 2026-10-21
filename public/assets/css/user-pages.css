@@ -1,0 +1,797 @@
+/* user-pages.css - book a service, my bookings, wallet, profile and messages pages
+   (inside the user home frame, home.css; loaded by user/home.php on inner pages). Phone first, PC from 900px. */
+
+/* ===== Page head and cards ===== */
+/* Page title, white card, muted text, empty box. */
+.u-page-sec { margin-top: 4px; }
+.u-head { margin-bottom: 12px; }
+.u-head h1 { font-size: var(--fs-xl); font-weight: 700; }
+.u-head p { margin-top: 2px; font-size: var(--fs-sm); color: var(--muted); }
+.u-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 4px 14px rgba(15, 60, 40, .04);
+}
+.muted { color: var(--muted); font-size: var(--fs-sm); }
+.u-page-sec .page-back { margin-bottom: 10px; }
+.u-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 26px 14px;
+    text-align: center;
+    color: var(--muted);
+}
+
+/* ===== Form fields ===== */
+/* Label + box used by the booking and wallet forms. */
+.uf {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    border: 0;
+}
+.uf > span, .uf > legend { font-size: var(--fs-sm); font-weight: 600; color: #333b37; }
+.ub {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    font: 400 var(--fs-md) var(--font);
+    color: var(--text);
+    outline: 0;
+}
+textarea.ub { height: auto; padding: 9px 12px; resize: vertical; }
+.ub:focus { border-color: var(--green); }
+.ub.invalid { border-color: var(--red); background: #fffafa; }
+.error-text { color: var(--red); font-size: var(--fs-xs); }
+.error-text a { color: var(--green); font-weight: 600; text-decoration: underline; }
+
+/* ===== Book a service ===== */
+/* Service summary, fields, payment methods and the total. */
+.bk-form { display: grid; gap: 12px; }
+.bk-svc { display: flex; gap: 12px; align-items: center; }
+.bk-media {
+    position: relative;
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 96px;
+    aspect-ratio: 16 / 11;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.bk-media > img { width: 100%; height: 100%; object-fit: cover; }
+.bk-media > img.ph { width: 36px; height: 36px; object-fit: contain; }
+.bk-svc h2 { font-size: var(--fs-base); }
+.bk-price { margin-top: 4px; font-weight: 700; color: var(--green); }
+.bk-price small { font-weight: 500; color: var(--muted); }
+.bk-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bk-fields .uf-wide, .bk-fields .uf-area { grid-column: 1 / -1; }
+.bk-pay { display: grid; gap: 12px; align-content: start; }
+.bk-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bk-methods legend { margin-bottom: 5px; }
+.bk-methods .error-text { grid-column: 1 / -1; }
+.bk-method {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    cursor: pointer;
+}
+.bk-method:has(input:checked) { border-color: var(--green); background: #f2faf6; }
+.bk-method input { margin-top: 3px; accent-color: var(--green); }
+.bk-method span { display: flex; flex-direction: column; }
+.bk-method b { font-size: var(--fs-sm); }
+.bk-method small { font-size: var(--fs-xs); color: var(--muted); }
+.bk-sum {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #f6faf8;
+    font-size: var(--fs-sm);
+}
+.bk-sum div { display: flex; justify-content: space-between; }
+.bk-sum dt { color: var(--muted); }
+.bk-sum .bk-total {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--line);
+    font-weight: 700;
+    font-size: var(--fs-base);
+}
+.bk-sum .bk-total dt { color: var(--text); }
+.bk-sum .bk-total dd { color: var(--green); }
+.bk-go { width: 100%; }
+
+/* ===== My bookings ===== */
+/* Booking card: photo, info, amount, buttons and the reschedule form. */
+.bk-list { display: grid; gap: 12px; }
+.bk-card { display: grid; gap: 10px; }
+.bk-top {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas: "media info" "side side";
+    gap: 10px 12px;
+}
+.bk-top .bk-media { grid-area: media; width: 96px; align-self: start; }
+.bk-tag {
+    position: absolute;
+    left: 4px;
+    bottom: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    max-width: calc(100% - 8px);
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(255,255,255,.92);
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.bk-tag img { width: 12px; height: 12px; }
+.bk-info {
+    grid-area: info;
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+    align-content: start;
+}
+.bk-info h2 { font-size: var(--fs-md); }
+.bk-info .muted { font-size: var(--fs-xs); }
+.bk-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-xs);
+    color: #3d4642;
+}
+.bk-row .ic { width: 15px; height: 15px; color: var(--green); }
+.bk-call { margin-left: 4px; color: var(--green); font-weight: 600; }
+.bk-why { color: var(--red); }
+.bk-side {
+    grid-area: side;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+}
+.bk-amt { margin-left: auto; font-size: var(--fs-lg); color: var(--green); }
+.bk-side small { font-size: var(--fs-2xs); color: var(--muted); }
+.bk-side .bk-pts { color: #a35f00; font-weight: 600; }
+.bk-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bk-acts form { display: contents; }
+.bk-btn { gap: 6px; width: 100%; }
+.bk-btn .ic { width: 17px; height: 17px; }
+.bk-resched {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #f6faf8;
+}
+.bk-resched-btns { grid-column: 1 / -1; display: flex; gap: 8px; }
+
+/* ===== Wallet ===== */
+/* Balance card, coupons / points cards, transaction list, add-money form, coupon list. */
+.wl-screen { display: none; }
+.wl-screen:target, .wl-screen.open { display: block; }
+.wl:has(.wl-screen:target) .wl-main, .wl:has(.wl-screen.open) .wl-main { display: none; }
+.wl:has(.wl-screen:target) .wl-screen.open:not(:target) { display: none; }
+.wl-top { display: grid; gap: 12px; margin-bottom: 12px; }
+.wl-balance {
+    position: relative;
+    padding: 18px;
+    border-radius: 18px;
+    color: #fff;
+    background: linear-gradient(135deg, #0b6b4c, #13915f);
+    box-shadow: 0 10px 24px rgba(11,107,76,.25);
+    overflow: hidden;
+}
+.wl-balance::after {
+    content: "";
+    position: absolute;
+    right: -40px;
+    top: -40px;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.08);
+}
+.wl-bal-ic {
+    position: absolute;
+    right: 18px;
+    top: 18px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.16);
+}
+.wl-balance p { font-size: var(--fs-sm); opacity: .9; }
+.wl-amt {
+    display: block;
+    margin-top: 4px;
+    font-size: var(--fs-2xl);
+    letter-spacing: .3px;
+}
+.wl-wait {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    background: rgba(255,255,255,.18);
+    font-size: var(--fs-xs);
+}
+.wl-btns {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+}
+.wl-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 42px;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--green-dark);
+    font: 600 var(--fs-sm) var(--font);
+}
+.wl-btn + .wl-btn { background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.5); }
+.wl-btn .ic { width: 18px; height: 18px; }
+.wl-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+}
+.wl-mini > span:nth-child(2) {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+.wl-mini b { font-size: var(--fs-md); }
+.wl-mini small { font-size: var(--fs-xs); color: var(--muted); }
+.wl-mini-ic {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+}
+.mi-coupon { background: #fff1e0; color: #d4720b; }
+.mi-points { background: #fff7d6; color: #b68a00; }
+.wl-go { color: #9aa6a0; }
+.wl-recent h2 { font-size: var(--fs-base); margin-bottom: 4px; }
+.wl-txs { list-style: none; }
+.wl-tx {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+}
+.wl-recent h2 + .wl-txs .wl-tx:first-child, .wl-txs .wl-tx:first-child { border-top: 0; }
+.wl-tx-ic {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+}
+.wl-tx-ic img { width: 22px; height: 22px; }
+.wt-topup { background: var(--green-soft); color: var(--green); }
+.wt-payment { background: #e3effc; color: #1f5fa8; }
+.wt-refund { background: #fff1e0; color: #d4720b; }
+.wl-tx-txt {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.wl-tx-txt b {
+    font-size: var(--fs-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.wl-tx-txt small { font-size: var(--fs-2xs); color: var(--muted); }
+.wl-tx-r {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+}
+.wl-tx-r b { font-size: var(--fs-md); }
+.wl-tx-r b.pos { color: var(--green); }
+.wl-tx-r b.neg { color: var(--red); }
+.wl-st {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 8px;
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    background: #eff1f0;
+    color: #4b5651;
+    white-space: nowrap;
+}
+.ws-successful, .ws-refunded, .cps-usable { background: var(--green-soft); color: var(--green-dark); }
+.ws-pending { background: #fff3dc; color: #a35f00; }
+.ws-rejected, .cps-expired { background: var(--red-soft); color: var(--red); }
+.ws-paid { background: #e3effc; color: #1f5fa8; }
+.ws-points { background: #fff7d6; color: #8a6a00; }
+.wl-form { display: grid; gap: 12px; max-width: 560px; }
+.wl-steps {
+    padding-left: 20px;
+    font-size: var(--fs-sm);
+    color: #3d4642;
+    display: grid;
+    gap: 3px;
+}
+.wl-methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.wl-methods legend { margin-bottom: 5px; }
+.wl-methods .error-text { grid-column: 1 / -1; }
+.wl-method {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    cursor: pointer;
+}
+.wl-method:has(input:checked) { border-color: var(--green); background: #f2faf6; }
+.wl-method input { margin-top: 3px; accent-color: var(--green); }
+.wl-method span { display: flex; flex-direction: column; }
+.wl-method b { font-size: var(--fs-sm); }
+.wl-method small { font: 600 var(--fs-sm) var(--font); color: var(--green); letter-spacing: .3px; }
+.wm-bkash b { color: #d1145a; }
+.wm-nagad b { color: #e2531c; }
+.wm-rocket b { color: #8c2a8a; }
+.wl-send { width: 100%; }
+.wl-cps { display: grid; gap: 10px; }
+.wl-cp { display: flex; align-items: center; gap: 12px; }
+.wl-cp-amt {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    background: #fff1e0;
+    color: #d4720b;
+    font-size: var(--fs-lg);
+}
+.wl-cp > div { flex: 1; min-width: 0; }
+.wl-cp-code { font-weight: 700; letter-spacing: .6px; }
+.wl-cp p + p { font-size: var(--fs-sm); }
+.wl-cp small { font-size: var(--fs-xs); color: var(--muted); }
+.wl-cp.cs-used, .wl-cp.cs-expired { opacity: .65; }
+
+/* ===== Phone fixes ===== */
+/* Inner pages don't need the area / search line of the home page; very small phones. */
+@media (max-width: 899px) {
+    body:not(.um-home) .top .loc, body:not(.um-home) .top .search { display: none; }
+    body:not(.um-home) .top { grid-template-areas: "brand tools"; }
+}
+@media (max-width: 380px) {
+    .bk-fields, .bk-methods, .bk-resched { grid-template-columns: 1fr; }
+}
+
+/* ===== PC layout ===== */
+/* Book, bookings and wallet side by side on PC. */
+@media (min-width: 900px) {
+    .u-head { margin-bottom: 10px; }
+    .u-head h1 { font-size: var(--fs-lg); }
+    /* book: service + fields left, payment right */
+    .bk-form { grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); align-items: start; }
+    .bk-svc { grid-column: 1; }
+    .bk-fields { grid-column: 1; grid-template-columns: repeat(3, 1fr); }
+    .bk-fields .uf-wide { grid-column: span 3; }
+    .bk-fields .uf-area { grid-column: auto; }
+    .bk-pay { grid-column: 2; grid-row: 1 / span 2; }
+    /* my bookings: two cards per row, media | info | price */
+    .bk-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .bk-top { grid-template-columns: auto 1fr auto; grid-template-areas: "media info side"; }
+    .bk-top .bk-media { width: 110px; }
+    .bk-side {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: flex-end;
+        padding: 0;
+        border: 0;
+        text-align: right;
+    }
+    .bk-amt { margin-left: 0; margin-top: 6px; }
+    .bk-acts { grid-template-columns: repeat(2, max-content); justify-content: end; }
+    .bk-btn { width: auto; }
+    .bk-resched { grid-template-columns: 1fr 1fr auto; align-items: end; }
+    .bk-resched-btns { grid-column: auto; }
+    /* wallet: balance + 2 small cards in one row, list below */
+    .wl-cps { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+    /* the chat picked on the left already shows its booking number + status */
+    .u-page-sec.msg .chat-chips { display: none; }
+}
+
+/* ===== My bookings tabs (design) ===== */
+/* Phone = pills, PC = 4 big cards; one booking per row on PC. */
+.bk-tabs .bt-ic, .bk-tabs .bt-txt { display: contents; }
+.bk-tabs .bt-txt small { display: none; }
+.bk-tabs .bt-n {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: #eef3f0;
+    color: #3d4642;
+    font-size: var(--fs-2xs);
+    display: grid;
+    place-items: center;
+}
+.bk-tabs .u-tab.on .bt-n { background: #fff; color: var(--green); }
+@media (min-width: 900px) {
+    .bk-tabs {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 14px;
+        overflow: visible;
+    }
+    .bk-tabs .u-tab {
+        height: auto;
+        padding: 14px 16px;
+        gap: 14px;
+        border-radius: 16px;
+        background: #fff;
+        color: var(--text);
+        box-shadow: 0 2px 10px rgba(15,60,40,.04);
+    }
+    .bk-tabs .bt-ic {
+        display: grid;
+        place-items: center;
+        flex: none;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--green-soft);
+        color: var(--green);
+    }
+    .bk-tabs .bt-ic .ic { width: 24px; height: 24px; }
+    .bk-tabs .bt-txt {
+        display: grid;
+        flex: 1;
+        min-width: 0;
+        line-height: 1.3;
+    }
+    .bk-tabs .bt-txt b { font-size: var(--fs-base); }
+    .bk-tabs .bt-txt small {
+        display: block;
+        font-size: var(--fs-xs);
+        font-weight: 500;
+        color: var(--muted);
+    }
+    .bk-tabs .bt-n {
+        min-width: 34px;
+        height: 34px;
+        border-radius: 17px;
+        font-size: var(--fs-md);
+    }
+    .bk-tabs .u-tab.on {
+        background: #eef8f3;
+        border: 1.5px solid var(--green);
+        color: var(--text);
+        box-shadow: inset 0 -3px 0 var(--green);
+    }
+    .bk-tabs .u-tab.on .bt-ic, .bk-tabs .u-tab.on .bt-n { background: var(--green); color: #fff; }
+    .bk-tabs .ut-cancelled .bt-ic { background: #fdecec; color: var(--red); }
+
+    /* one booking per row: photo | info | amount + buttons */
+    .bk-list { grid-template-columns: 1fr; gap: 12px; }
+    .bk-card {
+        grid-template-columns: 230px minmax(0, 1fr) 340px;
+        grid-template-areas: "media info side" "media info acts" "rs rs rs";
+        column-gap: 22px;
+        row-gap: 10px;
+        padding: 12px;
+    }
+    .bk-top { display: contents; }
+    .bk-top .bk-media {
+        grid-area: media;
+        width: 100%;
+        aspect-ratio: 16 / 8;
+        align-self: stretch;
+        height: 100%;
+        min-height: 120px;
+    }
+    .bk-info {
+        grid-area: info;
+        padding-top: 4px;
+        grid-template-columns: repeat(2, minmax(0, max-content));
+        column-gap: 40px;
+        row-gap: 6px;
+    }
+    .bk-info h2, .bk-info > .muted, .bk-info .bk-pro, .bk-info .bk-why { grid-column: 1 / -1; }
+    .bk-info h2 { font-size: var(--fs-lg); }
+    .bk-info > .muted { font-size: var(--fs-sm); margin-top: -4px; margin-bottom: 4px; }
+    .bk-row { font-size: var(--fs-sm); }
+    .bk-side {
+        grid-area: side;
+        align-self: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: baseline;
+        gap: 2px 10px;
+        text-align: left;
+        padding-top: 4px;
+    }
+    .bk-side small:first-of-type { order: -1; font-size: var(--fs-sm); color: #3d4642; }
+    .bk-side .bk-amt { margin: 0; font-size: var(--fs-xl); color: var(--green); }
+    .bk-side .bk-paid, .bk-side .bk-pts { flex-basis: 100%; }
+    .bk-acts {
+        grid-area: acts;
+        align-self: end;
+        grid-template-columns: 1fr 1fr;
+        justify-content: stretch;
+    }
+    .bk-acts form, .bk-acts .bk-btn, .bk-acts form .bk-btn { width: 100%; }
+    .bk-resched { grid-area: rs; }
+}
+
+/* ===== Wallet (design) ===== */
+/* Phone keeps the short cards, PC shows the lists inside them + a table. */
+.wl-bal-head { position: relative; z-index: 1; }
+.wl-safe, .wl-cp-mini, .wl-mini-none, .wl-pt-stats, .wl-more, .wl-table-wrap { display: none; }
+.wl-recent-head { display: flex; align-items: center; justify-content: space-between; }
+.wl-recent-head a { font-size: var(--fs-sm); font-weight: 600; color: var(--green); }
+@media (min-width: 900px) {
+    .wl-top {
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: none;
+        gap: 14px;
+        margin-bottom: 14px;
+        align-items: stretch;
+    }
+    .wl-balance {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 20px;
+    }
+    .wl-bal-head { display: flex; align-items: center; gap: 16px; }
+    .wl-bal-head .wl-bal-ic {
+        position: static;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: #fff;
+        color: var(--green);
+        flex: none;
+    }
+    .wl-bal-head .wl-bal-ic .ic { width: 32px; height: 32px; }
+    .wl-bal-head p { font-size: var(--fs-md); font-weight: 600; opacity: 1; }
+    .wl-amt { font-size: var(--fs-3xl); line-height: 1.15; }
+    .wl-safe {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        position: absolute;
+        right: 0;
+        top: 0;
+        font-size: var(--fs-xs);
+        font-weight: 600;
+        opacity: .9;
+    }
+    .wl-safe .ic { width: 16px; height: 16px; }
+    .wl-btns { margin-top: 18px; }
+    .wl-btn { height: 46px; font-size: var(--fs-md); }
+    .wl-btn + .wl-btn { background: transparent; }
+    .wl-mini {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-content: start;
+        gap: 10px 12px;
+        padding: 16px;
+    }
+    .wl-mini-ic { width: 48px; height: 48px; border-radius: 50%; }
+    .wl-mini b { font-size: var(--fs-base); }
+    .wl-cp-mini, .wl-pt-stats, .wl-more, .wl-mini-none { display: block; grid-column: 1 / -1; }
+    .wl-cp-mini { list-style: none; display: grid; gap: 6px; }
+    .wl-cp-mini li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 10px;
+        border-radius: 10px;
+        background: #f4f8f6;
+    }
+    .wl-cp-mini b { font-size: var(--fs-xs); letter-spacing: .3px; }
+    .wl-cp-mini span:last-child { display: grid; min-width: 0; }
+    .wl-cp-mini small { font-size: var(--fs-2xs); }
+    .wl-cp-tag {
+        flex: none;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background: var(--green);
+        color: #fff;
+        font-size: var(--fs-2xs);
+        font-weight: 700;
+    }
+    .wl-mini-none { font-size: var(--fs-sm); color: var(--muted); }
+    .wl-more {
+        align-self: end;
+        font-size: var(--fs-sm);
+        font-weight: 600;
+        color: var(--green);
+    }
+    .wl-pt-card { background: linear-gradient(160deg, #eef8f3, #fff 60%); }
+    .wl-pt-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #fff;
+        border: 1px solid var(--line);
+    }
+    .wl-pt-stats > span { display: grid; gap: 2px; }
+    .wl-pt-stats > span + span { padding-left: 14px; border-left: 1px solid var(--line); }
+    .wl-pt-stats b { font-size: var(--fs-lg); color: var(--green); }
+    .wl-pt-stats > span + span b { font-size: var(--fs-md); color: #6d3fc0; }
+    .wl-recent { padding: 14px 16px; }
+    .wl-recent-head { margin-bottom: 6px; }
+    .wl-recent .wl-txs { display: none; }
+    .wl-table-wrap { display: block; }
+    .wl-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+    .wl-table th {
+        padding: 8px 10px;
+        text-align: left;
+        font-size: var(--fs-xs);
+        font-weight: 600;
+        color: var(--muted);
+        background: #f4f8f6;
+    }
+    .wl-table td { padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: middle; }
+    .wl-table td b { display: block; font-weight: 600; }
+    .wl-table td small { display: block; font-size: var(--fs-2xs); color: var(--muted); }
+    .wl-table b.pos { color: var(--green); }
+    .wl-table b.neg { color: var(--red); }
+    .wl-type { display: inline-flex; align-items: center; gap: 8px; }
+    .wl-type .wl-tx-ic { width: 30px; height: 30px; border-radius: 50%; }
+    .wl-type .wl-tx-ic .ic { width: 16px; height: 16px; }
+    .wl-type-pill {
+        padding: 3px 9px;
+        border-radius: 7px;
+        font-size: var(--fs-xs);
+        font-weight: 600;
+    }
+    .wl-type.wty-topup .wl-type-pill { background: #e3f5ea; color: var(--green); }
+    .wl-type.wty-payment .wl-type-pill { background: #e3effc; color: #1f5fae; }
+    .wl-type.wty-refund .wl-type-pill { background: #fff1e0; color: #c96d12; }
+}
+@media (min-width: 900px) {
+    /* big page title like the design (same on every user page) */
+    .u-head { margin-bottom: 14px; }
+    .u-head h1 { font-size: var(--fs-2xl); font-weight: 800; line-height: 1.2; }
+    .u-head p { font-size: var(--fs-md); }
+}
+
+/* ===== My messages (design) ===== */
+/* Title, filters + search, then list | chat. */
+.msg-chips .ic { width: 15px; height: 15px; margin-right: 6px; }
+.mc-n {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    margin-left: 7px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: #eef3f0;
+    font-size: var(--fs-2xs);
+}
+.msg-chips a.on .mc-n { background: #fff; color: var(--green); }
+.msg-bar { display: flex; flex-direction: column-reverse; }
+.chat-bk { display: none; }
+@media (min-width: 900px) {
+    .u-page-sec.msg {
+        grid-template-columns: 400px minmax(0, 1fr);
+        grid-template-rows: auto auto minmax(0, 1fr);
+        grid-template-areas: "head head" "bar bar" "side pane";
+        row-gap: 0;
+        height: calc(100vh / var(--z, 1) - 92px);
+        min-height: 520px;
+    }
+    .u-page-sec.msg > .u-head { grid-area: head; }
+    .msg-bar {
+        grid-area: bar;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+    }
+    .msg-bar .msg-chips { margin: 0; gap: 10px; }
+    .msg-bar .msg-chips a {
+        height: 40px;
+        padding: 0 14px;
+        border-radius: 10px;
+        font-size: var(--fs-sm);
+    }
+    .msg-bar .msg-search {
+        margin: 0;
+        width: 320px;
+        height: 42px;
+        border-radius: 12px;
+        background: #fff;
+    }
+    .u-page-sec.msg .msg-side { grid-area: side; }
+    .u-page-sec.msg .msg-pane { grid-area: pane; }
+    .u-page-sec.msg .msg-sup { padding: 16px; }
+    .u-page-sec.msg .msg-sup .ch-av { width: 54px; height: 54px; }
+    .u-page-sec.msg .msg-item .ch-av { width: 50px; height: 50px; }
+    .u-page-sec.msg .chat-head { padding: 14px 18px; }
+    .u-page-sec.msg .chat-head .ch-av { width: 52px; height: 52px; }
+    .u-page-sec.msg .chat-title b { font-size: var(--fs-base); }
+    .chat-bk {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 10px 16px 0;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: #f4f8f6;
+        border: 1px solid var(--line);
+        color: var(--text);
+    }
+    .chat-bk > .ic {
+        flex: none;
+        width: 34px;
+        height: 34px;
+        padding: 7px;
+        border-radius: 9px;
+        background: #fff;
+        color: var(--green);
+        border: 1px solid var(--line);
+    }
+    .chat-bk > span:nth-child(2) { flex: 1; min-width: 0; display: grid; }
+    .chat-bk b { font-size: var(--fs-sm); }
+    .chat-bk small { font-size: var(--fs-xs); color: var(--muted); }
+    .chat-bk-go {
+        flex: none;
+        padding: 6px 12px;
+        border-radius: 9px;
+        border: 1px solid var(--line);
+        background: #fff;
+        font-size: var(--fs-xs);
+        font-weight: 600;
+        color: var(--green);
+    }
+    .chat-bk:hover .chat-bk-go { border-color: var(--green); }
+    .u-page-sec.msg .chat-body { background: #fff; padding: 16px 18px; gap: 10px; }
+    .u-page-sec.msg .ch-msg { background: #f4f6f5; border-color: #f4f6f5; }
+    .u-page-sec.msg .ch-msg.mine { background: #dcf3e6; border-color: #dcf3e6; color: var(--text); }
+    .u-page-sec.msg .ch-msg.mine .ch-who { color: var(--green); }
+    .u-page-sec.msg .chat-send { padding: 12px 16px; }
+}

@@ -1,3 +1,9 @@
+<?php
+// app/views/auth/login.php - login.php
+// The login page (every role logs in here): mobile + password, "remember me", links to register / forgot password.
+// Rendered by AuthController::login(). Gets: $t, $lang, $errors, $notice, $old (mobile, remember).
+// validation.js checks the fields in the browser with the texts in data-msg; the server checks them again.
+?>
 <!DOCTYPE html>
 <html lang="<?= e($lang) ?>">
 <head>
@@ -10,24 +16,16 @@
 
     <main class="auth">
 
-        <!-- LEFT (PC) / TOP (phone): brand + text -->
-        <section class="intro">
-            <a class="back" href="index.php" aria-label="<?= e($t['login_back']) ?>"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg><span class="back-txt"><?= e($t['login_back']) ?></span></a>
-            <div class="brand">
-                <img class="logo" src="<?= e(asset('assets/images/logo.png')) ?>" alt="Shomadhan">
-                <p class="tagline"><?= e($t['tagline']) ?></p>
-            </div>
-            <img class="illus-m" src="<?= e(asset('assets/images/login-illustration.svg')) ?>" alt="">
-            <p class="intro-sub"><?= e($t['login_sub1']) ?><br><?= e($t['login_sub2']) ?></p>
+        <?php /* ---- LEFT (PC) / TOP (phone): brand + text ---- */ ?>
+        <?php view('partials/auth-intro', [
+            't'     => $t,
+            'back'  => 'index.php',
+            'illus' => 'login',
+            'sub'   => [$t['login_sub1'], $t['login_sub2']],
+            'h1'    => [$t['login_h1_a'], $t['login_h1_b']],
+        ]); ?>
 
-            <h1 class="pc-h1"><span><?= e($t['login_h1_a']) ?></span><span class="green"><?= e($t['login_h1_b']) ?></span></h1>
-            <div class="pc-extra">
-                <?php view('partials/features', ['t' => $t]); ?>
-                <img class="illus-pc" src="<?= e(asset('assets/images/login-illustration.svg')) ?>" alt="">
-            </div>
-        </section>
-
-        <!-- RIGHT (PC) / BOTTOM (phone): the form -->
+        <?php /* ---- RIGHT (PC) / BOTTOM (phone): the form ---- */ ?>
         <section class="card">
             <div class="card-head">
                 <h2><?= e($t['login_title']) ?></h2>
@@ -44,6 +42,7 @@
                 <?php if (!empty($errors['form'])): ?><p class="alert alert-error" role="alert"><?= e($errors['form']) ?></p><?php endif; ?>
                 <?php if ($notice !== ''): ?><p class="alert alert-ok" role="status"><?= e($notice) ?></p><?php endif; ?>
 
+                <?php /* ---- Mobile number (+880 only) ---- */ ?>
                 <div class="field">
                     <label for="mobile"><?= e($t['label_mobile']) ?></label>
                     <div class="input<?= !empty($errors['mobile']) ? ' invalid' : '' ?>">
@@ -55,24 +54,26 @@
                     <p class="error-text" id="err-mobile" role="alert"<?= empty($errors['mobile']) ? ' hidden' : '' ?>><?= e($errors['mobile'] ?? '') ?></p>
                 </div>
 
+                <?php /* ---- Password with show / hide ---- */ ?>
                 <div class="field">
                     <label for="password"><?= e($t['label_password']) ?></label>
                     <div class="input<?= !empty($errors['password']) ? ' invalid' : '' ?>">
                         <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
                         <input id="password" name="password" type="password" autocomplete="current-password" placeholder="<?= e($t['ph_password']) ?>">
                         <button type="button" class="toggle" aria-pressed="false" aria-label="<?= e($t['show_password']) ?>">
-                            <svg class="ic eye-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 6.2A9.8 9.8 0 0 1 12 6c5 0 8.5 4 9.5 6a14 14 0 0 1-2.9 3.7M6.6 7.6A14 14 0 0 0 2.5 12c1 2 4.5 6 9.5 6 1.6 0 3-.4 4.3-1M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
-                            <svg class="ic eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12C3.5 10 7 6 12 6s8.5 4 9.5 6c-1 2-4.5 6-9.5 6s-8.5-4-9.5-6z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <?php view('partials/eye-icons'); ?>
                         </button>
                     </div>
                     <p class="error-text" id="err-password" role="alert"<?= empty($errors['password']) ? ' hidden' : '' ?>><?= e($errors['password'] ?? '') ?></p>
                 </div>
 
+                <?php /* ---- Remember me + forgot password ---- */ ?>
                 <div class="row">
                     <label class="check"><input type="checkbox" name="remember" value="1"<?= $old['remember'] ? ' checked' : '' ?>><span class="box"></span><span><?= e($t['remember_me']) ?></span></label>
                     <a class="link" href="forgot-password.php"><?= e($t['forgot_password']) ?></a>
                 </div>
 
+                <?php /* ---- Login button, Google button, link to register ---- */ ?>
                 <button class="btn-submit" type="submit">
                     <span><?= e($t['btn_login']) ?></span>
                     <svg class="ic arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
@@ -80,10 +81,7 @@
 
                 <p class="or"><span><?= e($t['or_text']) ?></span></p>
 
-                <button class="btn-google" type="button">
-                    <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-                    <span><?= e($t['btn_google']) ?></span>
-                </button>
+                <?php view('partials/google-btn', ['label' => $t['btn_google']]); ?>
 
                 <p class="signup"><?= e($t['no_account']) ?> <a class="link" href="register.php"><?= e($t['create_account']) ?></a></p>
             </form>
@@ -91,6 +89,7 @@
 
     </main>
 </div>
+<?php view('partials/public-footer', ['t' => $t, 'lang' => $lang]); ?>
 <script src="<?= e(asset('assets/js/validation.js')) ?>"></script>
 <script src="<?= e(asset('assets/js/form-check.js')) ?>"></script>
 <script src="<?= e(asset('assets/js/lang.js')) ?>"></script>

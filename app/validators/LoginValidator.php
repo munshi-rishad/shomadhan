@@ -1,10 +1,12 @@
 <?php
 // app/validators/LoginValidator.php
 // Server-side checks for the login form (same rules as validation.js).
+// mobileError() / passwordError() are reused by the register, profile, password and admin forms.
 // Each function returns '' when OK, or the error text in the chosen language.
 
 class LoginValidator
 {
+    // ---- Mobile ----
     // Bangladeshi mobile: digits only, exactly 11 digits, starts with 01[3-9]
     public static function mobileError($mobile, array $t)
     {
@@ -21,7 +23,8 @@ class LoginValidator
         return '';
     }
 
-    // Password: required, English keyboard characters only, 8-128 characters
+    // ---- Password ----
+    // Required, English keyboard characters only, 8-128 characters
     public static function passwordError($password, array $t)
     {
         $password = (string)$password;
@@ -40,6 +43,7 @@ class LoginValidator
         return '';
     }
 
+    // ---- The whole login form ----
     // Returns an array of errors: ['mobile' => '...', 'password' => '...'] (empty = OK)
     public static function validate(array $post, array $t)
     {

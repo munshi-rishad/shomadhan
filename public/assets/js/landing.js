@@ -1,15 +1,17 @@
-// landing.js - switches the page between Bangla and English.
+// landing.js - the welcome page (landing/home.php): switches the page between Bangla and English.
 // Only the 2 buttons (data-i18n="key") and the service names (data-bn / data-en, from the database) change.
 // Everything else on the page always stays Bangla.
-
 (function () {
     var texts = window.LANG_TEXTS;                         // { bn: {...}, en: {...} }
     var buttons = document.querySelectorAll('[data-lang]');
     var items = document.querySelectorAll('[data-i18n]');
     var names = document.querySelectorAll('[data-bn]');     // service names: both languages are on the element
 
+    // ---- Show the page in one language and remember it ----
     function setLanguage(lang) {
-        if (!texts || !texts[lang]) { return; }
+        if (!texts || !texts[lang]) {
+            return;
+        }
 
         // change every text on the page
         for (var i = 0; i < items.length; i++) {
@@ -19,6 +21,7 @@
             }
         }
 
+        // service names
         for (var n = 0; n < names.length; n++) {
             names[n].textContent = names[n].getAttribute('data-' + lang) || names[n].textContent;
         }
@@ -30,12 +33,14 @@
         }
 
         // remember the choice for 1 year (PHP reads this cookie)
-        document.cookie = 'lang=' + lang + '; path=/; max-age=31536000';
+        document.cookie = 'lang=' + lang + '; path=/; max-age=31536000; samesite=lax';
     }
 
-    // PHONE: the switch is a dropdown. Tap it to open, tap the other language to change.
+    // ---- PHONE: the switch is a dropdown. Tap it to open, tap the other language to change ----
     var box = document.querySelector('.lang-switch');
-    function isPhone() { return window.matchMedia('(max-width: 899px)').matches; }
+    function isPhone() {
+        return window.matchMedia('(max-width: 899px)').matches;
+    }
 
     for (var k = 0; k < buttons.length; k++) {
         buttons[k].addEventListener('click', function (ev) {
@@ -49,12 +54,18 @@
             box.classList.remove('open');
         });
     }
-    box.addEventListener('click', function (ev) {      // tap on the pill / arrow also opens it
-        if (isPhone() && ev.target === box || ev.target.closest('.chev') || ev.target.closest('.ic')) {
+
+    // tap on the pill / arrow also opens it
+    box.addEventListener('click', function (ev) {
+        if (isPhone() && (ev.target === box || ev.target.closest('.chev') || ev.target.closest('.ic'))) {   // only the phone has the drop-down
             box.classList.toggle('open');
         }
     });
-    document.addEventListener('click', function (ev) { // tap outside = close
-        if (!box.contains(ev.target)) { box.classList.remove('open'); }
+
+    // tap outside = close
+    document.addEventListener('click', function (ev) {
+        if (!box.contains(ev.target)) {
+            box.classList.remove('open');
+        }
     });
 })();

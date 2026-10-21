@@ -4,7 +4,8 @@
    The @media (min-width: 900px) part at the bottom is for PC.
    ========================================================== */
 
-/* ---------- 1. Basics (colors, buttons, focus ring: base.css) ---------- */
+/* ===== 1. Basics ===== */
+/* Body, list reset, icon size (colors, buttons, focus ring: base.css). */
 body {
     font-family: var(--font);   /* English = Poppins, Bangla = Hind Siliguri */
     color: var(--text);
@@ -15,104 +16,233 @@ ul { list-style: none; }
 
 .ic { width: 22px; height: 22px; }
 
-/* ---------- 2. Page + background photo ---------- */
+/* ===== 2. Page + background photo ===== */
+/* One full phone screen with the city photo behind it. */
 .page {
-    position: relative; isolation: isolate; overflow: hidden;
-    min-height: 100vh; min-height: 100dvh;          /* exactly one phone screen */
-    display: flex; flex-direction: column;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;   /* exactly one phone screen */
+    display: flex;
+    flex-direction: column;
     padding: 14px 18px calc(18px + env(safe-area-inset-bottom));
 }
 
 .bg {
-    position: absolute; inset: auto 0 0 0; height: 114%; z-index: -1;           /* 114% = box goes above the page, so the photo moves UP (change 114% for more/less) */
-    background: url('../images/welcome-bg-phone.jpg') 50% 100% / cover no-repeat;   /* phone photo (tall), bottom aligned */
-    filter: blur(.5px); transform: scale(1.01);      /* phone: very light blur */
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 114%;
+    z-index: -1;   /* 114% = box goes above the page, so the photo moves UP (change 114% for more/less) */
+    /* phone photo (tall), bottom aligned */
+    background: url('../images/welcome-bg-phone.jpg') 50% 100% / cover no-repeat;
+    filter: blur(.5px);
+    transform: scale(1.01);   /* phone: very light blur */
 }
 /* Phone: white haze on top (easy to read the headline) and a light wash at the bottom */
 .bg::after {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(180deg,
-        rgba(255,255,255,.72) 0%, rgba(255,255,255,.55) 38%,
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.72) 0%, rgba(255,255,255,.55) 38%,
         rgba(255,255,255,0) 58%, rgba(255,255,255,.35) 100%);
 }
 
-/* ---------- 3. Language buttons ---------- */
+/* ===== 3. Language buttons ===== */
+/* The বাংলা / English switch of the welcome page. */
+
 .lang-switch {
-    position: relative; z-index: 5; align-self: flex-end;
-    display: flex; align-items: center; gap: 2px;
-    padding: 4px 4px 4px 12px; border-radius: 999px;
-    background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.14);
+    position: relative;
+    z-index: 5;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 4px 4px 12px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(0,0,0,.14);
 }
-.lang-switch .ic { width: 20px; height: 20px; margin-right: 4px; color: var(--green); }
+.lang-switch .ic {
+    width: 20px;
+    height: 20px;
+    margin-right: 4px;
+    color: var(--green);
+}
 .lang-switch button {
-    border: 0; background: transparent; cursor: pointer;
-    padding: 6px 14px; border-radius: 999px;
-    font: 600 .95rem var(--font); color: #14312a;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font: 600 var(--fs-md) var(--font);
+    color: #14312a;
     transition: background .2s, color .2s;
 }
 .lang-switch button[aria-pressed="true"] { background: var(--green); color: #fff; }
 
-/* ---------- 4. Layout (phone = one column: hero, coupon, buttons) ---------- */
+/* ===== 4. Layout ===== */
+/* Phone = one column: hero, coupon, buttons. */
 .layout {
-    flex: 1; width: 100%; max-width: 520px; margin: 0 auto;
-    display: flex; flex-direction: column; justify-content: flex-end;     /* coupon + services + buttons sit at the bottom */
-    gap: 12px; padding-top: 6px;
+    flex: 1;
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;   /* coupon + services + buttons sit at the bottom */
+    gap: 12px;
+    padding-top: 6px;
 }
-.hero { margin-bottom: auto; }                                           /* pushes everything else down */
-.info { display: flex; flex-direction: column; gap: 10px; width: 94%; margin: 0 auto; }   /* a bit smaller than full width */
+.hero { margin-bottom: auto; }   /* pushes everything else down */
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 94%;
+    margin: 0 auto;
+}   /* a bit smaller than full width */
 
-/* ---------- 5. Hero ---------- */
-.logo { display: block; width: clamp(170px, 52vw, 250px); }
-.tagline { margin-top: 2px; font-size: .74rem; font-weight: 600; color: #3b423f; }
+/* ===== 5. Hero ===== */
+/* Tagline, big headline, green line and subtitle. */
+.tagline {
+    margin-top: 2px;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: #3b423f;
+}
 
-h1 { margin-top: clamp(10px, 2.2vh, 20px); font-size: clamp(1.55rem, 6.8vw, 2.15rem); line-height: 1.28; font-weight: 700; }
+h1 {
+    margin-top: clamp(10px, calc(2.2 * var(--dvh)), 20px);
+    font-size: clamp(1.55rem, calc(6.8 * var(--dvw)), 2.15rem);
+    line-height: 1.28;
+    font-weight: 700;
+}
 h1 span { display: block; }
 h1 .green { color: var(--green); }
 
-.rule { width: 60px; height: 2px; border: 0; background: var(--green); margin: clamp(8px, 1.6vh, 14px) 0; }
-.subtitle { max-width: 22em; font-size: .95rem; line-height: 1.5; font-weight: 500; color: var(--muted); }
-
-/* ---------- 6. Coupon banner (image) ---------- */
-.promo {
-    width: 100%; margin: 0 auto; overflow: hidden; line-height: 0;
-    border-radius: 22px; box-shadow: 0 10px 26px rgba(10,70,48,.18);
+.rule {
+    width: 60px;
+    height: 2px;
+    border: 0;
+    background: var(--green);
+    margin: clamp(8px, calc(1.6 * var(--dvh)), 14px) 0;
 }
-.promo img { display: block; width: 100%; height: auto; aspect-ratio: 600 / 225; object-fit: cover; }   /* admin picture is always 600 x 225 */
+.subtitle {
+    max-width: 22em;
+    font-size: var(--fs-md);
+    line-height: 1.5;
+    font-weight: 500;
+    color: var(--muted);
+}
 
-/* ---------- 6c. Phone language dropdown (looks like:  🌐 বাংলা ⌄ ) ---------- */
+/* ===== 6. Coupon banner ===== */
+/* The welcome coupon picture set by the admin. */
+.promo {
+    width: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+    line-height: 0;
+    border-radius: 22px;
+    box-shadow: 0 10px 26px rgba(10,70,48,.18);
+}
+.promo img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 600 / 225;
+    object-fit: cover;
+}   /* admin picture is always 600 x 225 */
+
+/* ===== 6c. Phone language dropdown ===== */
+/* Looks like:  🌐 বাংলা ⌄  - tap to open the other language. */
 .lang-switch { cursor: pointer; padding: 6px 10px 6px 12px; gap: 0; }
-.lang-switch button { display: none; padding: 2px 6px; font-weight: 500; color: #1d1d1d; }
+.lang-switch button {
+    display: none;
+    padding: 2px 6px;
+    font-weight: 500;
+    color: #1d1d1d;
+}
 .lang-switch button[aria-pressed="true"] { display: block; background: transparent; color: #1d1d1d; }
-.lang-switch .chev { width: 18px; height: 18px; margin: 0 0 0 2px; color: #333; transition: transform .2s; }
+.lang-switch .chev {
+    width: 18px;
+    height: 18px;
+    margin: 0 0 0 2px;
+    color: #333;
+    transition: transform .2s;
+}
 .lang-switch.open .chev { transform: rotate(180deg); }
 .lang-switch.open button[aria-pressed="false"] {
-    display: block; position: absolute; top: calc(100% + 6px); left: 0; right: 0; text-align: center;
-    padding: 9px 12px; border-radius: 16px; background: #fff; box-shadow: 0 6px 16px rgba(0,0,0,.16);
+    display: block;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 9px 12px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 6px 16px rgba(0,0,0,.16);
 }
 
-/* ---------- 7. Service icons ---------- */
+/* ===== 7. Service icons ===== */
+/* Five coloured service tiles under the coupon. */
 .services {
-    display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; justify-items: center; align-items: start;
-    width: 100%; margin: 0 auto; padding: 9px 4px; border-radius: 20px; background: #fff;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    justify-items: center;
+    align-items: start;
+    width: 100%;
+    margin: 0 auto;
+    padding: 9px 4px;
+    border-radius: 20px;
+    background: #fff;
     box-shadow: 0 10px 26px rgba(20,60,50,.14);
 }
-.services li { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
-.tile { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; }
+.services li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+}
+.tile {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+}
 .tile img { width: 27px; height: 27px; }
-.tile-mint  { background: #d6f5e3; }
-.tile-sky   { background: #d9eefc; }
-.tile-sand  { background: #fdecc9; }
-.tile-rose  { background: #fde0e4; }
+.tile-mint { background: #d6f5e3; }
+.tile-sky { background: #d9eefc; }
+.tile-sand { background: #fdecc9; }
+.tile-rose { background: #fde0e4; }
 .tile-lilac { background: #e7e2fb; }
-.label { font-size: .62rem; line-height: 1.2; font-weight: 600; color: #222; }
+.label {
+    font-size: var(--fs-2xs);
+    line-height: 1.2;
+    font-weight: 600;
+    color: #222;
+}
 
-/* ---------- 8. Buttons ---------- */
+/* ===== 8. Buttons ===== */
+/* Login (filled) and register (outline) buttons. */
 .actions { display: flex; flex-direction: column; gap: 10px; }
 
 .btn {
-    position: relative; display: flex; align-items: center; justify-content: center; gap: 12px;
-    height: 52px; padding: 0 44px; border-radius: 14px;
-    font-size: 1.08rem; font-weight: 600; transition: background .2s, transform .1s;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    height: 52px;
+    padding: 0 44px;
+    border-radius: 14px;
+    font-size: var(--fs-base);
+    font-weight: 600;
+    transition: background .2s, transform .1s;
 }
 .btn .arrow { position: absolute; right: 18px; }
 .btn:active { transform: scale(.98); }
@@ -123,64 +253,99 @@ h1 .green { color: var(--green); }
 .btn-outline { background: rgba(255,255,255,.94); color: var(--green); border: 1.5px solid var(--green); }
 .btn-outline:hover { background: #eaf6ef; }
 
-/* ---------- 9. Short phones (iPhone SE and similar) ---------- */
+/* ===== 9. Short phones ===== */
+/* iPhone SE and similar: smaller text and buttons. */
 @media (max-height: 740px) and (max-width: 899px) {
     .page { padding-top: 10px; }
-    .logo { width: 150px; }
-    .tagline { font-size: .66rem; }
-    h1 { font-size: 1.45rem; margin-top: 8px; }
-    .subtitle { font-size: .84rem; }
+    .tagline { font-size: var(--fs-2xs); }
+    h1 { font-size: var(--fs-xl); margin-top: 8px; }
+    .subtitle { font-size: var(--fs-sm); }
     .tile { width: 44px; height: 44px; }
     .tile img { width: 26px; height: 26px; }
-    .btn { height: 46px; font-size: 1rem; }
+    .btn { height: 46px; font-size: var(--fs-base); }
 }
 
-/* ==========================================================
-   PC / Laptop  (screen 900px or wider)
-   Two columns: text on the left, coupon + services on the right
-   Sizes are 90% of the old design, and the whole block is centered
-   (horizontally + vertically) on the screen.
-   ========================================================== */
+/* ===== 10. PC / Laptop ===== */
+/* Screen 900px or wider. Two columns: text on the left, coupon + services on the right.
+   Sizes are 90% of the old design, and the whole block is centered (horizontally + vertically). */
 @media (min-width: 900px) {
     .lang-switch { cursor: default; padding: 4px 4px 4px 12px; gap: 2px; }
-    .lang-switch button, .lang-switch button[aria-pressed="false"] { display: block; padding: 6px 14px; font-weight: 600; color: #14312a; }
+    .lang-switch button, .lang-switch button[aria-pressed="false"] {
+        display: block;
+        padding: 6px 14px;
+        font-weight: 600;
+        color: #14312a;
+    }
     .lang-switch button[aria-pressed="true"] { background: var(--green); color: #fff; }
     .lang-switch .chev { display: none; }
-    .page { padding: 30px 54px; justify-content: center; }          /* justify-content:center = vertical middle */
-    .bg   { inset: 0; height: auto; background-image: url('../images/welcome-bg-pc.jpg'); background-position: 50% 30%; filter: blur(1.5px); transform: scale(1.03); }   /* PC photo (wide) */
+    .page { padding: 40px 54px 30px; justify-content: center; }   /* justify-content:center = vertical middle */
+    .bg {
+        inset: 0;
+        height: auto;
+        background-image: url('../images/welcome-bg-pc.jpg');
+        background-position: 50% 30%;
+        filter: blur(1.5px);
+        transform: scale(1.03);
+    }   /* PC photo (wide) */
     /* soft white haze on the left so the text is easy to read */
-    .bg::after { background: linear-gradient(90deg, rgba(255,255,255,.94) 0%, rgba(255,255,255,.82) 32%, rgba(255,255,255,0) 58%); }
+    .bg::after {
+        background: linear-gradient(90deg, rgba(255,255,255,.94) 0%, rgba(255,255,255,.82) 32%,
+            rgba(255,255,255,0) 58%);
+    }
 
-    .lang-switch { position: absolute; top: 27px; right: 45px; }
     .lang-switch .ic { width: 18px; height: 18px; }
-    .lang-switch button { font-size: .92rem; padding: 6px 16px; }
+    .lang-switch button { font-size: var(--fs-md); padding: 6px 16px; }
 
     .layout {
-        flex: none; max-width: 1188px; margin: 0 auto;              /* margin auto = horizontal middle */
-        display: grid; align-items: start;
+        flex: none;
+        max-width: 1188px;
+        margin: 0 auto;   /* margin auto = horizontal middle */
+        display: grid;
+        align-items: start;
         grid-template-columns: minmax(0, 486px) minmax(0, 1fr);
         grid-template-areas: "hero info" "actions info";
-        column-gap: clamp(36px, 6.3vw, 99px); row-gap: 0; padding-top: 0;
+        column-gap: clamp(36px, calc(6.3 * var(--dvw)), 99px);
+        row-gap: 0;
+        padding-top: 0;
     }
-    .hero    { grid-area: hero; margin-bottom: 0; }
+    .hero { grid-area: hero; margin-bottom: 0; }
     .actions { grid-area: actions; margin-top: 27px; gap: 13px; }
-    .info    { grid-area: info; align-self: end; width: 100%; max-width: 675px; margin: 0 auto; gap: 14px; }   /* bottom of this box = bottom of the login button */
+    .info {
+        grid-area: info;
+        align-self: end;
+        width: 100%;
+        max-width: 675px;
+        margin: 0 auto;
+        gap: 14px;
+    }   /* bottom of this box = bottom of the login button */
 
-    .logo { width: 333px; }
-    .tagline { margin-top: 5px; font-size: .95rem; }
-    h1 { margin-top: 27px; font-size: clamp(1.98rem, 3.15vw, 2.88rem); }
+    .tagline { margin-top: 5px; font-size: var(--fs-md); }
+    h1 { margin-top: 27px; font-size: clamp(1.98rem, calc(3.15 * var(--dvw)), 2.88rem); }
     .rule { margin: 18px 0; }
-    .subtitle { font-size: 1.17rem; }
+    .subtitle { font-size: var(--fs-lg); }
 
     .services { padding: 22px 18px; gap: 13px; border-radius: 20px; }
     .tile { width: 65px; height: 65px; border-radius: 18px; }
     .tile img { width: 38px; height: 38px; }
-    .label { font-size: .86rem; }
+    .label { font-size: var(--fs-sm); }
 
-    .btn { height: 54px; font-size: 1.125rem; gap: 11px; }
+    .btn { height: 54px; font-size: var(--fs-lg); gap: 11px; }
     .btn .ic { width: 20px; height: 20px; }
     .btn .arrow { right: 16px; }
 }
 
+/* ===== 11. Logo and corner language buttons ===== */
+/* PC coupon width, the logo in the hero and the language buttons in the top right corner. */
 /* PC: the welcome coupon picture is shown 600 x 225 wide (a bigger upload of the same shape is scaled down) */
-@media (min-width: 900px) { .promo { max-width: 600px; } }
+@media (min-width: 900px) {
+    .promo { max-width: 600px; }
+}
+
+/* language buttons: top right corner (the top bar is gone; contact + links are in the footer) */
+.page > .lang-switch { position: absolute; top: 12px; right: 14px; }
+.hero-logo { display: inline-block; }
+.hero-logo img { display: block; width: 130px; }
+@media (min-width: 900px) {
+    .page > .lang-switch { top: 20px; right: 28px; }
+    .hero-logo img { width: 190px; margin-bottom: 6px; }
+}

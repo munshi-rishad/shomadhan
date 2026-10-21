@@ -1,14 +1,21 @@
 <?php
-// app/views/auth/forgot.php - Forgot password (3 steps: email -> OTP -> new password)
+// app/views/auth/forgot.php - forgot-password.php
+// Forgot password in 3 steps: email -> 6-digit code (OTP) sent by email -> new password.
+// Rendered by PasswordController. Gets: $t, $lang, $step ('email' | 'otp' | 'new'), $errors, $notice, $old,
+// $masked (the email with letters hidden, shown on the OTP step).
+// form-check.js checks the fields in the browser (data-rule / data-msg); the server checks them again.
+
+// ---- Helpers for this view ----
+// $err('email') -> red error line under a field (hidden when empty), $inv('email') -> red border
 $err = function ($key) use ($errors) {
     $m = $errors[$key] ?? '';
     return '<p class="error-text" id="err-' . e($key) . '" role="alert"' . ($m === '' ? ' hidden' : '') . '>' . e($m) . '</p>';
 };
 $inv = function ($key) use ($errors) { return !empty($errors[$key]) ? ' invalid' : ''; };
+// Icons used more than once
 $lock = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
-$eyes = '<svg class="ic eye-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 6.2A9.8 9.8 0 0 1 12 6c5 0 8.5 4 9.5 6a14 14 0 0 1-2.9 3.7M6.6 7.6A14 14 0 0 0 2.5 12c1 2 4.5 6 9.5 6 1.6 0 3-.4 4.3-1M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>'
-      . '<svg class="ic eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12C3.5 10 7 6 12 6s8.5 4 9.5 6c-1 2-4.5 6-9.5 6s-8.5-4-9.5-6z"/><circle cx="12" cy="12" r="3"/></svg>';
 $arrow = '<svg class="ic arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>';
+// Text under the title: what to do on this step
 $sub = $step === 'otp' ? sprintf($t['fp_sub_otp'], $masked) : ($step === 'new' ? $t['fp_sub_new'] : $t['fp_sub_email']);
 ?>
 <!DOCTYPE html>
@@ -22,21 +29,13 @@ $sub = $step === 'otp' ? sprintf($t['fp_sub_otp'], $masked) : ($step === 'new' ?
     <div class="bg" aria-hidden="true"></div>
 
     <main class="auth">
-        <section class="intro">
-            <a class="back" href="login.php" aria-label="<?= e($t['login_back']) ?>"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg><span class="back-txt"><?= e($t['login_back']) ?></span></a>
-            <div class="brand">
-                <img class="logo" src="<?= e(asset('assets/images/logo.png')) ?>" alt="Shomadhan">
-                <p class="tagline"><?= e($t['tagline']) ?></p>
-            </div>
-            <img class="illus-m" src="<?= e(asset('assets/images/login-illustration.svg')) ?>" alt="">
-            <p class="intro-sub"><?= e($t['fp_h1_a']) ?><br><?= e($t['fp_h1_b']) ?></p>
-
-            <h1 class="pc-h1"><span><?= e($t['fp_h1_a']) ?></span><span class="green"><?= e($t['fp_h1_b']) ?></span></h1>
-            <div class="pc-extra">
-                <?php view('partials/features', ['t' => $t]); ?>
-                <img class="illus-pc" src="<?= e(asset('assets/images/login-illustration.svg')) ?>" alt="">
-            </div>
-        </section>
+        <?php view('partials/auth-intro', [
+            't'     => $t,
+            'back'  => 'login.php',
+            'illus' => 'login',
+            'sub'   => [$t['fp_h1_a'], $t['fp_h1_b']],
+            'h1'    => [$t['fp_h1_a'], $t['fp_h1_b']],
+        ]); ?>
 
         <section class="card">
             <div class="card-head">
@@ -44,6 +43,7 @@ $sub = $step === 'otp' ? sprintf($t['fp_sub_otp'], $masked) : ($step === 'new' ?
                 <p><?= e($sub) ?></p>
             </div>
 
+            <?php /* ---- Step dots 1 2 3 ---- */ ?>
             <ol class="steps" aria-hidden="true">
                 <li class="<?= $step === 'email' ? 'on' : 'done' ?>">1</li>
                 <li class="<?= $step === 'otp' ? 'on' : ($step === 'new' ? 'done' : '') ?>">2</li>
@@ -56,7 +56,7 @@ $sub = $step === 'otp' ? sprintf($t['fp_sub_otp'], $masked) : ($step === 'new' ?
                 <?php if (!empty($errors['form'])): ?><p class="alert alert-error" role="alert"><?= e($errors['form']) ?></p><?php endif; ?>
                 <?php if ($notice !== ''): ?><p class="alert alert-ok" role="status"><?= e($notice) ?></p><?php endif; ?>
 
-                <?php if ($step === 'email'): ?>
+                <?php if ($step === 'email'): /* ---- Step 1: email of the account ---- */ ?>
                     <input type="hidden" name="action" value="email">
                     <div class="field">
                         <label for="email"><?= e($t['label_email']) ?></label>
@@ -70,7 +70,7 @@ $sub = $step === 'otp' ? sprintf($t['fp_sub_otp'], $masked) : ($step === 'new' ?
                     <p class="hint"><?= e($t['fp_no_email_note']) ?></p>
                     <button class="btn-submit" type="submit"><span><?= e($t['btn_next']) ?></span><?= $arrow ?></button>
 
-                <?php elseif ($step === 'otp'): ?>
+                <?php elseif ($step === 'otp'): /* ---- Step 2: the code from the email (resend / change email) ---- */ ?>
                     <input type="hidden" name="action" value="otp">
                     <div class="field">
                         <label for="otp"><?= e($t['label_otp']) ?></label>
@@ -87,7 +87,7 @@ $sub = $step === 'otp' ? sprintf($t['fp_sub_otp'], $masked) : ($step === 'new' ?
                         <a class="link" href="forgot-password.php?restart=1"><?= e($t['fp_change_email']) ?></a>
                     </div>
 
-                <?php else: ?>
+                <?php else: /* ---- Step 3: new password twice ---- */ ?>
                     <input type="hidden" name="action" value="new">
                     <?php foreach (['new' => ['cp_new', 'ph_password'], 'again' => ['cp_again', 'cp_ph_again']] as $name => $f): ?>
                     <div class="field">
@@ -96,7 +96,7 @@ $sub = $step === 'otp' ? sprintf($t['fp_sub_otp'], $masked) : ($step === 'new' ?
                             <?= $lock ?>
                             <input id="<?= $name ?>" name="<?= $name ?>" type="password" autocomplete="new-password" maxlength="128" placeholder="<?= e($t[$f[1]]) ?>" required
                                    data-rule="<?= $name === 'new' ? 'password' : 'same:new' ?>" data-msg="<?= e($name === 'new' ? $t['err_password_rule'] : $t['cp_err_again']) ?>">
-                            <button type="button" class="toggle" aria-pressed="false" aria-label="<?= e($t['show_password']) ?>"><?= $eyes ?></button>
+                            <button type="button" class="toggle" aria-pressed="false" aria-label="<?= e($t['show_password']) ?>"><?php view('partials/eye-icons'); ?></button>
                         </div>
                         <?= $err($name) ?>
                     </div>

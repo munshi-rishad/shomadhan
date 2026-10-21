@@ -1,40 +1,68 @@
 <?php
 // app/models/AdminListModel.php
-// MODEL for the admin lists (users, employees, admins, service providers, products) with search, sort and pages.
-// Only the columns below can be searched or sorted (safe: user input never goes into the SQL as a column name).
-// Passwords are never selected.
+// MODEL for the admin lists (users, employees, admins, service providers, products) with search, sort, filters and pages.
+// Used by the admin panel list pages (app/views/admin/list.php).
+// Only the columns listed in kinds() can be searched, sorted or filtered: user input picks a key from these lists
+// and never goes into the SQL as a column name. Passwords are never selected.
 
 class AdminListModel
 {
     const PER_PAGE = 25;
 
-    // kind => [FROM part, columns to select, columns searched, sort key => SQL column, filters]
-    //   'role' = staff of this role only, 'soft' = has deleted_at (deleted rows only when the status filter says "deleted")
+    // Sorting by these puts empty values (not popular / never logged in / no admin) last in both directions
+    const EMPTY_LAST = ['popular_rank', 'last_login_at', 'created_by'];
+
+    // ---- What each list reads from the database
+    // kind => [
+    //   'from'    => FROM part (tables + joins),
+    //   'select'  => columns to select,
+    //   'search'  => columns the search box looks in,
+    //   'sort'    => sort key => SQL column,
+    //   'filters' => filter key => SQL column,
+    //   'role'    => staff of this role only (staff lists),
+    //   'soft'    => table has deleted_at (deleted rows only show when the status filter says "deleted"),
+    // ]
     private static function kinds($lang)
     {
         $n = $lang === 'en' ? 'en' : 'bn';
-        // people lists: users table, or staff table of one role. Staff also show which admin added them ("cb")
+
+        // People lists: the users table, or the staff table for one role.
+        // Staff rows also show which admin added them ("cb" join).
         $people = function ($table, $role, $extra = []) {
             $byAdmin = $table === 'staff';
-            $sort = ['id' => 't.id', 'name' => 't.name', 'mobile' => 't.mobile', 'email' => 't.email'] + $extra
+            $hasArea = isset($extra['area']);
+
+            $sort = ['id' => 't.id', 'name' => 't.name', 'mobile' => 't.mobile', 'email' => 't.email']
+                  + $extra
                   + ['status' => 't.status', 'created_at' => 't.created_at', 'last_login_at' => 't.last_login_at']
                   + ($byAdmin ? ['created_by' => 'cb.name'] : []);
-            $select = ['t.deleted_at', 't.photo', 'db.name AS deleted_by'] + ($byAdmin ? [3 => 'cb.deleted_at AS created_by_gone'] : []);
-            foreach ($sort as $key => $col) { $select[] = $col . ' AS ' . $key; }
+
+            $select = ['t.deleted_at', 't.photo', 'db.name AS deleted_by']
+                    + ($byAdmin ? [3 => 'cb.deleted_at AS created_by_gone'] : []);
+            foreach ($sort as $key => $col) {
+                $select[] = $col . ' AS ' . $key;
+            }
+
+            $from = $table . ' t LEFT JOIN staff db ON db.id = t.deleted_by'
+                  . ($byAdmin ? ' LEFT JOIN staff cb ON cb.id = t.created_by' : '');
+
             return [
-                'from'    => $table . ' t LEFT JOIN staff db ON db.id = t.deleted_by' . ($byAdmin ? ' LEFT JOIN staff cb ON cb.id = t.created_by' : ''),
+                'from'    => $from,
                 'role'    => $role,
                 'soft'    => true,
                 'select'  => implode(', ', $select),
-                'search'  => ['t.name', 't.mobile', 't.email'] + (isset($extra['area']) ? [3 => 't.area'] : []),
+                'search'  => ['t.name', 't.mobile', 't.email'] + ($hasArea ? [3 => 't.area'] : []),
                 'sort'    => $sort,
-                'filters' => ['status' => 't.status'] + (isset($extra['area']) ? ['gender' => 't.gender', 'area' => 't.area'] : []),
+                'filters' => ['status' => 't.status'] + ($hasArea ? ['gender' => 't.gender', 'area' => 't.area'] : []),
             ];
         };
+
+        $personExtra = ['area' => 't.area', 'gender' => 't.gender'];
+
         return [
-            'users'     => $people('users', null, ['area' => 't.area', 'gender' => 't.gender']),
-            'employees' => $people('staff', 'employee', ['area' => 't.area', 'gender' => 't.gender']),
-            'admins'    => $people('staff', 'admin', ['area' => 't.area', 'gender' => 't.gender']),
+            'users'     => $people('users', null, $personExtra),
+            'employees' => $people('staff', 'employee', $personExtra),
+            'admins'    => $people('staff', 'admin', $personExtra),
             'providers' => [
                 'from'   => 'providers t JOIN services s ON s.id = t.service_id LEFT JOIN staff db ON db.id = t.deleted_by LEFT JOIN staff cb ON cb.id = t.created_by',
                 'soft'   => true,
@@ -42,8 +70,9 @@ class AdminListModel
                              s.name_' . $n . ' AS service, db.name AS deleted_by, cb.name AS created_by, cb.deleted_at AS created_by_gone',
                 'search' => ['t.name', 't.mobile', 't.email', 't.area', 't.address', 's.name_bn', 's.name_en'],
                 'sort'   => [
-                    'id' => 't.id', 'name' => 't.name', 'mobile' => 't.mobile', 'email' => 't.email', 'service' => 's.name_' . $n, 'age' => 't.age',
-                    'gender' => 't.gender', 'area' => 't.area', 'status' => 't.status', 'created_at' => 't.created_at', 'created_by' => 'cb.name',
+                    'id' => 't.id', 'name' => 't.name', 'mobile' => 't.mobile', 'email' => 't.email',
+                    'service' => 's.name_' . $n, 'age' => 't.age', 'gender' => 't.gender', 'area' => 't.area',
+                    'status' => 't.status', 'created_at' => 't.created_at', 'created_by' => 'cb.name',
                 ],
                 'filters' => ['status' => 't.status', 'service' => 't.service_id', 'gender' => 't.gender', 'area' => 't.area'],
             ],
@@ -56,69 +85,96 @@ class AdminListModel
                 'search' => ['x.name_bn', 'x.name_en', 's.name_bn', 's.name_en'],
                 'sort'   => [
                     'id' => 'x.id', 'name' => 'x.name_' . $n, 'service' => 's.name_' . $n, 'price' => 'x.price',
-                    'rating' => 'x.rating', 'popular_rank' => 'x.popular_rank', 'providers' => 'providers', 'is_active' => 'x.is_active', 'created_at' => 'x.created_at',
+                    'rating' => 'x.rating', 'popular_rank' => 'x.popular_rank', 'providers' => 'providers',
+                    'is_active' => 'x.is_active', 'created_at' => 'x.created_at',
                 ],
                 'filters' => ['service' => 'x.service_id', 'shown' => 'x.is_active'],
             ],
         ];
     }
 
+    // ---- Column keys the list can be sorted by (the clickable table headers)
     public static function sortKeys($kind, $lang)
     {
         return array_keys(self::kinds($lang)[$kind]['sort']);
     }
 
-    // filter dropdowns this list has (e.g. users: status, gender, area)
+    // ---- Filter dropdowns this list has (e.g. users: status, gender, area)
     public static function filterKeys($kind)
     {
         return array_keys(self::kinds('bn')[$kind]['filters']);
     }
 
-    // returns [rows, total, page, pages, sort, dir]. $filters: ['status' => 'inactive', ...] ('' = all)
+    // Adds one condition to a WHERE part ("WHERE" the first time, "AND" after that)
+    private static function addWhere(&$where, $condition)
+    {
+        $where .= ($where === '' ? ' WHERE ' : ' AND ') . $condition;
+    }
+
+    // ---- One page of a list
+    // Returns [rows, total, page, pages, sort, dir]. $filters: ['status' => 'inactive', ...] ('' = all).
+    // Unknown sort keys fall back to id; the default order is id low -> high.
     public static function find($kind, $lang, $q, $sort, $dir, $page, array $filters = [])
     {
-        $k = self::kinds($lang)[$kind];
-        $sort = isset($k['sort'][$sort]) ? $sort : 'id';
-        $dir  = $dir === 'desc' ? 'desc' : 'asc';      // default: id low -> high
+        $list = self::kinds($lang)[$kind];
+        $sort = is_string($sort) && isset($list['sort'][$sort]) ? $sort : 'id';
+        $dir  = $dir === 'desc' ? 'desc' : 'asc';
 
         $where = '';
         $args  = [];
+
+        // Search box: any of the search columns contains the text
         $q = trim((string)$q);
         if ($q !== '') {
-            $like = '%' . addcslashes($q, '%_\\') . '%';
-            $where = ' WHERE (' . implode(' OR ', array_map(function ($c) { return $c . ' LIKE ?'; }, $k['search'])) . ')';
-            $args = array_fill(0, count($k['search']), $like);
+            $like  = '%' . addcslashes($q, '%_\\') . '%';
+            $likes = array_map(function ($col) { return $col . ' LIKE ?'; }, $list['search']);
+            self::addWhere($where, '(' . implode(' OR ', $likes) . ')');
+            $args = array_fill(0, count($list['search']), $like);
         }
 
-        if (!empty($k['role'])) {                           // staff of this role
-            $where .= ($where === '' ? ' WHERE ' : ' AND ') . 't.role = ?';
-            $args[] = $k['role'];
+        // Staff lists: only this role
+        if (!empty($list['role'])) {
+            self::addWhere($where, 't.role = ?');
+            $args[] = $list['role'];
         }
-        if (!empty($k['soft'])) {                           // deleted ones only when the status filter says "deleted"
-            $where .= ($where === '' ? ' WHERE ' : ' AND ') . 't.deleted_at IS ' . (($filters['status'] ?? '') === 'deleted' ? 'NOT NULL' : 'NULL');
+
+        // Soft-deleted rows only when the status filter says "deleted", otherwise only live rows
+        $showDeleted = ($filters['status'] ?? '') === 'deleted';
+        if (!empty($list['soft'])) {
+            self::addWhere($where, 't.deleted_at IS ' . ($showDeleted ? 'NOT NULL' : 'NULL'));
         }
-        foreach ($k['filters'] as $key => $col) {           // only known filters, value goes in as a ? parameter
-            $v = (string)($filters[$key] ?? '');
-            if ($key === 'status' && $v === 'deleted') { continue; }
-            if ($v !== '') {
-                $where .= ($where === '' ? ' WHERE ' : ' AND ') . $col . ' = ?';
-                $args[] = $v;
+
+        // Filter dropdowns: only known keys, the value always goes in as a ? parameter
+        foreach ($list['filters'] as $key => $col) {
+            $value = (string)($filters[$key] ?? '');
+            if ($key === 'status' && $value === 'deleted') {
+                continue;       // already handled above
+            }
+            if ($value !== '') {
+                self::addWhere($where, $col . ' = ?');
+                $args[] = $value;
             }
         }
 
+        // Count first, so a page number past the end can be pulled back to the last page
         $db = Database::get();
-        $st = $db->prepare('SELECT COUNT(*) FROM ' . $k['from'] . $where);
+        $st = $db->prepare('SELECT COUNT(*) FROM ' . $list['from'] . $where);
         $st->execute($args);
         $total = (int)$st->fetchColumn();
         $pages = max(1, (int)ceil($total / self::PER_PAGE));
         $page  = min(max(1, (int)$page), $pages);
 
-        $col = $k['sort'][$sort];
-        $order = in_array($sort, ['popular_rank', 'last_login_at', 'created_by'], true)   // empty (not popular / never logged in / no admin) always goes last
+        // ORDER BY: chosen column (empty ones last for some), then id so equal values keep a fixed order
+        $col   = $list['sort'][$sort];
+        $order = in_array($sort, self::EMPTY_LAST, true)
             ? $col . ' IS NULL, ' . $col . ' ' . $dir
             : $col . ' ' . $dir;
-        $sql = 'SELECT ' . $k['select'] . ' FROM ' . $k['from'] . $where
-             . ' ORDER BY ' . $order . ($sort === 'id' ? '' : ', ' . $k['sort']['id'] . ' ASC')
+        if ($sort !== 'id') {
+            $order .= ', ' . $list['sort']['id'] . ' ASC';
+        }
+
+        $sql = 'SELECT ' . $list['select'] . ' FROM ' . $list['from'] . $where
+             . ' ORDER BY ' . $order
              . ' LIMIT ' . self::PER_PAGE . ' OFFSET ' . (($page - 1) * self::PER_PAGE);
         $st = $db->prepare($sql);
         $st->execute($args);

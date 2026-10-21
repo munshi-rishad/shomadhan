@@ -1,7 +1,13 @@
-<?php // app/views/admin/offers.php - latest offers: every user sees them under the bell icon. Add, edit (title, text, picture), show / hide, delete ?>
+<?php
+// app/views/admin/offers.php - ?page=offers
+// Latest offers: every user sees them under the bell icon. Add, edit (title, text, picture), show / hide, delete.
+// Shown inside admin/layout.php (AdminController). Gets: $offers, $edit (row or null)
+// + the layout's $t, $base, $canEdit, $err, $val, $hidden. View-only staff see just the list.
+?>
 <h1 class="adm-h1"><?= e($t['adm_menu_offers']) ?></h1>
 <p class="adm-sub"><?= e($t[$canEdit ? 'adm_offers_sub' : 'emp_offers_sub']) ?></p>
 
+<?php /* ---- Add / edit form (only for those who may change this page) ---- */ ?>
 <?php if ($canEdit): ?>
 <?php $o = $edit ?: []; $isEdit = (bool)$edit; ?>
 <form class="card form-grid" method="post" enctype="multipart/form-data" action="<?= e($base) ?>?page=offers<?= $isEdit ? '&edit=' . (int)$o['id'] : '' ?>"<?= $isEdit ? ' data-confirm-changes data-confirm-title="' . e($t['adm_offer_edit']) . '"' : '' ?>>
@@ -27,6 +33,7 @@
 </form>
 <?php endif; ?>
 
+<?php /* ---- All offers ---- */ ?>
 <div class="card">
     <h2><?= e($t['adm_all_offers']) ?></h2>
     <?php if (!$offers): ?><p class="empty"><?= e($t['adm_none']) ?></p><?php else: ?>
@@ -44,15 +51,11 @@
                 <td class="cell-acts"><div class="acts">
                     <a class="btn btn-small btn-ghost" href="<?= e($base) ?>?page=offers&edit=<?= (int)$n['id'] ?>"><?= e($t['adm_edit']) ?></a>
                     <form method="post" action="<?= e($base) ?>?page=offers">
-                        <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
-                        <input type="hidden" name="action" value="toggle">
-                        <input type="hidden" name="id" value="<?= (int)$n['id'] ?>">
+                        <?= $hidden('toggle', $n['id']) ?>
                         <button class="btn btn-small btn-ghost" type="submit"><?= e($n['is_active'] ? $t['adm_hide'] : $t['adm_show']) ?></button>
                     </form>
                     <form method="post" action="<?= e($base) ?>?page=offers" data-confirm-danger data-confirm="<?= e($t['adm_confirm_delete']) ?>">
-                        <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
-                        <input type="hidden" name="action" value="delete">
-                        <input type="hidden" name="id" value="<?= (int)$n['id'] ?>">
+                        <?= $hidden('delete', $n['id']) ?>
                         <button class="btn btn-small btn-danger" type="submit"><?= e($t['adm_delete']) ?></button>
                     </form>
                 </div></td>

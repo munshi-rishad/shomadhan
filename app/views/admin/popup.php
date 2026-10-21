@@ -1,7 +1,13 @@
-<?php // app/views/admin/popup.php - picture that pops up once when a user opens the home page. Add, edit (title, link, picture), show / hide, delete ?>
+<?php
+// app/views/admin/popup.php - ?page=popup
+// The picture that pops up once when a user opens the home page. Add, edit (title, link, picture), show / hide, delete.
+// Shown inside admin/layout.php (AdminController). Gets: $popups (all, oldest first), $edit (row being edited or null)
+// + the layout's $t, $base, $err, $val, $hidden.
+?>
 <h1 class="adm-h1"><?= e($t['adm_menu_popup']) ?></h1>
 <p class="adm-sub"><?= e($t['adm_popup_sub']) ?></p>
 
+<?php /* ---- Add / edit form (the same form; edit mode asks to confirm the changes) ---- */ ?>
 <?php $pp = $edit ?: []; $isEdit = (bool)$edit; ?>
 <form class="card form-grid" method="post" enctype="multipart/form-data" action="<?= e($base) ?>?page=popup<?= $isEdit ? '&edit=' . (int)$pp['id'] : '' ?>"<?= $isEdit ? ' data-confirm-changes data-confirm-title="' . e($t['adm_popup_edit']) . '"' : '' ?>>
     <h2><?= e($isEdit ? $t['adm_popup_edit'] : $t['adm_popup_add']) ?></h2>
@@ -23,9 +29,19 @@
     </div>
 </form>
 
+<?php /* ---- All popups ---- */ ?>
 <div class="card">
     <h2><?= e($t['adm_all_popups']) ?></h2>
-    <?php $liveId = null; foreach ($popups as $p) { if ($p['is_active']) { $liveId = $p['id']; break; } } ?>
+    <?php
+    // The one users see now = the newest one that is shown. It gets the "live" pill.
+    $liveId = null;
+    foreach (array_reverse($popups) as $p) {
+        if ($p['is_active']) {
+            $liveId = $p['id'];
+            break;
+        }
+    }
+    ?>
     <?php if (!$popups): ?><p class="empty"><?= e($t['adm_none']) ?></p><?php else: ?>
     <div class="table-wrap"><table class="tbl tbl-list tbl-media">
         <thead><tr><th><?= e($t['adm_photo']) ?></th><th><?= e($t['adm_title_opt']) ?></th><th><?= e($t['adm_popup_link']) ?></th><th><?= e($t['adm_status']) ?></th><th><?= e($t['adm_col_added']) ?></th><th><?= e($t['acc_actions']) ?></th></tr></thead>
@@ -40,15 +56,11 @@
                 <td class="cell-acts"><div class="acts">
                     <a class="btn btn-small btn-ghost" href="<?= e($base) ?>?page=popup&edit=<?= (int)$p['id'] ?>"><?= e($t['adm_edit']) ?></a>
                     <form method="post" action="<?= e($base) ?>?page=popup">
-                        <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
-                        <input type="hidden" name="action" value="toggle">
-                        <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
+                        <?= $hidden('toggle', $p['id']) ?>
                         <button class="btn btn-small btn-move" type="submit"><?= e($p['is_active'] ? $t['adm_hide'] : $t['adm_show']) ?></button>
                     </form>
                     <form method="post" action="<?= e($base) ?>?page=popup" data-confirm-danger data-confirm="<?= e($t['adm_confirm_delete']) ?>">
-                        <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
-                        <input type="hidden" name="action" value="delete">
-                        <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
+                        <?= $hidden('delete', $p['id']) ?>
                         <button class="btn btn-small btn-danger" type="submit"><?= e($t['adm_delete']) ?></button>
                     </form>
                 </div></td>
