@@ -32,13 +32,14 @@ class AdminListModel
             $byAdmin = $table === 'staff';
             $hasArea = isset($extra['area']);
 
-            $sort = ['id' => 't.id', 'name' => 't.name', 'mobile' => 't.mobile', 'email' => 't.email']
+            // Only what the office needs to find and act on a person (kept short on purpose).
+            // Email is shown small under the name; gender, joined date, last login, added by are in the edit form / not needed.
+            $sort = ['id' => 't.id', 'name' => 't.name', 'mobile' => 't.mobile']
                   + $extra
-                  + ['status' => 't.status', 'created_at' => 't.created_at', 'last_login_at' => 't.last_login_at']
-                  + ($byAdmin ? ['created_by' => 'cb.name'] : []);
+                  + ['status' => 't.status'];
 
-            $select = ['t.deleted_at', 't.photo', 'db.name AS deleted_by']
-                    + ($byAdmin ? [3 => 'cb.deleted_at AS created_by_gone'] : []);
+            $select = ['t.deleted_at', 't.photo', 'db.name AS deleted_by', 't.email', 't.gender', 't.created_at']
+                    + ($byAdmin ? [6 => 'cb.deleted_at AS created_by_gone'] : []);
             foreach ($sort as $key => $col) {
                 $select[] = $col . ' AS ' . $key;
             }
@@ -53,11 +54,11 @@ class AdminListModel
                 'select'  => implode(', ', $select),
                 'search'  => ['t.name', 't.mobile', 't.email'] + ($hasArea ? [3 => 't.area'] : []),
                 'sort'    => $sort,
-                'filters' => ['status' => 't.status'] + ($hasArea ? ['gender' => 't.gender', 'area' => 't.area'] : []),
+                'filters' => ['status' => 't.status'] + ($hasArea ? ['area' => 't.area'] : []),
             ];
         };
 
-        $personExtra = ['area' => 't.area', 'gender' => 't.gender'];
+        $personExtra = ['area' => 't.area'];
 
         return [
             'users'     => $people('users', null, $personExtra),
@@ -70,11 +71,10 @@ class AdminListModel
                              s.name_' . $n . ' AS service, db.name AS deleted_by, cb.name AS created_by, cb.deleted_at AS created_by_gone',
                 'search' => ['t.name', 't.mobile', 't.email', 't.area', 't.address', 's.name_bn', 's.name_en'],
                 'sort'   => [
-                    'id' => 't.id', 'name' => 't.name', 'mobile' => 't.mobile', 'email' => 't.email',
-                    'service' => 's.name_' . $n, 'age' => 't.age', 'gender' => 't.gender', 'area' => 't.area',
-                    'status' => 't.status', 'created_at' => 't.created_at', 'created_by' => 'cb.name',
+                    'id' => 't.id', 'name' => 't.name', 'mobile' => 't.mobile',
+                    'service' => 's.name_' . $n, 'area' => 't.area', 'status' => 't.status',
                 ],
-                'filters' => ['status' => 't.status', 'service' => 't.service_id', 'gender' => 't.gender', 'area' => 't.area'],
+                'filters' => ['status' => 't.status', 'service' => 't.service_id', 'area' => 't.area'],
             ],
             'products'  => [
                 'from'   => 'sub_services x JOIN services s ON s.id = x.service_id',

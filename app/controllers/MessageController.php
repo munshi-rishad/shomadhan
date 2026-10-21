@@ -112,6 +112,7 @@ class MessageController
     // $side = 'user' or 'staff' (who is looking).
     public static function live(array $conv, $side, array $t)
     {
+        session_write_close();      // nothing to save in the session: let the visitor's other pages load at the same time
         json_headers();
         $msgs = MessageModel::messages($conv['id'], (int)($_GET['after'] ?? 0));
         if ($msgs) {

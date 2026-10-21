@@ -1,6 +1,6 @@
 <?php
 // app/views/user/book.php - book.php?id=N
-// Book a service: date, time, area, address, note, coupon, pay by cash or wallet.
+// Book a service: date, time, area, address, place on the map (phone location), note, coupon, pay by cash or wallet.
 // Pulled into the user page frame (user/home.php, $mode = 'book') by BookingController.
 // Gets: $sub (the sub-service), $errors, $old, $areas, $slots, $minDate, $maxDate, $balance,
 //       $coupons (usable for this service) + the frame's $t, $nm. The price summary updates live (home.js).
@@ -53,6 +53,8 @@ $price = (int)$sub['price'];
                 </select><?= $fe('area') ?></label>
             <label class="uf uf-wide"><span><?= e($t['bk_address']) ?> *</span>
                 <input class="ub<?= $bad('address') ?>" type="text" name="address" required minlength="5" maxlength="200" placeholder="<?= e($t['bk_address_ph']) ?>" value="<?= e($old['address']) ?>"><?= $fe('address') ?></label>
+            <?php /* the customer's phone location (optional): helps the office send the nearest provider */
+            view('partials/gps-pick', ['t' => $t, 'value' => $old['point']]); ?>
             <label class="uf uf-wide"><span><?= e($t['bk_note']) ?></span>
                 <textarea class="ub<?= $bad('note') ?>" name="note" rows="2" maxlength="255" placeholder="<?= e($t['bk_note_ph']) ?>"><?= e($old['note']) ?></textarea><?= $fe('note') ?></label>
         </div>

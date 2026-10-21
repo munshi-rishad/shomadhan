@@ -7,10 +7,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title><?= e($title) ?></title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <?php /* Fonts: Hind Siliguri = Bangla, Poppins = English letters and numbers */ ?>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <?php /* Fonts from our own server (assets/fonts): no wait for Google, works offline too.
+             The 2 most used files start downloading at once; the rest load only if a page needs them. */ ?>
+    <link rel="preload" href="assets/fonts/hind-siliguri-bengali-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/poppins-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="<?= e(asset('assets/css/fonts.css')) ?>">
     <?php /* PC / laptop size + browser zoom (Ctrl + mouse wheel, Ctrl +/-):
              At browser zoom 100% every PC / laptop shows the same page, fitted to its own screen width
              (a 1920 px wide window = scale 1). When the visitor zooms the browser to 90%, 80% ... the page

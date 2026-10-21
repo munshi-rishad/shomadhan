@@ -507,7 +507,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); outline:
 .tbl-media input[type=text] { min-width: 200px; }
 .tbl-media input.num { width: 90px; }
 .tbl-media .chk { margin: 0; }
-.tbl-list td.cell-wrap { white-space: normal; word-break: break-all; max-width: 320px; }
+.tbl-list td.cell-wrap { white-space: normal; word-break: normal; overflow-wrap: break-word; max-width: 320px; }
 .tbl-media tr.dim td { opacity: 1; }
 .tbl tr.dim .thumb-banner, .tbl tr.dim .thumb-square { opacity: .45; }
 /* tick boxes group inside a form (sub-service providers): no browser frame */
@@ -574,6 +574,7 @@ fieldset.f > span { font-weight: 600; }
 .bk-assign { display: flex; gap: 6px; align-items: center; }
 .bk-assign select {
     height: 34px;
+    min-width: 150px;
     max-width: 190px;
     padding: 0 8px;
     border: 1px solid var(--line);
@@ -581,11 +582,32 @@ fieldset.f > span { font-weight: 600; }
     font: inherit;
     font-size: var(--fs-xs);
 }
-.bk-cancel { position: relative; }
-.bk-cancel > summary { list-style: none; }
-.bk-cancel > summary::-webkit-details-marker { display: none; }
+/* green "call" button under the provider list: shows the picked provider's number, tap = phone call */
+.bk-call {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--green-soft);
+    color: var(--green-dark);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    white-space: nowrap;
+}
+.bk-call[hidden] { display: none; }
+/* provider list: the group of providers in the booking's own area is light green */
+.bk-assign optgroup.bk-near, .bk-assign optgroup.bk-near option, .bk-assign select.is-near { background: #e3f5ea; color: #075a40; }
+.bk-assign optgroup:not(.bk-near) option { background: #fff; color: var(--text); }
+.bk-call .ic { width: 15px; height: 15px; }
+.bk-call:hover { background: var(--green); color: #fff; }
+.bk-hint { margin: -4px 0 12px; color: var(--muted); font-size: var(--fs-sm); }
+.bk-cancel, .bk-pop { position: relative; }
+.bk-cancel > summary, .bk-pop > summary { list-style: none; }
+.bk-cancel > summary::-webkit-details-marker, .bk-pop > summary::-webkit-details-marker { display: none; }
 .bk-cancel[open] > summary { background: var(--red-soft); }
-.bk-cancel form {
+.bk-cancel form, .bk-pop form {
     position: absolute;
     right: 0;
     top: calc(100% + 6px);
@@ -599,7 +621,7 @@ fieldset.f > span { font-weight: 600; }
     background: #fff;
     box-shadow: 0 10px 26px rgba(0,0,0,.14);
 }
-.bk-cancel input {
+.bk-cancel input, .bk-pop input {
     flex: 1;
     min-width: 0;
     height: 34px;
@@ -614,11 +636,13 @@ fieldset.f > span { font-weight: 600; }
     /* top bar + gap above, small gap below: the page itself does not scroll */
     .adm-msg { height: calc(100vh / var(--z, 1) - 100px); }
     .adm-main:has(.adm-msg) { padding-bottom: 16px; }
+    /* the yellow government-paper line sits above the chat too: take its height off */
+    .adm-main:has(.permit-note) .adm-msg { height: calc(100vh / var(--z, 1) - 164px); }
 }
 @media (max-width: 899px) {
     .bk-assign { width: 100%; }
     .bk-assign select { flex: 1; max-width: none; }
-    .bk-cancel form {
+    .bk-cancel form, .bk-pop form {
         position: static;
         width: auto;
         margin-top: 6px;
@@ -783,3 +807,227 @@ input:focus, select:focus, textarea:focus {
     .tbl-list td.cell-acts .acts > .btn,
     .tbl-list td.cell-acts .acts summary.btn { width: 100%; justify-content: center; }
 }
+/* Bookings list (PC): small second lines (payment, coupon, note) wrap, so the action buttons stay on screen */
+.bk-tbl td small { white-space: normal; }
+
+/* ===== Bookings: real bill, stars, complaints, office note ===== */
+.bk-done form { flex-wrap: wrap; width: 320px; }
+.bk-done label { display: flex; align-items: center; gap: 8px; width: 100%; font-size: var(--fs-sm); white-space: nowrap; }
+.bk-done label input { max-width: 140px; }
+.bk-done form > input[name=final_note] { flex-basis: 100%; }
+.bk-final { color: #8a5a00; }
+.bk-stars { color: var(--gold); letter-spacing: 1px; white-space: nowrap; }
+.bk-stars s { color: #d9dedb; text-decoration: none; }
+.bk-review { color: var(--muted); }
+.bk-complaint {
+    margin-top: 6px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: var(--green-soft);
+    font-size: var(--fs-xs);
+    white-space: normal;
+}
+.bk-complaint.open { background: var(--red-soft); color: #8a1c1c; }
+.bk-staff-note { color: #6b5200; white-space: normal; }
+/* the small forms of a booking row (work done, cancel, solve, note) open inside the row, not on top of the
+   next rows: a popup at the bottom of the table would be cut off by the table's scroll box */
+.bk-pop[open], .bk-cancel[open] { flex-basis: 100%; grid-column: 1 / -1; width: 100%; }
+.bk-pop form, .bk-cancel form {
+    position: static;
+    width: auto;
+    min-width: 260px;
+    margin-top: 6px;
+    box-shadow: none;
+}
+.bk-pop[open] > summary { background: var(--green-soft); }
+
+/* ===== Provider accounts (payouts) ===== */
+.po-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.po-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+}
+.po-card small { color: var(--muted, #667); font-size: var(--fs-sm); }
+.po-card b { font-size: var(--fs-2xl); }
+.po-get b { color: var(--red); }
+.po-give b { color: var(--green-dark); }
+.po-pay { background: #fff4dd; color: #8a5a00; }
+.po-plus { color: var(--green-dark); }
+.po-minus { color: var(--red); }
+.po-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+.po-head h2 { margin: 0; font-size: var(--fs-lg); }
+.po-head small { color: var(--muted, #667); font-weight: 400; }
+/* phone: numbers 2 per line, label above the value */
+@media (max-width: 899px) {
+    .po-tbl tr { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .po-tbl td.cell-name { grid-column: 1; }
+    .po-tbl td.cell-id { grid-column: 2; }
+    .po-tbl td[data-label]:not(.cell-name):not(.cell-id) { grid-column: auto; text-align: left; padding: 7px 0; }
+    .po-tbl td[data-label]:not(.cell-name):not(.cell-id)::before { float: none; display: block; margin: 0 0 2px; }
+    .po-tbl td.cell-acts { grid-column: 1 / -1; }
+    .po-cards b { font-size: var(--fs-xl); }
+}
+
+/* ===== Reports ===== */
+.rp-range {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.rp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rp-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    background: #fff;
+    color: var(--text);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+}
+.rp-chip.on { background: var(--green); border-color: var(--green); color: #fff; }
+.rp-dates { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.rp-dates input[type="date"] { height: 36px; width: auto; }
+.rp-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.rp-stat { display: flex; flex-direction: column; gap: 2px; margin: 0; }
+.rp-stat small { color: var(--muted); font-size: var(--fs-sm); }
+.rp-stat b { font-size: var(--fs-xl); color: var(--text); }
+.rp-stat span { color: var(--muted); font-size: var(--fs-xs); }
+.rp-main { background: var(--green-soft, #e3f5ea); }
+.rp-main b { color: var(--green-dark); }
+.rp-h { margin: 0 0 10px; font-size: var(--fs-md); }
+/* bar chart: one series, rounded tops on the baseline, 2px gaps, number on hover / focus */
+.rp-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 120px;
+    border-bottom: 1px solid var(--line);
+}
+.rp-bar {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    outline: none;
+}
+.rp-bar i {
+    display: block;
+    width: 100%;
+    min-height: 2px;
+    border-radius: 4px 4px 0 0;
+    background: var(--green);
+}
+.rp-bar:hover i, .rp-bar:focus i { background: var(--green-dark); }
+.rp-bar:hover::after, .rp-bar:focus::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #1f2a26;
+    color: #fff;
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+    z-index: 2;
+    pointer-events: none;
+}
+.rp-bars .rp-bar:first-child:hover::after { left: 0; transform: none; }
+.rp-bars .rp-bar:last-child:hover::after { left: auto; right: 0; transform: none; }
+.rp-axis { display: flex; justify-content: space-between; margin-top: 4px; color: var(--muted); font-size: var(--fs-2xs); }
+.rp-tables {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 12px;
+}
+.rp-tables .card { margin: 0; }
+.rp-tbl td, .rp-tbl th { white-space: nowrap; }
+@media (max-width: 899px) {
+    .rp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .rp-tables { grid-template-columns: minmax(0, 1fr); }
+    .rp-chip { height: 30px; padding: 0 10px; }
+    .rp-bars { height: 90px; }
+}
+@media (min-width: 1100px) {
+    .rp-stats { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+}
+@media (max-width: 899px) {
+    .rp-stats .rp-stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+
+/* ===== Provider leave days (provider edit page) ===== */
+.lv-card .hint { margin: 0 0 10px; color: var(--muted); font-size: var(--fs-xs); }
+.lv-form {
+    display: grid;
+    grid-template-columns: 170px 170px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 10px;
+}
+.lv-form label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.lv-form label span { font-size: var(--fs-xs); color: var(--muted); }
+.lv-form input { height: 40px; }
+.lv-form .btn { height: 40px; }
+.lv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lv-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+}
+.lv-list li small { flex: 1; color: var(--muted); }
+.lv-pill { margin-left: 4px; vertical-align: middle; }
+@media (max-width: 899px) {
+    .lv-form { grid-template-columns: 1fr 1fr; }
+    .lv-form .lv-note, .lv-form .btn { grid-column: 1 / -1; }
+    .lv-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; }
+    .lv-list li small { grid-column: 1; }
+    .lv-list li form { grid-column: 2; grid-row: 1 / 3; }
+}
+
+/* ===== Messages: filter chips wrap (6 chips, none hidden) + numbers ===== */
+.adm-msg .msg-chips { flex-wrap: wrap; overflow: visible; }
+.adm-msg .msg-chips a { padding: 0 12px; }
+.adm-msg .mc-n {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    margin-left: 6px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: #eef3f0;
+    font-size: var(--fs-2xs);
+}
+.adm-msg .mc-n.mc-hot { background: #e5484d; color: #fff; }
+.adm-msg .msg-chips a.on .mc-n { background: #fff; color: var(--green); }
+.chip.chip-wait { background: #fff3dc; color: #a35f00; }

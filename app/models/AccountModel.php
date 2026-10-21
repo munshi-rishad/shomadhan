@@ -173,7 +173,7 @@ class AccountModel
     {
         $table = self::table($role);
         $hash = self::hash($password);
-        $sql = 'UPDATE ' . $table . ' SET password = ?' . ($table === 'staff' ? ', must_change_password = 0' : '') . ' WHERE id = ?';
+        $sql = 'UPDATE ' . $table . ' SET password = ?, must_change_password = 0 WHERE id = ?';
         self::run($sql, [$hash, $id]);
         self::forgetAllDevices($role, $id);
 
@@ -254,6 +254,21 @@ class AccountModel
     }
 
     // Logs the person out of "remember me" on every device (new password, made inactive, deleted)
+    // ---- The office resets a forgotten password (for people with no email: the email code can't reach them).
+    // A new one-time password is made and returned (shown once to the office, told to the person on the phone).
+    // It works only to log in once: then the person must set their own (set-password.php). Every device is logged out.
+    public static function resetPassword($role, $id)
+    {
+        $letters = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';     // no 0/O, 1/l/I: easy to read out on the phone
+        $password = '';
+        for ($i = 0; $i < 8; $i++) {
+            $password .= $letters[random_int(0, strlen($letters) - 1)];
+        }
+        self::run('UPDATE ' . self::table($role) . ' SET password = ?, must_change_password = 1 WHERE id = ?', [self::hash($password), $id]);
+        self::forgetAllDevices($role, $id);
+        return $password;
+    }
+
     public static function forgetAllDevices($role, $id)
     {
         self::run('DELETE FROM remember_tokens WHERE ' . self::ownerColumn($role) . ' = ?', [$id]);

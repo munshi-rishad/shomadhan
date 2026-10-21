@@ -5,7 +5,6 @@
 // + the layout's $t, $base, $err.
 ?>
 <h1 class="adm-h1"><?= e($t['adm_menu_welcome']) ?></h1>
-<p class="adm-sub"><?= e($t['adm_welcome_sub']) ?></p>
 
 <?php /* PC: the current picture and the change form side by side */ ?>
 <div class="pair">

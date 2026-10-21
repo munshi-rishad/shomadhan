@@ -21,6 +21,9 @@ return [
     'pay_bkash'  => '01700000000',     // wallet top-up: users "Send Money" to these personal numbers, then type the transaction ID
     'pay_nagad'  => '01700000000',
     'pay_rocket' => '',                // empty = this method is not offered
+    // ---- Business rules ----
+    'commission'     => '15',          // the office's share of each finished job, in % (provider account page)
+    'complaint_days' => '3',           // a user can report a problem with finished work for this many days
 
     // ---- About page ----
     'about_bn' => "সমাধান ময়মনসিংহের একটি হোম সার্ভিস প্ল্যাটফর্ম। ঘরের ইলেকট্রিক কাজ, প্লাম্বিং, এসি সার্ভিস, লন্ড্রি, বাসা পরিষ্কারসহ দৈনন্দিন নানা কাজের জন্য আমরা যাচাই করা দক্ষ সেবাদাতাকে আপনার দরজায় পৌঁছে দিই।\n\nআমরা দেখেছি, ভালো মিস্ত্রি বা টেকনিশিয়ান খুঁজে পাওয়া, ন্যায্য দাম জানা আর কাজের পরে ভরসা পাওয়া সবসময় সহজ না। তাই এক জায়গায় সেবা বেছে নেওয়া, দাম দেখা আর সহজে যোগাযোগের ব্যবস্থা করেছি।",

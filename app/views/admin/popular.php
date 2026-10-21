@@ -5,7 +5,6 @@
 // Shown inside admin/layout.php (AdminController). Gets: $items (all sub-services, popular first) + the layout's $t, $base.
 ?>
 <h1 class="adm-h1"><?= e($t['adm_menu_popular']) ?></h1>
-<p class="adm-sub"><?= e($t['adm_popular_sub']) ?></p>
 <?php /* ---- Ranking table + save ---- */ ?>
 <form class="card" method="post" action="<?= e($base) ?>?page=popular" id="rank-form">
     <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">

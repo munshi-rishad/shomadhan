@@ -25,7 +25,7 @@ if (!headers_sent()) {
     header('X-Content-Type-Options: nosniff');                        // browser must trust our file types
     header('Referrer-Policy: same-origin');
     header("Content-Security-Policy: frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'");
-    header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+    header('Permissions-Policy: camera=(), microphone=(), geolocation=(self)');   // location: only our own pages (booking map)
     header_remove('X-Powered-By');                                    // don't tell which PHP version runs
 }
 

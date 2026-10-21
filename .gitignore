@@ -3,3 +3,4 @@ config/mail.php
 storage/logs/*.log
 public/uploads/*/*
 !public/uploads/*/.gitkeep
+backups/

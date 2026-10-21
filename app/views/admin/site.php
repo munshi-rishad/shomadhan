@@ -18,7 +18,6 @@ $area = function ($k, $label) use ($t, $v, $err) {
 };
 ?>
 <h1 class="adm-h1"><?= e($t['adm_menu_site']) ?></h1>
-<p class="adm-sub"><?= e($t['site_sub']) ?></p>
 
 <form method="post" action="<?= e($base) ?>?page=site" data-confirm-changes data-confirm-title="<?= e($t['adm_menu_site']) ?>">
     <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
@@ -47,6 +46,14 @@ $area = function ($k, $label) use ($t, $v, $err) {
         <?= $in('pay_bkash', 'site_pay_bkash', 'text', '01XXXXXXXXX') ?>
         <?= $in('pay_nagad', 'site_pay_nagad', 'text', '01XXXXXXXXX') ?>
         <?= $in('pay_rocket', 'site_pay_rocket', 'text', '01XXXXXXXXX') ?>
+    </div>
+
+    <?php /* ---- Business rules: office commission, days a user can report a problem ---- */ ?>
+    <div class="card form-grid">
+        <h2><?= e($t['site_rules']) ?></h2>
+        <p class="f-wide note-line"><?= e($t['site_rules_hint']) ?></p>
+        <?= $in('commission', 'site_commission', 'number', '15') ?>
+        <?= $in('complaint_days', 'site_complaint_days', 'number', '3') ?>
     </div>
 
     <?php /* ---- About / mission / terms / privacy texts, Bangla + English side by side ---- */ ?>

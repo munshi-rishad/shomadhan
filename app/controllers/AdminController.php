@@ -35,6 +35,9 @@ require_once APP_PATH . '/models/HomeContentModel.php';
 require_once APP_PATH . '/models/AdminListModel.php';
 require_once APP_PATH . '/helpers/upload.php';
 require_once APP_PATH . '/models/AreaModel.php';
+require_once APP_PATH . '/models/ProviderAccountModel.php';
+require_once APP_PATH . '/models/ReportModel.php';
+require_once APP_PATH . '/models/ActivityLogModel.php';
 require_once APP_PATH . '/validators/AccountValidator.php';
 require_once APP_PATH . '/controllers/ProfileController.php';
 require_once APP_PATH . '/models/AccountChangeModel.php';
@@ -49,13 +52,13 @@ class AdminController
     // Which pages each role can open. The first one opens after login (= first item of the menu; there is no overview page).
     // Nobody has the 'products' page any more: the same sub-services are on the sub-services page.
     const ACCESS = [
-        'admin'    => ['bookings', 'messages', 'topups', 'coupons', 'services', 'sub-services', 'providers', 'popular', 'banners', 'popup', 'offers', 'welcome', 'site', 'users', 'employees', 'admins', 'profile', 'changes'],
+        'admin'    => ['bookings', 'messages', 'topups', 'payouts', 'coupons', 'services', 'sub-services', 'providers', 'popular', 'banners', 'popup', 'offers', 'welcome', 'site', 'users', 'employees', 'admins', 'reports', 'log', 'profile', 'changes'],
         // employee = office staff: does the daily work like the admin.
         // Admin only: staff accounts (employees, admins), site info (payment numbers) and the government papers list.
-        'employee' => ['bookings', 'messages', 'topups', 'coupons', 'services', 'sub-services', 'providers', 'popular', 'banners', 'popup', 'offers', 'welcome', 'users', 'profile', 'changes'],
+        'employee' => ['bookings', 'messages', 'topups', 'payouts', 'coupons', 'services', 'sub-services', 'providers', 'popular', 'banners', 'popup', 'offers', 'welcome', 'users', 'profile', 'changes'],
     ];
     // pages the employee may change (not only view)
-    const EMPLOYEE_EDITS = ['bookings', 'messages', 'topups', 'coupons', 'services', 'sub-services', 'providers', 'popular', 'users', 'banners', 'popup', 'offers', 'welcome'];
+    const EMPLOYEE_EDITS = ['bookings', 'messages', 'topups', 'payouts', 'coupons', 'services', 'sub-services', 'providers', 'popular', 'users', 'banners', 'popup', 'offers', 'welcome'];
     const ROLE_OF  = ['users' => 'user', 'employees' => 'employee', 'admins' => 'admin'];   // list page -> account role
     const STATUSES = ['active', 'inactive'];      // inactive = can't log in or do anything (no separate "block")
     const COLORS   = ['sand', 'sky', 'mint', 'rose', 'lilac', 'gray'];   // background colours a service card can have
@@ -66,6 +69,7 @@ class AdminController
     private $me;          // the logged-in admin / employee (accounts row)
     private $errors = []; // form errors from the POST, shown next to the fields
     private $base;        // this dashboard's address: admin-dashboard.php or employee-dashboard.php
+    private $posted;      // [page, action] of the form being saved (for the work log)
 
     // ================================================================ ENTRY POINT
 
@@ -153,6 +157,31 @@ class AdminController
             case 'sub-services':
                 $this->loadSubServicesPage($data, $editId);
                 break;
+            case 'payouts':
+                $data['q']          = $this->searchText();
+                $data['onlyDue']    = !empty($_GET['due']);
+                $data['rows']       = ProviderAccountModel::summary($data['q'], $data['onlyDue']);
+                $data['commission'] = (int)HomeContentModel::site()['commission'];
+                $data['provider']   = null;
+                if ($pid = (int)($_GET['p'] ?? 0)) {        // one provider's statement
+                    foreach (ProviderAccountModel::summary() as $row) {
+                        if ((int)$row['id'] === $pid) {
+                            $data['provider'] = $row;
+                            $data['lines'] = ProviderAccountModel::statement($pid);
+                        }
+                    }
+                }
+                break;
+            case 'reports':
+                $this->loadReportsPage($data, $lang);
+                break;
+            case 'log':
+                $data['staffId'] = (int)($_GET['staff'] ?? 0);
+                $data['logPage'] = $this->queryChoice('of', self::ACCESS['admin'], '');
+                list($rows, $total, $p, $pageCount) = ActivityLogModel::search($data['staffId'], $data['logPage'], $_GET['p'] ?? 1);
+                $data['list']      = $this->pagedList($rows, $total, $p, $pageCount);
+                $data['logStaff']  = ActivityLogModel::staffList();
+                break;
             case 'popular':
                 $data['items'] = $this->subServicesByRank();
                 break;
@@ -192,6 +221,7 @@ class AdminController
             $this->errors['form'] = $t['emp_view_only'];
             return;
         }
+        $this->posted = [$page, (string)($_POST['action'] ?? '')];   // written to the work log by done()
         try {
             $this->save($page, (string)($_POST['action'] ?? ''));
         } catch (PDOException $ex) {
@@ -205,21 +235,13 @@ class AdminController
     // ---- Bookings: one tab per status, search, and the providers that can be sent for each open booking
     private function loadBookingsPage(array &$data, array $bookingCounts)
     {
-        $data['tab'] = $this->queryChoice('tab', BookingModel::STATUSES, 'pending');
+        $data['tab'] = $this->queryChoice('tab', array_merge(BookingModel::STATUSES, ['complaints']), 'pending');
         $data['q']   = $this->searchText();
         list($rows, $total, $p, $pageCount) = BookingModel::adminList($data['tab'], $data['q'], $_GET['p'] ?? 1);
 
-        $providersBySub = [];      // providers per sub-service, asked once (many bookings share a service)
         foreach ($rows as $i => $row) {
-            if (!in_array($row['status'], ['pending', 'ongoing'], true)) {
-                $rows[$i]['choices'] = [];      // closed booking: nobody can be sent any more
-                continue;
-            }
-            $subId = (int)$row['sub_service_id'];
-            if (!isset($providersBySub[$subId])) {
-                $providersBySub[$subId] = BookingModel::providersFor($row);
-            }
-            $rows[$i]['choices'] = $providersBySub[$subId];
+            // closed booking: nobody can be sent any more. Open one: its providers + how busy each is that day
+            $rows[$i]['choices'] = in_array($row['status'], ['pending', 'ongoing'], true) ? BookingModel::providersFor($row) : [];
         }
         $data['counts'] = $bookingCounts;
         $data['list']   = $this->pagedList($rows, $total, $p, $pageCount);
@@ -253,7 +275,8 @@ class AdminController
             MessageModel::markSeen($conv['id'], 'staff');
             $data['badges']['messages'] = MessageModel::unreadForStaff();   // the red number drops right away
         }
-        $data['filter'] = $this->queryChoice('f', MessageModel::FILTERS, 'all');
+        $data['filter'] = $this->queryChoice('f', MessageModel::STAFF_FILTERS, 'all');
+        $data['chipCounts'] = MessageModel::countsForStaff();
         $data['q']      = mb_substr($this->searchText(), 0, 60, 'UTF-8');
         $data['chats']  = MessageModel::inbox($data['filter'], $data['q']);
         $data['conv']   = $conv;
@@ -305,6 +328,7 @@ class AdminController
         if ($page === 'providers' && $canEdit) {
             $data['role'] = 'provider';
             $data['edit'] = $editId ? ProviderModel::find($editId) : null;
+            $data['leaves'] = $data['edit'] ? ProviderModel::leaves($editId) : [];     // leave days (edit page)
         }
         $data['list'] = $this->pagedList($rows, $total, $p, $pageCount) + [
             'sort'    => $sort,
@@ -314,6 +338,7 @@ class AdminController
             'filters' => $filters,
         ];
         $data['areas']    = AreaModel::getAll();
+        $data['onLeave']  = $page === 'providers' ? ProviderModel::onLeaveToday() : [];
         $data['services'] = in_array($page, ['products', 'providers'], true) ? HomeContentModel::services() : [];
     }
 
@@ -329,6 +354,7 @@ class AdminController
             case 'bookings':     return $this->saveBooking($action, $id);
             case 'topups':       return $this->saveTopup($action, $id);
             case 'coupons':      return $this->saveCoupon($action, $id);
+            case 'payouts':      return $this->savePayout($action, $id);
             case 'messages':     return $this->sendMessage($action);
             case 'banners':      return $this->saveBanner($action, $id);
             case 'welcome':      return $this->saveWelcome($action);
@@ -462,6 +488,13 @@ class AdminController
             if ($site[$key] !== '' && ($m = LoginValidator::mobileError($site[$key], $t))) {
                 $this->errors[$key] = $m;
             }
+        }
+        // business rules: whole numbers (empty = the built-in value)
+        if ($site['commission'] !== '' && (!ctype_digit($site['commission']) || (int)$site['commission'] > 50)) {
+            $this->errors['commission'] = $t['site_err_commission'];
+        }
+        if ($site['complaint_days'] !== '' && (!ctype_digit($site['complaint_days']) || (int)$site['complaint_days'] < 1 || (int)$site['complaint_days'] > 30)) {
+            $this->errors['complaint_days'] = $t['site_err_days'];
         }
         if ($site['email'] !== '' && !filter_var($site['email'], FILTER_VALIDATE_EMAIL)) {
             $this->errors['email'] = $t['err_email'];
@@ -726,6 +759,9 @@ class AdminController
         if ($action === 'restore' && ($gone = AccountModel::findDeleted($role, $id))) {
             return $this->restoreAccount($page, $role, $gone);
         }
+        if ($action === 'reset_pw' && $row) {
+            return $this->resetPassword($page, $role, $row, $self);
+        }
         if ($action === 'move' && $row && $role !== 'user') {
             return $this->moveAccount($page, $role, $row, $self);
         }
@@ -751,6 +787,22 @@ class AdminController
         AccountModel::delete($role, $id, $me);
         AccountChangeModel::add($role, $id, $me, [['chg_deleted', '', '']]);
         return $this->done($page, sprintf($this->t['acc_deleted'], $row['name']));
+    }
+
+    // ---- Forgotten password: a new one-time password, shown once here (the office tells it on the phone).
+    // On the next login the person must set their own. Not for myself (my profile page has "change password").
+    private function resetPassword($page, $role, array $row, $self)
+    {
+        if ($self) {
+            $this->errors['form'] = $this->t['acc_err_self'];
+            return;
+        }
+        if (!$this->myPasswordConfirmed()) {
+            return;
+        }
+        $password = AccountModel::resetPassword($role, (int)$row['id']);
+        AccountChangeModel::add($role, (int)$row['id'], (int)$this->me['id'], [['chg_pw_reset', '', '']]);
+        return $this->done($page, sprintf($this->t['acc_pw_reset_done'], $row['name'], $password));
     }
 
     // ---- Undo a delete (not possible when someone else uses that mobile / email now)
@@ -947,6 +999,9 @@ class AdminController
             ProviderModel::restore($id);
             return $this->done('providers', sprintf($t['acc_restored'], $gone['name']));
         }
+        if (($action === 'leave_add' || $action === 'leave_delete') && $row) {
+            return $this->saveLeave($action, $row);
+        }
         if ($action !== 'save' || ($id && !$row)) {
             return;
         }
@@ -1061,9 +1116,36 @@ class AdminController
             $newStatus = 'ongoing';
             $message   = sprintf($t['bk_adm_assigned'], $code);
         } elseif ($action === 'complete') {
-            $ok        = BookingModel::complete($booking, $this->me['id']);
+            // the real bill: 0 - 500000 taka; a changed bill needs a reason (the user sees it)
+            $final = trim((string)($_POST['final'] ?? ''));
+            $note  = $this->text('final_note', 200);
+            if (!preg_match('/^\d{1,6}$/', $final) || (int)$final > 500000) {
+                $this->errors['form'] = $t['bk_err_final'];
+                return;
+            }
+            if ((int)$final !== (int)$booking['total'] && $note === '') {
+                $this->errors['form'] = $t['bk_err_final_note'];
+                return;
+            }
+            $ok        = BookingModel::complete($booking, $this->me['id'], (int)$final, $note !== '' ? $note : null);
             $newStatus = 'completed';
             $message   = sprintf($t['bk_adm_completed'], $code);
+        } elseif ($action === 'solve') {
+            // a user's complaint: what the office did (the user sees it)
+            $answer = $this->text('answer', 300);
+            if ($answer === '') {
+                $this->errors['form'] = $t['bk_err_answer'];
+                return;
+            }
+            if (!BookingModel::solveComplaint($booking['id'], $answer, $this->me['id'])) {
+                $this->errors['form'] = $t['bk_err_changed'];
+                return;
+            }
+            AccountChangeModel::add('user', $booking['user_id'], $this->me['id'], [['bk_event', 'solved', $code]]);
+            return $this->done('bookings&tab=complaints', sprintf($t['bk_adm_solved'], $code));
+        } elseif ($action === 'note') {
+            BookingModel::setStaffNote($booking['id'], $this->text('staff_note', 300) ?: null);
+            return $this->done('bookings&tab=' . $booking['status'], $t['adm_saved']);
         } elseif ($action === 'cancel') {
             $reason    = $this->text('reason', 200);
             $ok        = BookingModel::cancel($booking, 'staff', $this->me['id'], $reason !== '' ? $reason : null);
@@ -1132,6 +1214,50 @@ class AdminController
         $coupon['expires_on'] = $coupon['expires_on'] === '' ? null : $coupon['expires_on'];
         WalletModel::saveCoupon($row ? $id : 0, $coupon, $this->me['id']);
         return $this->done('coupons', $t['adm_saved']);
+    }
+
+    // ---- Provider leave days (from the provider's edit page): add one (from - to, max 60 days, not in the past) or delete one
+    private function saveLeave($action, array $provider)
+    {
+        $t = $this->t;
+        $id = (int)$provider['id'];
+        $back = 'providers&edit=' . $id;
+        if ($action === 'leave_delete') {
+            ProviderModel::deleteLeave($id, (int)($_POST['leave_id'] ?? 0));
+            return $this->done($back, $t['lv_deleted']);
+        }
+        $from = (string)($_POST['from_date'] ?? '');
+        $to   = (string)($_POST['to_date'] ?? '') ?: $from;
+        $ok = function ($d) { return preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) && checkdate((int)substr($d, 5, 2), (int)substr($d, 8, 2), (int)substr($d, 0, 4)); };
+        if (!$ok($from) || !$ok($to) || $to < $from || $to < date('Y-m-d') || (strtotime($to) - strtotime($from)) / 86400 > 60) {
+            $this->errors['leave'] = $t['lv_err_dates'];
+            return;
+        }
+        ProviderModel::addLeave($id, $from, $to, $this->text('leave_note', 100) ?: null, (int)$this->me['id']);
+        return $this->done($back, $t['lv_added']);
+    }
+
+    // ---- Provider accounts: money given to / taken from a provider
+    private function savePayout($action, $id)
+    {
+        $t = $this->t;
+        if ($action !== 'pay' || !ProviderModel::find($id)) {
+            return;
+        }
+        $amount = trim((string)($_POST['amount'] ?? ''));
+        $method = (string)($_POST['method'] ?? '');
+        if (!preg_match('/^\d{1,7}$/', $amount) || (int)$amount < 1 || (int)$amount > 1000000) {
+            $this->errors['form'] = $t['po_err_amount'];
+            return;
+        }
+        if (!in_array($method, ProviderAccountModel::METHODS, true)) {
+            $method = 'cash';
+        }
+        // out = the office paid the provider (+), in = the provider paid the office (-)
+        $signed = ($_POST['dir'] ?? '') === 'in' ? -(int)$amount : (int)$amount;
+        ProviderAccountModel::addPayment($id, $signed, $method, $this->text('note', 200) ?: null, (int)$this->me['id']);
+        $back = 'payouts' . (($q = $this->searchText()) !== '' ? '&q=' . rawurlencode($q) : '') . (!empty($_GET['due']) ? '&due=1' : '');
+        return $this->done($back, $t['adm_saved']);
     }
 
     // Reads and checks the coupon form (values stay text). Errors go to $this->errors.
@@ -1205,6 +1331,83 @@ class AdminController
         return trim((string)($_GET['q'] ?? ''));
     }
 
+    // ---- Work log: one row per save that worked (who, page, action, which row, a short name of the item).
+    // Only the names of things are kept, never passwords or what was typed in a password box.
+    private function logWork()
+    {
+        if (!$this->posted) {
+            return;
+        }
+        list($page, $action) = $this->posted;
+        $what = '';
+        foreach (['name', 'name_bn', 'code', 'title_bn', 'mobile'] as $field) {
+            if (isset($_POST[$field]) && is_string($_POST[$field]) && trim($_POST[$field]) !== '') {
+                $what = trim($_POST[$field]);
+                break;
+            }
+        }
+        $target = (int)($_POST['id'] ?? 0);
+        if ($what === '' && $target) {
+            $what = $this->logName($page, $target);
+        }
+        try {
+            ActivityLogModel::add($this->me['id'], $page, $action, $target, $what);   // not the flash text: a password reset shows the new password there
+        } catch (PDOException $ex) {
+            app_log('error', 'work log: ' . $ex->getMessage());   // the save itself already worked
+        }
+    }
+
+    // the name of the row a form changed, so the log says "RAHIM MIA" and not only "#6"
+    private function logName($page, $id)
+    {
+        if ($page === 'bookings') {
+            return '#' . BookingModel::code($id);
+        }
+        $from = [
+            'providers' => 'providers', 'payouts' => 'providers', 'users' => 'users', 'employees' => 'staff', 'admins' => 'staff',
+            'services' => 'services', 'sub-services' => 'sub_services', 'coupons' => 'coupons',
+        ][$page] ?? '';
+        if ($from === '') {
+            return '';
+        }
+        $column = in_array($from, ['services', 'sub_services'], true) ? 'name_bn' : ($from === 'coupons' ? 'code' : 'name');
+        $st = Database::get()->prepare("SELECT $column FROM $from WHERE id = ?");
+        $st->execute([$id]);
+        return (string)$st->fetchColumn();
+    }
+
+    // ---- Reports: date range from ?from=&to= or a quick choice ?r=7|30|month|year|all (default 30 days)
+    private function loadReportsPage(array &$data, $lang)
+    {
+        $today = date('Y-m-d');
+        $quick = $this->queryChoice('r', ['today', '7', '30', 'month', 'year', 'all'], '');
+        $isDate = function ($d) { return is_string($d) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) && strtotime($d) !== false; };
+        if (!$quick && $isDate($_GET['from'] ?? null) && $isDate($_GET['to'] ?? null)) {
+            $from = min($_GET['from'], $_GET['to']);
+            $to   = max($_GET['from'], $_GET['to']);
+        } else {
+            $quick = $quick ?: '30';
+            $starts = [
+                'today' => $today,
+                '7'     => date('Y-m-d', strtotime('-6 days')),
+                '30'    => date('Y-m-d', strtotime('-29 days')),
+                'month' => date('Y-m-01'),
+                'year'  => date('Y-01-01'),
+                'all'   => substr((string)Database::get()->query('SELECT MIN(created_at) FROM bookings')->fetchColumn() ?: $today, 0, 10),
+            ];
+            $from = $starts[$quick];
+            $to   = $today;
+        }
+        $data['quick']      = $quick;
+        $data['from']       = $from;
+        $data['to']         = $to;
+        $data['sum']        = ReportModel::summary($from, $to);
+        $data['byService']  = ReportModel::byService($from, $to, $lang);
+        $data['byArea']     = ReportModel::byArea($from, $to);
+        $data['byProvider'] = ReportModel::byProvider($from, $to);
+        list($data['perDay'], $data['perMonth']) = ReportModel::perDay($from, $to);
+    }
+
     // one page of a list, in the shape the list views and the pager expect
     private function pagedList($rows, $total, $p, $pageCount)
     {
@@ -1271,6 +1474,7 @@ class AdminController
 
     private function done($page, $message)
     {
+        $this->logWork();
         if ($message !== '') {
             flash_set('notice', $message);
         }

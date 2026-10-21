@@ -1130,6 +1130,7 @@ img.ch-av { padding: 0; }
     }
     .msg-pane { display: block; min-height: 0; }
     .msg-list { align-content: start; }
+    .msg-side > * { flex-shrink: 0; }     /* the list scrolls; the title, search and chips keep their size */
 }
 
 /* ===== Public footer ===== */
@@ -1459,3 +1460,9 @@ button.pf-out { margin-top: 6px; border-top: 1px solid var(--line); border-radiu
     /* chat filter chips wrap to a second line instead of hiding behind the edge */
     .msg-chips { flex-wrap: wrap; overflow: visible; }
 }
+
+/* ===== Booking: "share my location" (partials/gps-pick.php, gps.js) ===== */
+.gps-pick { display: flex; align-items: center; justify-content: flex-start; gap: 10px; flex-wrap: wrap; text-align: left; }
+.gps-pick .gps-btn { flex: none; white-space: nowrap; }
+.gps-msg { color: var(--muted); font-size: var(--fs-xs); }
+.gps-msg.bad { color: var(--red); }

@@ -795,3 +795,56 @@ textarea.ub { height: auto; padding: 9px 12px; resize: vertical; }
     .u-page-sec.msg .ch-msg.mine .ch-who { color: var(--green); }
     .u-page-sec.msg .chat-send { padding: 12px 16px; }
 }
+
+/* ===== My bookings: after the work (receipt, stars, problem) ===== */
+.bk-info .bk-cmp, .bk-info .bk-rated { grid-column: 1 / -1; }
+.bk-cmp {
+    margin: 2px 0 0;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--green-soft);
+    font-size: var(--fs-xs);
+}
+.bk-cmp.open { background: #fff4e0; color: #7a4b00; }
+.bk-rated { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
+.bk-stars { color: var(--gold); letter-spacing: 1px; }
+.bk-stars s { color: #d9dedb; text-decoration: none; }
+.bk-side .bk-final { color: #8a5a00; }
+.bk-more > summary { list-style: none; }
+.bk-more > summary::-webkit-details-marker { display: none; }
+.bk-more[open] { grid-column: 1 / -1; }
+.bk-more[open] > summary { background: var(--green-soft); }
+.bk-btn-warn { color: #8a5a00; }
+.bk-rate {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #f6faf8;
+}
+.bk-rate .muted { margin: 0; font-size: var(--fs-xs); }
+.bk-rate textarea { width: 100%; resize: vertical; }
+/* 5 stars: the inputs are hidden, the labels are the stars (DOM order 5..1, shown 1..5) */
+.star-pick {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 2px;
+}
+.star-pick input { position: absolute; opacity: 0; pointer-events: none; }
+.star-pick label {
+    color: #cfd6d3;
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+}
+.star-pick input:checked ~ label,
+.star-pick label:hover,
+.star-pick label:hover ~ label { color: var(--gold); }
+.star-pick input:focus-visible + label { outline: 2px solid var(--focus); border-radius: 4px; }
+@media (min-width: 1024px) {
+    .bk-acts { grid-template-columns: repeat(2, max-content); }
+    .bk-more[open] { grid-column: 1 / -1; width: 340px; justify-self: end; }
+}

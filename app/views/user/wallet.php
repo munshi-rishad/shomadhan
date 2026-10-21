@@ -249,7 +249,7 @@ $usableList = array_values(array_filter($coupons, function ($c) { return $c['sta
         <ul class="wl-txs">
         <?php foreach ($pointsList as $b): ?>
             <li class="wl-tx">
-                <span class="wl-tx-ic tile-<?= e($b['service_color']) ?>"><img src="<?= e($b['service_icon']) ?>" alt=""></span>
+                <span class="wl-tx-ic tile-<?= e($b['service_color']) ?>"><img loading="lazy" decoding="async" src="<?= e($b['service_icon']) ?>" alt=""></span>
                 <span class="wl-tx-txt"><b><?= e($lang === 'en' ? ($b['name_en'] ?: $b['name_bn']) : $b['name_bn']) ?></b><small><?= e($t['bk_id']) ?>: #<?= e(BookingModel::code($b['id'])) ?> · ৳<?= e(number_format($b['total'])) ?></small><small><?= e(date('d M Y', strtotime($b['scheduled_at']))) ?></small></span>
                 <span class="wl-tx-r"><b class="pos">+<?= (int)$b['points'] ?></b><span class="wl-st ws-points"><?= e($t['wl_points_word']) ?></span></span>
             </li>

@@ -31,6 +31,9 @@ index.php -> HomeController::index() -> ServiceModel::getAll() -> views/landing/
   (replaces the old copy, keeps its `.git` and config secrets), starts MySQL + Apache, drops the `shomadhan` database and imports
   `database/schema.sql` again (all old data is deleted), makes MySQL + Apache start by themselves at Windows login,
   adds 2 Chrome bookmarks (Welcome, Database; Chrome may close once for this) and opens both in Chrome.
+- `update.bat`: updates the database WITHOUT deleting data (use this once the site has real data, never setup.bat).
+  It starts MySQL if needed, saves a backup to `backups\shomadhan-<date>.sql`, then runs only the new files in
+  `database/migrations/` (how to write one: `database/migrations/README.md`). Same thing anywhere: `php tools/update.php`.
 - `fix-mysql.bat`: fixes XAMPP's "Error: MySQL shutdown unexpectedly". Stop MySQL first.
   It keeps the old data folder as `mysql\data_old_<date>` and brings your databases back.
 Both expect XAMPP in `C:\xampp` (change the `set XAMPP=` line if not).

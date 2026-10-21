@@ -35,6 +35,32 @@
         box.focus({ preventScroll: true });
     }
 
+    // ---- Keep the blinking cursor inside the box ----
+    // The PC pages use CSS zoom; Chrome then sometimes leaves the cursor at its old place after
+    // the page or the chat list scrolls. Focusing the box again redraws it in the right place.
+    function redrawCursor() {
+        if (document.activeElement !== box) {
+            return;
+        }
+        var start = box.selectionStart, end = box.selectionEnd;
+        box.blur();
+        box.focus({ preventScroll: true });
+        box.setSelectionRange(start, end);
+    }
+    var redrawTimer = null;
+    function redrawSoon() {
+        clearTimeout(redrawTimer);
+        redrawTimer = setTimeout(redrawCursor, 120);
+    }
+    window.addEventListener('scroll', redrawSoon, { passive: true });
+    window.addEventListener('resize', redrawSoon);
+    window.addEventListener('load', redrawSoon);
+    document.addEventListener('scroll', function (e) {
+        if (e.target !== document && e.target !== box) {
+            redrawSoon();
+        }
+    }, { capture: true, passive: true });
+
     // ---- Enter sends, Shift+Enter = new line ----
     box.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {

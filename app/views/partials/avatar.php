@@ -5,4 +5,4 @@
 // view('partials/avatar', ['name' => ..., 'photo' => ..., 'class' => 'avatar'])
 $cls = $class ?? 'avatar';
 ?>
-<?php if (!empty($photo)): ?><img class="<?= e($cls) ?> has-photo" src="<?= e($photo) ?>" alt=""><?php else: ?><span class="<?= e($cls) ?>" aria-hidden="true"><?= e(mb_substr(($name ?? '') !== '' ? $name : 'U', 0, 1, 'UTF-8')) ?></span><?php endif; ?>
+<?php if (!empty($photo)): ?><img loading="lazy" decoding="async" class="<?= e($cls) ?> has-photo" src="<?= e($photo) ?>" alt=""><?php else: ?><span class="<?= e($cls) ?>" aria-hidden="true"><?= e(mb_substr(($name ?? '') !== '' ? $name : 'U', 0, 1, 'UTF-8')) ?></span><?php endif; ?>

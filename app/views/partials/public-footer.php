@@ -25,7 +25,7 @@ $arrow = $ic('<path d="m9 6 6 6-6 6"/>');
     <div class="pf-grid">
         <?php /* ---- Column 1: logo, tagline, about text, social icons ---- */ ?>
         <div class="pf-col pf-brand">
-            <img class="pf-logo" src="<?= e(asset('assets/images/logo.png')) ?>" alt="Shomadhan">
+            <img loading="lazy" decoding="async" class="pf-logo" src="<?= e(asset('assets/images/logo.png')) ?>" alt="Shomadhan">
             <p class="pf-tag"><?= $tx('tagline') ?></p>
             <p class="pf-about"><?= $tx('ft_about') ?></p>
             <div class="pf-social">

@@ -4,7 +4,6 @@
 // Shown inside admin/layout.php (AdminController). Gets: $changes (AccountChangeModel::forAccount rows) + $t.
 ?>
 <h1 class="adm-h1"><?= e($t['chg_title']) ?></h1>
-<p class="adm-sub"><?= e($t['chg_sub']) ?></p>
 <div class="card">
     <?php if (!$changes): ?><p class="empty"><?= e($t['chg_none']) ?></p>
     <?php else: view('partials/account-changes', ['t' => $t, 'changes' => $changes]); endif; ?>

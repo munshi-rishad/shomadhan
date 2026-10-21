@@ -146,7 +146,7 @@ $sideGroups = [
                     <?php if (!$notifications): ?><p class="notif-empty"><?= e($t['home_no_offers']) ?></p><?php endif; ?>
                     <?php foreach ($notifications as $n): ?>
                         <div class="notif-item">
-                            <?php if ($n['image']): ?><img src="<?= e($n['image']) ?>" alt=""><?php endif; ?>
+                            <?php if ($n['image']): ?><img loading="lazy" decoding="async" src="<?= e($n['image']) ?>" alt=""><?php endif; ?>
                             <div><b><?= e($n['title']) ?></b><p><?= e($n['message']) ?></p><small><?= e(date('d M, h:i A', strtotime($n['created_at']))) ?></small></div>
                         </div>
                     <?php endforeach; ?>
@@ -263,6 +263,7 @@ $sideGroups = [
 <script src="<?= e(asset('assets/js/confirm.js')) ?>"></script>
 <?php endif; ?>
 <?php if ($mode === 'messages'): ?><script src="<?= e(asset('assets/js/chat.js')) ?>"></script><?php endif; ?>
+<?php if ($mode === 'book'): ?><script src="<?= e(asset('assets/js/gps.js')) ?>"></script><?php endif; ?>
 <?php if ($mode === 'profile'): ?><script src="<?= e(asset('assets/js/form-check.js')) ?>"></script><script src="<?= e(asset('assets/js/zoom.js')) ?>"></script><?php endif; ?>
 <script src="<?= e(asset('assets/js/live-search.js')) ?>"></script>
 <script src="<?= e(asset('assets/js/side-menu.js')) ?>"></script>

@@ -70,7 +70,7 @@ $filterUrl = function ($f) use ($mq) {
         <ul class="msg-list">
             <?php foreach ($list as $c): $svc = $lang === 'en' ? ($c['name_en'] ?: $c['name_bn']) : $c['name_bn']; ?>
             <li><a class="msg-item<?= $conv && (int)$conv['id'] === (int)$c['id'] ? ' on' : '' ?>" href="messages.php?c=<?= (int)$c['id'] ?>">
-                <span class="ch-av tile-<?= e($c['service_color']) ?>"><img src="<?= e($c['service_icon']) ?>" alt=""></span>
+                <span class="ch-av tile-<?= e($c['service_color']) ?>"><img loading="lazy" decoding="async" src="<?= e($c['service_icon']) ?>" alt=""></span>
                 <span class="msg-item-txt">
                     <span class="msg-item-top"><b><?= e($svc) ?></b><time><?= e($ago($c['last_message_at'])) ?></time></span>
                     <span class="msg-item-last"><?= e(($c['last_sender'] === 'user' ? $t['msg_you'] . ': ' : '') . $c['last_body']) ?></span>

@@ -7,6 +7,8 @@
 // Used by the user's booking pages and the office bookings page.
 
 require_once APP_PATH . '/models/WalletModel.php';
+require_once APP_PATH . '/models/HomeContentModel.php';
+require_once APP_PATH . '/models/AreaModel.php';
 
 class BookingModel
 {
@@ -160,9 +162,10 @@ class BookingModel
                 throw new RuntimeException('wallet');
             }
 
-            $db->prepare('INSERT INTO bookings (user_id, sub_service_id, scheduled_at, area, address, note, price, discount, total, coupon_id, payment)
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-               ->execute([$d['user_id'], $d['sub_service_id'], $d['scheduled_at'], $d['area'], $d['address'], $d['note'],
+            $db->prepare('INSERT INTO bookings (user_id, sub_service_id, scheduled_at, area, address, lat, lng, note, price, discount, total, coupon_id, payment)
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+               ->execute([$d['user_id'], $d['sub_service_id'], $d['scheduled_at'], $d['area'], $d['address'],
+                          $d['point'][0] ?? null, $d['point'][1] ?? null, $d['note'],
                           $d['price'], $discount, $total, $d['coupon']['id'] ?? null, $d['payment']]);
             $id = (int)$db->lastInsertId();
 
@@ -220,24 +223,87 @@ class BookingModel
         return $st->rowCount() === 1;
     }
 
-    // Work done (ongoing -> completed): the user gets reward points
-    public static function complete(array $b, $staffId)
+    // Work done (ongoing -> completed) with the real bill ($final; the price can change after the provider sees the job).
+    //  - the office's commission = commission % of the final bill (Admin > Site info)
+    //  - provider_cash = cash the provider took: the whole bill for a cash job; for a wallet job only what was more than paid
+    //  - a wallet job that ended cheaper: the difference goes back to the wallet
+    //  - reward points from the final bill
+    public static function complete(array $b, $staffId, $final, $note)
     {
-        $points = (int)floor((int)$b['total'] * self::POINTS_PER_TAKA);
-        $st = self::db()->prepare('UPDATE bookings SET status = "completed", points = ?, handled_by = ? WHERE id = ? AND status = "ongoing"');
-        $st->execute([$points, $staffId, $b['id']]);
-        return $st->rowCount() === 1;
+        return self::transaction(function (PDO $db) use ($b, $staffId, $final, $note) {
+            $final = max(0, (int)$final);
+            $paidRow = self::one('SELECT COALESCE(-SUM(amount), 0) AS n FROM wallet_tx WHERE booking_id = ? AND status = "successful"', [$b['id']]);
+            $paid = (int)$paidRow['n'];                                   // taken from the wallet (minus refunds)
+            $cash = max(0, $final - $paid);
+            $site = HomeContentModel::site();
+            $commission = (int)round($final * (int)$site['commission'] / 100);
+            $points = (int)floor($final * self::POINTS_PER_TAKA);
+
+            $st = $db->prepare('UPDATE bookings SET status = "completed", final_total = ?, final_note = ?, commission = ?, provider_cash = ?,
+                                points = ?, completed_at = NOW(), handled_by = ? WHERE id = ? AND status = "ongoing"');
+            $st->execute([$final === (int)$b['total'] ? null : $final, $note, $commission, $cash, $points, $staffId, $b['id']]);
+            if ($st->rowCount() !== 1) {
+                return false;
+            }
+            if ($paid > $final) {
+                WalletModel::addTx($b['user_id'], 'refund', $paid - $final, $b['id']);
+            }
+            return true;
+        });
     }
 
-    // Who can be sent: active providers who give this sub-service; if none is linked yet, active providers of the same category
+    // The bill the user really pays: the final bill when the work is done, else the booked total
+    public static function bill(array $b)
+    {
+        return $b['final_total'] !== null ? (int)$b['final_total'] : (int)$b['total'];
+    }
+
+    // Who can be sent: active providers who give this sub-service; if none is linked yet, active providers of the same category.
+    // busy = how many other ongoing jobs the provider already has on the same day (shown so the office can ask about it on the call).
+    // km = about how far the provider's area is from the customer (phone location, else the booking's area); nearest first.
+    // near = same area or within AreaModel::NEAR_KM (green group: the office calls them first).
+    // on_leave = the provider has a leave on the booking's day (Providers > edit > leave days): shown, but last and never "near".
     public static function providersFor(array $b)
     {
-        $rows = self::all('SELECT p.id, p.name, p.mobile, p.area FROM providers p JOIN sub_service_providers sp ON sp.provider_id = p.id
-                           WHERE sp.sub_service_id = ? AND p.status = "active" AND p.deleted_at IS NULL ORDER BY p.name', [$b['sub_service_id']]);
-        if ($rows) {
-            return $rows;
+        $busy = '(SELECT COUNT(*) FROM bookings o WHERE o.provider_id = p.id AND o.status = "ongoing" AND o.id <> ?
+                   AND DATE(o.scheduled_at) = DATE(?)) AS busy,
+                  (SELECT l.note FROM provider_leaves l WHERE l.provider_id = p.id AND DATE(?) BETWEEN l.from_date AND l.to_date LIMIT 1) AS leave_note,
+                  EXISTS(SELECT 1 FROM provider_leaves l WHERE l.provider_id = p.id AND DATE(?) BETWEEN l.from_date AND l.to_date) AS on_leave';
+        $day  = $b['scheduled_at'] ?? date('Y-m-d H:i:s');
+        $args = [(int)($b['id'] ?? 0), $day, $day, $day];
+        $cols = 'SELECT p.id, p.name, p.mobile, p.area, a.lat AS area_lat, a.lng AS area_lng, ' . $busy . ' FROM providers p LEFT JOIN areas a ON a.name = p.area';
+        $rows = self::all($cols . ' JOIN sub_service_providers sp ON sp.provider_id = p.id
+                           WHERE sp.sub_service_id = ? AND p.status = "active" AND p.deleted_at IS NULL',
+                          array_merge($args, [$b['sub_service_id']]));
+        if (!$rows) {
+            $rows = self::all($cols . ' WHERE p.service_id = ? AND p.status = "active" AND p.deleted_at IS NULL',
+                              array_merge($args, [$b['service_id'] ?? 0]));
         }
-        return self::all('SELECT id, name, mobile, area FROM providers WHERE service_id = ? AND status = "active" AND deleted_at IS NULL ORDER BY name', [$b['service_id']]);
+
+        // How far each provider is from the customer (straight line).
+        // Customer: the phone location when given, else the middle of the area. Provider: the middle of the area.
+        // same = same area and no phone location (distance unknown inside the area).
+        $home = AreaModel::byName((string)($b['area'] ?? ''));
+        $bExact = isset($b['lat'], $b['lng']);
+        $bLat = $bExact ? (float)$b['lat'] : ($home['lat'] ?? null);
+        $bLng = $bExact ? (float)$b['lng'] : ($home['lng'] ?? null);
+        foreach ($rows as $i => $p) {
+            $same = $p['area'] === ($b['area'] ?? '') && !$bExact;
+            $km = $same ? 0.0 : AreaModel::km($bLat, $bLng, $p['area_lat'], $p['area_lng']);
+            $rows[$i]['km']    = $km === null ? null : round($km, 1);
+            $rows[$i]['same']  = $same;
+            $rows[$i]['near']  = !$p['on_leave'] && ($same || ($km !== null && $km <= AreaModel::NEAR_KM));
+        }
+        // nearest first; on leave that day or an area with no point: last
+        usort($rows, function ($x, $y) {
+            if ((int)$x['on_leave'] !== (int)$y['on_leave']) {
+                return (int)$x['on_leave'] <=> (int)$y['on_leave'];
+            }
+            $kx = $x['km'] ?? 9999;
+            $ky = $y['km'] ?? 9999;
+            return $kx <=> $ky ?: strcmp($x['name'], $y['name']);
+        });
+        return $rows;
     }
 
     // Office list: status tab + search (booking number, user name / mobile, service, area, provider) + pages of $per.
@@ -249,6 +315,8 @@ class BookingModel
         if (in_array($status, self::STATUSES, true)) {
             $where .= ' AND b.status = ?';
             $args[] = $status;
+        } elseif ($status === 'complaints') {
+            $where .= ' AND b.complaint IS NOT NULL';          // problems users reported after the work
         }
         $q = trim((string)$q);
         if ($q !== '') {
@@ -267,6 +335,9 @@ class BookingModel
 
         // waiting ones: soonest first (what to do next); finished ones: newest first
         $order = in_array($status, ['pending', 'ongoing'], true) ? self::ORDER_SOONEST : 'b.id DESC';
+        if ($status === 'complaints') {
+            $order = 'b.complaint_status = "open" DESC, b.complaint_at DESC';      // still open ones first
+        }
         $rows = self::all(self::sql($where, $order) . ' LIMIT ' . $per . ' OFFSET ' . (($page - 1) * $per), $args);
         return [$rows, $total, $page, $pages];
     }
@@ -274,6 +345,51 @@ class BookingModel
     // ['pending' => 4, ...] for all bookings (office tabs and menu numbers)
     public static function countByStatus()
     {
-        return self::statusCounts('SELECT status, COUNT(*) AS n FROM bookings GROUP BY status');
+        $counts = self::statusCounts('SELECT status, COUNT(*) AS n FROM bookings GROUP BY status');
+        $open = self::one('SELECT COUNT(*) AS n FROM bookings WHERE complaint_status = "open"');
+        $counts['complaints'] = (int)$open['n'];            // the "complaints" tab shows how many are still open
+        return $counts;
+    }
+
+    // ------------------------------------------------------------ AFTER THE WORK: stars + review, complaint (user), answer (office)
+
+    // The user rates finished work once: 1-5 stars + optional words
+    public static function rate($id, $userId, $stars, $review)
+    {
+        $st = self::db()->prepare('UPDATE bookings SET rating = ?, review = ?, reviewed_at = NOW()
+                                   WHERE id = ? AND user_id = ? AND status = "completed" AND rating IS NULL');
+        $st->execute([$stars, $review, $id, $userId]);
+        return $st->rowCount() === 1;
+    }
+
+    // Can the user still report a problem? Finished, none reported yet, within the days set on Admin > Site info.
+    public static function canComplain(array $b, $days)
+    {
+        return $b['status'] === 'completed' && $b['complaint'] === null && $b['completed_at'] !== null
+            && strtotime($b['completed_at']) >= time() - (int)$days * 86400;
+    }
+
+    public static function complain($id, $userId, $text, $days)
+    {
+        $st = self::db()->prepare('UPDATE bookings SET complaint = ?, complaint_at = NOW(), complaint_status = "open"
+                                   WHERE id = ? AND user_id = ? AND status = "completed" AND complaint IS NULL
+                                     AND completed_at >= NOW() - INTERVAL ? DAY');
+        $st->execute([$text, $id, $userId, (int)$days]);
+        return $st->rowCount() === 1;
+    }
+
+    // The office closes a complaint with what it did (the user sees the answer)
+    public static function solveComplaint($id, $answer, $staffId)
+    {
+        $st = self::db()->prepare('UPDATE bookings SET complaint_status = "solved", complaint_answer = ?, handled_by = ?
+                                   WHERE id = ? AND complaint_status = "open"');
+        $st->execute([$answer, $staffId, $id]);
+        return $st->rowCount() === 1;
+    }
+
+    // Office-only note on a booking (calls made, who said no ...)
+    public static function setStaffNote($id, $note)
+    {
+        self::db()->prepare('UPDATE bookings SET staff_note = ? WHERE id = ?')->execute([$note, $id]);
     }
 }

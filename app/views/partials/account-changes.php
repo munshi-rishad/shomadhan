@@ -33,7 +33,7 @@ $show = function ($key, $value) use ($t) {
                     <li><span><?= e($t['bk_id']) ?> #<?= e($item[2] ?? '') ?>:</span> <b><?= e($t['bk_st_' . ($item[1] ?? '')] ?? '') ?></b></li>
                 <?php elseif ($key === 'wl_event'): /* office checked a wallet top-up: [wl_event, successful | rejected, amount] */ ?>
                     <li><span><?= e($t['wl_topup']) ?> ৳<?= e(number_format((int)($item[2] ?? 0))) ?>:</span> <b><?= e($t['wl_st_' . ($item[1] ?? '')] ?? '') ?></b></li>
-                <?php elseif ($key === 'chg_deleted' || $key === 'chg_restored'): ?>
+                <?php elseif ($key === 'chg_deleted' || $key === 'chg_restored' || $key === 'chg_pw_reset'): ?>
                     <li><?= e($t[$key]) ?></li>
                 <?php else: /* a normal field: old value crossed out -> new value */ ?>
                     <li><span><?= e($t[$key] ?? $key) ?>:</span> <s><?= e($show($key, $item[1] ?? '')) ?></s> → <b><?= e($show($key, $item[2] ?? '')) ?></b></li>

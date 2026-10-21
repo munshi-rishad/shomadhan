@@ -5,7 +5,6 @@
 // + the layout's $t, $base, $err, $val, $hidden.
 ?>
 <h1 class="adm-h1"><?= e($t['adm_menu_popup']) ?></h1>
-<p class="adm-sub"><?= e($t['adm_popup_sub']) ?></p>
 
 <?php /* ---- Add / edit form (the same form; edit mode asks to confirm the changes) ---- */ ?>
 <?php $pp = $edit ?: []; $isEdit = (bool)$edit; ?>
@@ -48,7 +47,7 @@
         <tbody>
         <?php foreach ($popups as $p): ?>
             <tr<?= $p['is_active'] ? '' : ' class="dim"' ?>>
-                <td class="cell-img cell-thumb"><img class="thumb-square" src="<?= e($p['image']) ?>" alt=""></td>
+                <td class="cell-img cell-thumb"><img loading="lazy" decoding="async" class="thumb-square" src="<?= e($p['image']) ?>" alt=""></td>
                 <td class="cell-name" data-label="<?= e($t['adm_title_opt']) ?>"><b><?= e($p['title'] ?: '—') ?></b></td>
                 <td data-label="<?= e($t['adm_popup_link']) ?>" class="cell-wrap"><?php if ($p['link']): ?><a class="link" href="<?= e($p['link']) ?>" target="_blank" rel="noopener noreferrer"><?= e($p['link']) ?></a><?php else: ?><small><?= e($t['adm_no_link']) ?></small><?php endif; ?></td>
                 <td data-label="<?= e($t['adm_status']) ?>"><span class="pill <?= (int)$p['id'] === (int)$liveId ? 'pill-on' : 'pill-off' ?>"><?= e((int)$p['id'] === (int)$liveId ? $t['adm_popup_live'] : ($p['is_active'] ? $t['adm_shown'] : $t['adm_hidden'])) ?></span></td>

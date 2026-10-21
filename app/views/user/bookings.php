@@ -3,8 +3,9 @@
 // My bookings. Tabs: pending / ongoing / completed / cancelled.
 // Pending: cancel (our own "are you sure" box) or change the date / time. Ongoing: who is coming + call + chat about it.
 // Pulled into the user page frame (user/home.php, $mode = 'bookings') by BookingController.
+// Completed: receipt, stars + review (once), report a problem (within $complaintDays days) and the office's answer.
 // Gets: $bookings, $tab, $counts (per tab), $reschedule (id of the booking whose date form is open), $slots,
-//       $minDate, $maxDate, $errors + the frame's $t, $lang, $nm.
+//       $minDate, $maxDate, $complaintDays, $errors + the frame's $t, $lang, $nm.
 
 // $ic('<path ...>') -> an icon; $tabIc = icon of each tab
 $ic = function ($p) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' . $p . '</svg>'; };
@@ -42,9 +43,9 @@ $tabIc = [
             <?php /* picture, details (when, where, number, provider, why cancelled), amount */ ?>
             <div class="bk-top">
                 <span class="bk-media tile-<?= e($b['service_color']) ?>">
-                    <?php if ($b['image']): ?><img src="<?= e($b['image']) ?>" alt=""><?php else: ?><img class="ph" src="<?= e($b['service_icon']) ?>" alt=""><?php endif; ?>
+                    <?php if ($b['image']): ?><img loading="lazy" decoding="async" src="<?= e($b['image']) ?>" alt=""><?php else: ?><img loading="lazy" decoding="async" class="ph" src="<?= e($b['service_icon']) ?>" alt=""><?php endif; ?>
                     <?php $cat = $lang === 'en' ? $b['service_en'] : $b['service_bn']; if ($cat !== $nm($b)): /* category tag only when it is not the same as the name */ ?>
-                    <span class="bk-tag"><img src="<?= e($b['service_icon']) ?>" alt=""><?= e($cat) ?></span><?php endif; ?>
+                    <span class="bk-tag"><img loading="lazy" decoding="async" src="<?= e($b['service_icon']) ?>" alt=""><?= e($cat) ?></span><?php endif; ?>
                 </span>
                 <div class="bk-info">
                     <h2><?= e($nm($b)) ?></h2>
@@ -56,13 +57,22 @@ $tabIc = [
                         <p class="bk-row bk-pro"><?= $ic('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>') ?><?= e($t['bk_provider']) ?>: <b><?= e($b['provider_name']) ?></b>
                             <?php if ($b['status'] === 'ongoing'): ?><a class="bk-call" href="tel:+<?= e(phone_intl($b['provider_mobile'])) ?>"><?= e($b['provider_mobile']) ?></a><?php endif; ?></p>
                     <?php endif; ?>
+                    <?php /* done: the problem I reported (+ the office's answer), my stars */ ?>
+                    <?php if ($b['complaint'] !== null): /* the problem I reported, and the office's answer */ ?>
+                        <p class="bk-cmp<?= $b['complaint_status'] === 'open' ? ' open' : '' ?>"><b><?= e($t[$b['complaint_status'] === 'open' ? 'cmp_open_user' : 'bk_cmp_solved']) ?></b> <?= e($b['complaint']) ?>
+                            <?php if ($b['complaint_answer']): ?><br><span>→ <?= e($b['complaint_answer']) ?></span><?php endif; ?></p>
+                    <?php endif; ?>
+                    <?php if ($b['rating'] !== null): /* my stars */ ?>
+                        <p class="bk-rated"><span class="bk-stars"><?= str_repeat('★', (int)$b['rating']) ?><s><?= str_repeat('★', 5 - (int)$b['rating']) ?></s></span><?= $b['review'] ? ' “' . e($b['review']) . '”' : '' ?></p>
+                    <?php endif; ?>
                     <?php if ($b['status'] === 'cancelled'): ?>
                         <p class="bk-row bk-why"><?= e($t[$b['cancelled_by'] === 'staff' ? 'bk_cancel_by_staff' : 'bk_cancel_by_me']) ?><?= $b['cancel_reason'] ? ': ' . e($b['cancel_reason']) : '' ?></p>
                     <?php endif; ?>
                 </div>
                 <div class="bk-side">
-                    <b class="bk-amt">৳ <?= e(number_format((int)$b['total'])) ?></b>
+                    <b class="bk-amt">৳ <?= e(number_format(BookingModel::bill($b))) ?></b>
                     <small><?= e($t['bk_total']) ?></small>
+                    <?php if ($b['final_total'] !== null): /* the bill changed after the work: booked amount + why */ ?><small class="bk-final"><?= e(sprintf($t['bk_adm_was'], number_format($b['total']))) ?><?= $b['final_note'] ? ' · ' . e($b['final_note']) : '' ?></small><?php endif; ?>
                     <small class="bk-paid"><?= e($t['bk_pay_' . $b['payment']]) ?><?= $b['discount'] > 0 ? ' · ' . e(sprintf($t['bk_saved'], (int)$b['discount'])) : '' ?></small>
                     <?php if ($b['status'] === 'completed' && $b['points'] > 0): ?><small class="bk-pts">+<?= (int)$b['points'] ?> <?= e($t['wl_points_word']) ?></small><?php endif; ?>
                 </div>
@@ -104,6 +114,41 @@ $tabIc = [
             <div class="bk-acts">
                 <a class="btn btn-ghost bk-btn" href="tel:+<?= e(phone_intl($b['provider_mobile'])) ?>"><?= $ic('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>') ?><?= e($t['bk_call']) ?></a>
                 <a class="btn bk-btn" href="messages.php?booking=<?= (int)$b['id'] ?>"><?= $ic('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>') ?><?= e($t['msg_about_booking']) ?></a>
+            </div>
+            <?php elseif ($b['status'] === 'completed'): /* ---- done: receipt, stars, problem ---- */ ?>
+            <div class="bk-acts">
+                <a class="btn btn-ghost bk-btn" href="receipt.php?id=<?= (int)$b['id'] ?>"><?= $ic('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>') ?><?= e($t['rc_title']) ?></a>
+                <?php if ($b['rating'] === null): ?>
+                <details class="bk-more">
+                    <summary class="btn bk-btn"><?= $ic('<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>') ?><?= e($t['rv_give']) ?></summary>
+                    <form class="bk-rate" method="post" action="bookings.php?tab=completed">
+                        <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+                        <input type="hidden" name="action" value="rate">
+                        <input type="hidden" name="id" value="<?= (int)$b['id'] ?>">
+                        <?php /* 5 stars: radio buttons drawn as stars (right to left so CSS can light up the ones before) */ ?>
+                        <div class="star-pick" role="radiogroup" aria-label="<?= e($t['rv_give']) ?>">
+                            <?php for ($n = 5; $n >= 1; $n--): ?>
+                                <input type="radio" name="stars" value="<?= $n ?>" id="st-<?= (int)$b['id'] ?>-<?= $n ?>" required><label for="st-<?= (int)$b['id'] ?>-<?= $n ?>" title="<?= $n ?>/5">★</label>
+                            <?php endfor; ?>
+                        </div>
+                        <textarea class="ub" name="review" rows="2" maxlength="500" placeholder="<?= e($t['rv_ph']) ?>"></textarea>
+                        <button class="btn" type="submit"><?= e($t['rv_send']) ?></button>
+                    </form>
+                </details>
+                <?php endif; ?>
+                <?php if (BookingModel::canComplain($b, $complaintDays)): ?>
+                <details class="bk-more">
+                    <summary class="btn btn-ghost bk-btn bk-btn-warn"><?= $ic('<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5h.01"/>') ?><?= e($t['cmp_give']) ?></summary>
+                    <form class="bk-rate" method="post" action="bookings.php?tab=completed">
+                        <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+                        <input type="hidden" name="action" value="complain">
+                        <input type="hidden" name="id" value="<?= (int)$b['id'] ?>">
+                        <p class="muted"><?= e(sprintf($t['cmp_hint'], $complaintDays)) ?></p>
+                        <textarea class="ub" name="complaint" rows="2" minlength="5" maxlength="500" required placeholder="<?= e($t['cmp_ph']) ?>"></textarea>
+                        <button class="btn" type="submit"><?= e($t['cmp_send']) ?></button>
+                    </form>
+                </details>
+                <?php endif; ?>
             </div>
             <?php endif; ?>
         </article>

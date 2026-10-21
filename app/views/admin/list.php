@@ -50,9 +50,8 @@ if (isset($L['filters']['status'])) {
 if (isset($L['filters']['service'])) {
     $filterOpts['service'] = [$t['flt_all_service'], $sv];
 }
-if (isset($L['filters']['gender'])) {
-    $filterOpts['gender'] = [$t['flt_all_gender'], ['male' => $t['adm_g_male'], 'female' => $t['adm_g_female'], 'other' => $t['adm_g_other']]];
-    $filterOpts['area']   = [$t['flt_all_area'], array_combine($areas, $areas)];
+if (isset($L['filters']['area'])) {
+    $filterOpts['area'] = [$t['flt_all_area'], array_combine($areas, $areas)];
 }
 if ($isProducts) {
     $filterOpts['shown']   = [$t['flt_all_shown'], ['1' => $t['adm_shown'], '0' => $t['adm_hidden']]];
@@ -60,7 +59,6 @@ if ($isProducts) {
 $pw = $isProviders ? '' : ' data-confirm-pw';          // account changes need the admin's own password
 ?>
 <h1 class="adm-h1"><?= e($t['adm_menu_' . $page]) ?></h1>
-<p class="adm-sub"><?= e($t['adm_list_sub_' . $page]) ?></p>
 
 <?php /* ---- Add / edit form (opens by itself when editing or after a save error) ---- */ ?>
 <?php if ($canAct):
@@ -141,6 +139,34 @@ $pw = $isProviders ? '' : ' data-confirm-pw';          // account changes need t
         </div>
     </form>
 </details>
+<?php if ($role === 'provider' && $isEdit): /* ---- Leave days of this provider (only when editing one) ---- */ ?>
+<div class="card lv-card" id="leave">
+    <h2 class="rp-h"><?= e(sprintf($t['lv_title'], $a['name'])) ?></h2>
+    <p class="hint"><?= e($t['lv_hint']) ?></p>
+    <?php if (!empty($errors['leave'])): ?><p class="alert alert-error"><?= e($errors['leave']) ?></p><?php endif; ?>
+    <form class="lv-form" method="post" action="<?= e($formUrl) ?>#leave">
+        <?= $hidden('leave_add', $a['id']) ?>
+        <label><span><?= e($t['lv_from']) ?></span><input type="date" name="from_date" min="<?= e(date('Y-m-d')) ?>" required value="<?= e($old['from_date'] ?? '') ?>"></label>
+        <label><span><?= e($t['lv_to']) ?></span><input type="date" name="to_date" min="<?= e(date('Y-m-d')) ?>" value="<?= e($old['to_date'] ?? '') ?>"></label>
+        <label class="lv-note"><span><?= e($t['lv_note']) ?></span><input type="text" name="leave_note" maxlength="100" value="<?= e($old['leave_note'] ?? '') ?>"></label>
+        <button class="btn" type="submit"><?= e($t['lv_add']) ?></button>
+    </form>
+    <?php if (!$leaves): ?><p class="empty"><?= e($t['lv_none']) ?></p><?php else: ?>
+    <ul class="lv-list">
+        <?php foreach ($leaves as $l): ?>
+        <li>
+            <b><?= e(date('d-m-Y', strtotime($l['from_date']))) ?><?= $l['to_date'] !== $l['from_date'] ? ' → ' . e(date('d-m-Y', strtotime($l['to_date']))) : '' ?></b>
+            <small><?= $l['note'] ? e($l['note']) . ' · ' : '' ?><?= e($l['by_name'] ?? '') ?></small>
+            <form method="post" action="<?= e($formUrl) ?>#leave" data-confirm-danger data-confirm-title="<?= e($t['lv_delete']) ?>" data-confirm="<?= e($t['lv_delete_q']) ?>">
+                <?= $hidden('leave_delete', $a['id']) ?><input type="hidden" name="leave_id" value="<?= (int)$l['id'] ?>">
+                <button class="btn btn-small btn-ghost" type="submit"><?= e($t['adm_delete']) ?></button>
+            </form>
+        </li>
+        <?php endforeach; ?>
+    </ul>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
 <?php endif; ?>
 <?php endif; ?>
 
@@ -191,7 +217,7 @@ $pw = $isProviders ? '' : ' data-confirm-pw';          // account changes need t
         <?php foreach ($L['rows'] as $r): ?>
             <tr>
             <?php if ($isProducts): /* product row: fixed columns */ ?>
-                <td class="cell-photo"><?php if ($r['image']): ?><img class="thumb-sm" src="<?= e($r['image']) ?>" alt=""><?php else: ?><span class="tile tile-<?= e($r['service_color']) ?>"><img src="<?= e($r['service_icon']) ?>" alt=""></span><?php endif; ?></td>
+                <td class="cell-photo"><?php if ($r['image']): ?><img loading="lazy" decoding="async" class="thumb-sm" src="<?= e($r['image']) ?>" alt=""><?php else: ?><span class="tile tile-<?= e($r['service_color']) ?>"><img loading="lazy" decoding="async" src="<?= e($r['service_icon']) ?>" alt=""></span><?php endif; ?></td>
                 <td<?= $lbl('id') ?>><?= (int)$r['id'] ?></td>
                 <td class="cell-name"<?= $lbl('name') ?>><b><?= e($r['name_' . $nm]) ?></b><br><small><?= e($r['name_' . ($nm === 'bn' ? 'en' : 'bn')]) ?></small></td>
                 <td<?= $lbl('service') ?>><?= e($r['service_' . $nm]) ?></td>
@@ -214,7 +240,7 @@ $pw = $isProviders ? '' : ' data-confirm-pw';          // account changes need t
                     <?php elseif ($c === 'name'): ?>
                         <td class="cell-name"<?= $lbl($c) ?>><span class="who">
                             <?php view('partials/avatar', ['name' => $r['name'], 'photo' => $r['photo'], 'class' => 'av-sm']); ?>
-                            <span><b><?= e($r['name']) ?></b><?php if ($isProviders): ?><br><small><?= e($r['address']) ?><?= $r['note'] ? ' · ' . e($r['note']) : '' ?></small><?php endif; ?></span>
+                            <span><b><?= e($r['name']) ?></b><?php if ($isProviders && in_array((int)$r['id'], $onLeave ?? [], true)): ?> <span class="pill pill-off lv-pill"><?= e($t['lv_on_leave']) ?></span><?php endif; ?><?php if ($isProviders): ?><br><small><?= e($r['address']) ?><?= $r['note'] ? ' · ' . e($r['note']) : '' ?></small><?php elseif (!empty($r['email'])): ?><br><small><?= str_replace('@', '@<wbr>', e($r['email'])) ?></small><?php endif; ?></span>
                         </span></td>
                     <?php elseif ($c === 'created_at'): ?>
                         <td<?= $lbl($c) ?>><small><?= e(date('d-m-Y', strtotime($r['created_at']))) ?></small></td>
@@ -244,6 +270,13 @@ $pw = $isProviders ? '' : ' data-confirm-pw';          // account changes need t
                               data-confirm="<?= e(sprintf($t['acc_confirm_move'], $r['name'], $t['pf_role_' . $role], $t['pf_role_' . $newRole])) ?>"<?= $pw ?>>
                             <?= $hidden('move', $r['id']) ?>
                             <button class="btn btn-small btn-move" type="submit"><?= e($t['acc_make_' . $newRole]) ?></button>
+                        </form>
+                        <?php endif; ?>
+                        <?php if (!$isProviders): /* forgotten password (no email to get the code): a one-time password, told on the phone */ ?>
+                        <form method="post" action="<?= e($base) ?>?page=<?= e($page) ?>" data-confirm-title="<?= e($t['acc_pw_reset']) ?>"
+                              data-confirm="<?= e(sprintf($t['acc_confirm_pw_reset'], $r['name'])) ?>"<?= $pw ?>>
+                            <?= $hidden('reset_pw', $r['id']) ?>
+                            <button class="btn btn-small btn-ghost" type="submit"><?= e($t['acc_pw_reset']) ?></button>
                         </form>
                         <?php endif; ?>
                         <form method="post" action="<?= e($base) ?>?page=<?= e($page) ?>" data-confirm-danger data-confirm-title="<?= e($t['adm_delete']) ?>"

@@ -9,7 +9,6 @@ $c = $edit ?: [];
 $isEdit = (bool)$edit;
 ?>
 <h1 class="adm-h1"><?= e($t['adm_menu_coupons']) ?></h1>
-<p class="adm-sub"><?= e($t['cp_sub']) ?></p>
 
 <?php /* ---- Add / edit form ---- */ ?>
 <?php if ($canEdit): ?>

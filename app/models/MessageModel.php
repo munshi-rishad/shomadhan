@@ -11,6 +11,12 @@ class MessageModel
 {
     const MAX_LEN = 1000;                                       // longest message (characters)
     const FILTERS = ['all', 'support', 'active', 'done'];     // all chats / support / active bookings / completed
+    // office only, after "all": unread = the user wrote and nobody in the office opened it yet;
+    // noreply = the office opened it but the user's message is still the last one (nobody answered)
+    const STAFF_FILTERS = ['all', 'unread', 'noreply'];   // only 2 buttons are shown; 'all' = none pressed
+    const UNREAD_SQL  = 'EXISTS (SELECT 1 FROM messages um WHERE um.conversation_id = c.id AND um.sender = "user"
+                         AND (c.staff_seen_at IS NULL OR um.created_at > c.staff_seen_at))';
+    const NOREPLY_SQL = '(SELECT lm.sender FROM messages lm WHERE lm.conversation_id = c.id ORDER BY lm.id DESC LIMIT 1) = "user"';
 
     // ---- Small database helpers
 
@@ -84,6 +90,12 @@ class MessageModel
         if ($filter === 'done') {
             $where .= ' AND b.status IN ("completed", "cancelled")';
         }
+        if ($staff && $filter === 'unread') {
+            $where .= ' AND ' . self::UNREAD_SQL;
+        }
+        if ($staff && $filter === 'noreply') {
+            $where .= ' AND ' . self::NOREPLY_SQL . ' AND NOT ' . self::UNREAD_SQL;
+        }
 
         $q = trim((string)$q);
         if ($q === '') {
@@ -152,6 +164,15 @@ class MessageModel
         $args = [];
         $where = 'WHERE 1' . self::filterSql($filter, $q, $args, true);
         return self::all(self::sql($where, 'unread_staff > 0 DESC, c.last_message_at DESC, c.id DESC') . ' LIMIT 200', $args);
+    }
+
+    // Numbers on the office's "unread" and "seen, not answered" chips
+    public static function countsForStaff()
+    {
+        $row = self::one('SELECT COALESCE(SUM(' . self::UNREAD_SQL . '), 0) AS unread,
+                                 COALESCE(SUM(' . self::NOREPLY_SQL . ' AND NOT ' . self::UNREAD_SQL . '), 0) AS noreply
+                          FROM conversations c WHERE c.last_message_at IS NOT NULL');
+        return array_map('intval', $row);
     }
 
     public static function find($id)

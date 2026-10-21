@@ -20,7 +20,7 @@ $svc = $isSupport ? '' : ($lang === 'en' ? ($conv['name_en'] ?: $conv['name_bn']
             <span class="ch-av ch-sup"><?php view('partials/support-icon'); ?></span>
             <div class="chat-title"><b><?= e($t['msg_support']) ?></b><small><?= e($t['msg_support_sub']) ?></small></div>
         <?php else: /* user, chat about one booking */ ?>
-            <span class="ch-av tile-<?= e($conv['service_color']) ?>"><img src="<?= e($conv['service_icon']) ?>" alt=""></span>
+            <span class="ch-av tile-<?= e($conv['service_color']) ?>"><img loading="lazy" decoding="async" src="<?= e($conv['service_icon']) ?>" alt=""></span>
             <div class="chat-title"><b><?= e($svc) ?></b><small><?= e($t['msg_office']) ?></small></div>
         <?php endif; ?>
         <div class="chat-chips">

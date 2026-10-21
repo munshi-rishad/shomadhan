@@ -136,6 +136,8 @@ echo  Import korchi: %SQL%
 if errorlevel 1 goto :import_fail
 
 echo  [OK] Database notun kore import hoyeche.
+REM ---- schema.sql e sob update already ache: database\migrations er file gulo "done" likhe rakhi (update.bat jate abar na chalay)
+if exist "%XAMPP%\php\php.exe" "%XAMPP%\php\php.exe" "%ROOT%\tools\update.php" --mark-all
 
 REM ---- phpMyAdmin er lal lekha "configuration storage is not completely configured" bondho korte
 REM      phpMyAdmin er nijer table gulo banai (age thakle kichu bodlay na)

@@ -417,7 +417,7 @@ button.back {
         position: absolute;
         inset: 0;
         z-index: -1;
-        background: url('../images/welcome-bg-pc.jpg') 50% 30% / cover no-repeat;
+        background: url('../images/welcome-bg-pc.webp') 50% 30% / cover no-repeat;
         filter: blur(1.5px);
         transform: scale(1.03);
     }

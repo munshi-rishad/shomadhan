@@ -144,4 +144,33 @@ class ProviderModel
             throw $ex;
         }
     }
+
+    // ================================================================ LEAVE DAYS
+    // Days a provider can't work (provider_leaves). The bookings page puts them last that day with "on leave".
+
+    // Leaves that are not over yet (today or later), soonest first
+    public static function leaves($providerId)
+    {
+        $st = Database::get()->prepare('SELECT l.*, s.name AS by_name FROM provider_leaves l LEFT JOIN staff s ON s.id = l.created_by
+                                        WHERE l.provider_id = ? AND l.to_date >= CURDATE() ORDER BY l.from_date, l.id');
+        $st->execute([$providerId]);
+        return $st->fetchAll();
+    }
+
+    public static function addLeave($providerId, $from, $to, $note, $byStaffId)
+    {
+        self::run('INSERT INTO provider_leaves (provider_id, from_date, to_date, note, created_by) VALUES (?, ?, ?, ?, ?)',
+                  [$providerId, $from, $to, $note, $byStaffId]);
+    }
+
+    public static function deleteLeave($providerId, $leaveId)
+    {
+        self::run('DELETE FROM provider_leaves WHERE id = ? AND provider_id = ?', [$leaveId, $providerId]);
+    }
+
+    // ids of providers on leave today (a small "on leave" pill in the providers list)
+    public static function onLeaveToday()
+    {
+        return array_map('intval', Database::get()->query('SELECT DISTINCT provider_id FROM provider_leaves WHERE CURDATE() BETWEEN from_date AND to_date')->fetchAll(PDO::FETCH_COLUMN));
+    }
 }

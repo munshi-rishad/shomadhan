@@ -5,7 +5,6 @@
 // $t, $base, $err, $val, $hidden.
 ?>
 <h1 class="adm-h1"><?= e($t['adm_menu_banners']) ?></h1>
-<p class="adm-sub"><?= e($t['adm_banners_sub']) ?></p>
 
 <?php /* ---- Upload a new banner ---- */ ?>
 <form class="card form-grid" method="post" enctype="multipart/form-data" action="<?= e($base) ?>?page=banners">
@@ -30,7 +29,7 @@
         <tbody>
         <?php foreach ($banners as $i => $b): $fid = 'banner-' . (int)$b['id']; ?>
             <tr<?= $b['is_active'] ? '' : ' class="dim"' ?>>
-                <td class="cell-img"><img class="thumb-banner" src="<?= e($b['image']) ?>" alt=""></td>
+                <td class="cell-img"><img loading="lazy" decoding="async" class="thumb-banner" src="<?= e($b['image']) ?>" alt=""></td>
                 <td data-label="<?= e($t['adm_title_opt']) ?>"><input form="<?= $fid ?>" type="text" name="title" maxlength="100" value="<?= e($b['title']) ?>"></td>
                 <td data-label="<?= e($t['adm_order']) ?>"><?php view('partials/order-arrows', [
                     't'      => $t,

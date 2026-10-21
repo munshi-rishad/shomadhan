@@ -5,7 +5,6 @@
 // + the layout's $t, $base, $canEdit, $err, $val, $hidden. View-only staff see just the list.
 ?>
 <h1 class="adm-h1"><?= e($t['adm_menu_offers']) ?></h1>
-<p class="adm-sub"><?= e($t[$canEdit ? 'adm_offers_sub' : 'emp_offers_sub']) ?></p>
 
 <?php /* ---- Add / edit form (only for those who may change this page) ---- */ ?>
 <?php if ($canEdit): ?>
@@ -42,7 +41,7 @@
         <tbody>
         <?php foreach ($offers as $n): ?>
             <tr<?= $n['is_active'] ? '' : ' class="dim"' ?>>
-                <td class="cell-img cell-thumb"><?php if ($n['image']): ?><img class="thumb-square" src="<?= e($n['image']) ?>" alt=""><?php else: ?><span class="thumb-square thumb-none">—</span><?php endif; ?></td>
+                <td class="cell-img cell-thumb"><?php if ($n['image']): ?><img loading="lazy" decoding="async" class="thumb-square" src="<?= e($n['image']) ?>" alt=""><?php else: ?><span class="thumb-square thumb-none">—</span><?php endif; ?></td>
                 <td class="cell-name" data-label="<?= e($t['adm_offer_title']) ?>"><b><?= e($n['title']) ?></b></td>
                 <td data-label="<?= e($t['adm_offer_message']) ?>" class="cell-wrap"><?= e($n['message']) ?></td>
                 <td data-label="<?= e($t['adm_status']) ?>"><span class="pill <?= $n['is_active'] ? 'pill-on' : 'pill-off' ?>"><?= e($n['is_active'] ? $t['adm_shown'] : $t['adm_hidden']) ?></span></td>

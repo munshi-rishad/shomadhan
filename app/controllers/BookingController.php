@@ -37,6 +37,7 @@ class BookingController
             'time'    => '',
             'area'    => $user['area'],
             'address' => (string)($user['address'] ?? ''),
+            'point'   => '',      // phone location "lat, lng" (optional, asked on the page)
             'note'    => '',
             'coupon'  => '',
             'payment' => 'cash',
@@ -104,6 +105,7 @@ class BookingController
                 'scheduled_at'   => $when,
                 'area'           => $old['area'],
                 'address'        => $old['address'],
+                'point'          => parse_point($old['point']),    // wrong / empty = no point (the area's point is used)
                 'note'           => $old['note'] !== '' ? $old['note'] : null,
                 'price'          => (int)$sub['price'],
                 'coupon'         => $coupon,
@@ -151,6 +153,7 @@ class BookingController
             'slots'      => self::SLOTS,
             'minDate'    => date('Y-m-d'),
             'maxDate'    => self::lastDay(),
+            'complaintDays' => (int)HomeContentModel::site()['complaint_days'],
         ];
         view('user/home', $data);
     }
@@ -163,6 +166,10 @@ class BookingController
         $action  = (string)($_POST['action'] ?? '');
         if (!csrf_check($_POST['csrf'] ?? '')) {
             return ['form' => $t['err_csrf']];
+        }
+        // finished work: stars + words (once), or report a problem (within the days set by the office)
+        if ($booking && in_array($action, ['rate', 'complain'], true)) {
+            return self::afterWork($booking, $user, $action, $t);
         }
         if (!$booking || $booking['status'] !== 'pending') {
             return ['form' => $t['bk_err_not_pending']];      // already taken by the office, or not mine
@@ -200,6 +207,50 @@ class BookingController
             $errors['form'] = $t['err_server'];
         }
         return $errors;
+    }
+
+    // ---- After the work: rate it, or report a problem. Saved -> back to the card. Otherwise the error for the page.
+    private static function afterWork(array $booking, array $user, $action, array $t)
+    {
+        $code = BookingModel::code($booking['id']);
+        $back = 'bookings.php?tab=completed#bk-' . (int)$booking['id'];
+        if ($action === 'rate') {
+            $stars  = (int)($_POST['stars'] ?? 0);
+            $review = mb_substr(trim(preg_replace('/\s+/u', ' ', (string)($_POST['review'] ?? ''))), 0, 500, 'UTF-8');
+            if ($stars < 1 || $stars > 5) {
+                return ['form' => $t['rv_err_stars']];
+            }
+            if (!BookingModel::rate($booking['id'], $user['id'], $stars, $review !== '' ? $review : null)) {
+                return ['form' => $t['rv_err_done']];
+            }
+            flash_set('notice', $t['rv_thanks']);
+            redirect($back);
+        }
+        $days = (int)HomeContentModel::site()['complaint_days'];
+        $text = mb_substr(trim(preg_replace('/\s+/u', ' ', (string)($_POST['complaint'] ?? ''))), 0, 500, 'UTF-8');
+        if (mb_strlen($text, 'UTF-8') < 5) {
+            return ['form' => $t['cmp_err_short']];
+        }
+        if (!BookingModel::complain($booking['id'], $user['id'], $text, $days)) {
+            return ['form' => sprintf($t['cmp_err_late'], $days)];
+        }
+        flash_set('notice', sprintf($t['cmp_sent'], $code));
+        redirect($back);
+    }
+
+    // ---- Receipt of a booking (receipt.php?id=N): the user for their own booking, the office for any. Print-friendly page.
+    public function receipt()
+    {
+        $account = require_first_password_done();
+        list($lang, $t) = lang_texts();
+        $id = (int)($_GET['id'] ?? 0);
+        $b = $account['kind'] === 'staff' ? BookingModel::find($id) : BookingModel::findForUser($id, $account['id']);
+        if (!$b || $b['status'] !== 'completed') {
+            flash_set('notice', $t['rc_none']);
+            redirect($account['kind'] === 'staff' ? dashboard_url($account['role']) . '?page=bookings' : 'bookings.php?tab=completed');
+        }
+        view('receipt', ['lang' => $lang, 't' => $t, 'b' => $b, 'site' => HomeContentModel::site(),
+                         'back' => $account['kind'] === 'staff' ? dashboard_url($account['role']) . '?page=bookings&tab=completed' : 'bookings.php?tab=completed']);
     }
 
     // ------------------------------------------------------------ shared helpers

@@ -35,7 +35,7 @@ ul { list-style: none; }
     height: 114%;
     z-index: -1;   /* 114% = box goes above the page, so the photo moves UP (change 114% for more/less) */
     /* phone photo (tall), bottom aligned */
-    background: url('../images/welcome-bg-phone.jpg') 50% 100% / cover no-repeat;
+    background: url('../images/welcome-bg-phone.webp') 50% 100% / cover no-repeat;
     filter: blur(.5px);
     transform: scale(1.01);   /* phone: very light blur */
 }
@@ -282,7 +282,7 @@ h1 .green { color: var(--green); }
     .bg {
         inset: 0;
         height: auto;
-        background-image: url('../images/welcome-bg-pc.jpg');
+        background-image: url('../images/welcome-bg-pc.webp');
         background-position: 50% 30%;
         filter: blur(1.5px);
         transform: scale(1.03);

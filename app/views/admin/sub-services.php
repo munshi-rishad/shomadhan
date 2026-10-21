@@ -6,7 +6,6 @@
 // $pvNames (sub-service id => provider names) + the layout's $t, $base, $old, $err, $val, $hidden.
 ?>
 <h1 class="adm-h1"><?= e($t['adm_menu_subs']) ?></h1>
-<p class="adm-sub"><?= e($t['adm_subs_sub']) ?></p>
 
 <?php /* No category yet: point to the services page first */ ?>
 <?php if (!$services): ?>
@@ -79,7 +78,7 @@
         <tbody>
         <?php foreach ($items as $x): ?>
             <tr>
-                <td class="cell-thumb" data-label="<?= e($t['adm_photo']) ?>"><?php if ($x['image']): ?><img class="thumb-sm" src="<?= e($x['image']) ?>" alt=""><?php else: ?><span class="tile tile-<?= e($x['service_color']) ?>"><img src="<?= e($x['service_icon']) ?>" alt=""></span><?php endif; ?></td>
+                <td class="cell-thumb" data-label="<?= e($t['adm_photo']) ?>"><?php if ($x['image']): ?><img loading="lazy" decoding="async" class="thumb-sm" src="<?= e($x['image']) ?>" alt=""><?php else: ?><span class="tile tile-<?= e($x['service_color']) ?>"><img loading="lazy" decoding="async" src="<?= e($x['service_icon']) ?>" alt=""></span><?php endif; ?></td>
                 <td class="cell-name"><b><?= e($x['name_bn']) ?></b> <small><?= e($x['detail_bn']) ?></small><br><small><?= e($x['name_en']) ?></small></td>
                 <td class="cell-full" data-label="<?= e($t['adm_menu_services']) ?>"><span><?= e($x['service_bn']) ?></span><?php $pn = $pvNames[(int)$x['id']] ?? []; ?><small class="pv-names"><?= e($pn ? $t['adm_menu_providers'] . ': ' . implode(', ', $pn) : $t['pv_none_short']) ?></small></td>
                 <td data-label="<?= e($t['adm_price']) ?>">৳ <?= (int)$x['price'] ?></td>

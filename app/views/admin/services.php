@@ -5,7 +5,6 @@
 // $colors (tile color names) + the layout's $t, $base, $old, $err, $val, $hidden.
 ?>
 <h1 class="adm-h1"><?= e($t['adm_menu_services']) ?></h1>
-<p class="adm-sub"><?= e($t['adm_services_sub']) ?></p>
 
 <?php /* ---- Add / edit form ---- */ ?>
 <?php $s = $edit ?: []; $isEdit = (bool)$edit; ?>
@@ -43,7 +42,7 @@
         <tbody>
         <?php foreach ($services as $i => $row): ?>
             <tr>
-                <td class="cell-thumb" data-label="<?= e($t['adm_logo']) ?>"><span class="tile tile-<?= e($row['color']) ?>"><img src="<?= e($row['icon']) ?>" alt=""></span></td>
+                <td class="cell-thumb" data-label="<?= e($t['adm_logo']) ?>"><span class="tile tile-<?= e($row['color']) ?>"><img loading="lazy" decoding="async" src="<?= e($row['icon']) ?>" alt=""></span></td>
                 <td class="cell-name"><b><?= e($row['name_bn']) ?></b><br><small><?= e($row['name_en']) ?></small></td>
                 <td data-label="<?= e($t['adm_menu_subs']) ?>"><a class="link" href="<?= e($base) ?>?page=sub-services&service=<?= (int)$row['id'] ?>"><?= (int)$row['sub_count'] ?> →</a></td>
                 <td data-label="<?= e($t['adm_order']) ?>"><?php view('partials/order-arrows', [

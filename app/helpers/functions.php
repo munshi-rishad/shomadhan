@@ -199,3 +199,19 @@ function phone_intl($mobile)
     $digits = preg_replace('/\D/', '', (string)$mobile);
     return strpos($digits, '880') === 0 ? $digits : '88' . $digits;
 }
+
+// ---- A point on the map ----
+// "24.7510, 90.4060" (map click, phone location, or copied from Google Maps) -> [lat, lng] rounded to 6 digits.
+// Only points inside Bangladesh are taken; anything else (or empty) -> null.
+function parse_point($text)
+{
+    if (!preg_match('/^\s*(\d{1,2}(?:\.\d+)?)\s*[,\s]\s*(\d{1,3}(?:\.\d+)?)\s*$/', (string)$text, $m)) {
+        return null;
+    }
+    $lat = round((float)$m[1], 6);
+    $lng = round((float)$m[2], 6);
+    if ($lat < 20.5 || $lat > 26.7 || $lng < 88 || $lng > 92.7) {
+        return null;
+    }
+    return [$lat, $lng];
+}

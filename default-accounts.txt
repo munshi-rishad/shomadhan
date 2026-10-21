@@ -35,3 +35,8 @@ ONNO NOMUNA (sample) DATA - search / sort / filter check korar jonno:
    User     : aro 9 jon (mobile 01730000002 - 01730000010), password User@1234
    Sebadata (providers): 10 jon (login nei), 5 ta category te bhag kora
    Kichu account "bondho" (inactive) - oder diye login hobe na.
+
+4) DEMO DATA (kichu data, site cholle kemon dekhay)
+   Users 11-35 (25 jon), providers 11-30 (20 jon), bookings 7-58, taka joger onurodh, chat, notification.
+   Je kono demo user er password: User@1234 (mobile admin > ইউজার তালিকা theke dekhun)
+   Demo bad dite chaile: database/schema.sql er "DEMO DATA" lekha jaygar theke sesh porjonto muche abar setup.bat chalan.
